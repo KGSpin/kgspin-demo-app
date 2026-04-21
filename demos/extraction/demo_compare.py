@@ -463,24 +463,27 @@ _CACHED_GLINER_BACKEND = None
 def _get_bundle(bundle_name: str | None = None, pipeline_id: str | None = None):
     """Load and cache a bundle by name. Defaults to BUNDLE_PATH.
 
-    Sprint 118: If bundle_name is a split domain bundle (exists in .bundles/domains/),
-    uses load_split() with the pipeline_id overlay. Falls back to legacy monolithic load.
+    Split-bundle path (domain + pipeline overlay) is the sole runtime
+    load strategy when a ``bundle_name`` is supplied — admin's
+    ``bundle_compiled`` registry resolves the directory; ``pipeline_id``
+    drives the overlay. The legacy monolithic ``ExtractionBundle.load``
+    branch remains as a fallback for the default (no-bundle-name) case,
+    which still honors module-level ``BUNDLE_PATH``.
     """
     global _CACHED_BUNDLE
 
-    # Sprint 118: Try split bundle path first
-    if bundle_name and DOMAIN_BUNDLES_DIR.is_dir():
-        domain_path = DOMAIN_BUNDLES_DIR / bundle_name
-        if domain_path.is_dir():
-            # Default to emergent pipeline if none specified
-            pid = pipeline_id or "fan-out"
-            return _get_split_bundle(bundle_name, pid)
-
     if bundle_name:
-        bundle_path = resolve_bundle_path(bundle_name)
-    else:
-        bundle_path = BUNDLE_PATH
-        bundle_name = BUNDLE_PATH.name
+        pid = pipeline_id or "fan-out"
+        return _get_split_bundle(bundle_name, pid)
+
+    bundle_path = BUNDLE_PATH
+    if bundle_path is None:
+        raise FileNotFoundError(
+            "No default bundle available: admin has no financial "
+            "bundle_compiled registered. Run `kgspin-admin sync "
+            "archetypes <blueprint>` to register bundles."
+        )
+    bundle_name = BUNDLE_PATH.name
 
     if bundle_name in _bundle_cache:
         return _bundle_cache[bundle_name]

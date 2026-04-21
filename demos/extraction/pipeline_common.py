@@ -50,6 +50,12 @@ BUNDLES_DIR = PROJECT_ROOT / ".bundles"
 # Sprint 118: Split bundle directories
 DOMAIN_BUNDLES_DIR = BUNDLES_DIR / "domains"
 DOMAIN_YAMLS_DIR = PROJECT_ROOT / "bundles" / "domains"
+# NOTE: these path constants are retained for backwards-compat with
+# ancillary tooling (overnight batches, test fixtures). Runtime bundle
+# resolution in this module goes through admin — see list_bundles() and
+# resolve_* below. No filesystem fallback: admin is the sovereign
+# registry for bundle_compiled + bundle_source_yaml. A misconfigured
+# admin raises, never silently degrades to disk.
 
 # W1-D (ADR-003 §5): pipeline configs are resolved via admin's PipelineResolver.
 # The on-disk PIPELINE_CONFIGS_DIR is gone — see resolve_pipeline_config below.
@@ -61,149 +67,109 @@ DEFAULT_ADMIN_URL = "http://127.0.0.1:8750"
 _DEFAULT_BUNDLE = os.getenv("KGEN_DEFAULT_BUNDLE", "")
 
 
-def list_bundles(domain: str = "financial") -> list[str]:
-    """List available bundle versions for a domain, newest first.
+def _admin_list(kind: str, **params: str) -> list[dict]:
+    """GET admin's ``/resources?kind=<kind>`` and return the resource list.
 
-    Discovers both standard bundles (``financial-v1.8.0``) and variant
-    bundles (``financial-fast-v1.0.0``). Sorted by compilation date
-    (newest first), falling back to alphabetical for bundles without
-    a compiled_at timestamp.
+    Raises on admin-side failure — no silent fallback. Callers get a
+    structured ``AdminServiceUnreachableError`` that the demo surfaces
+    as a 500 with an actionable operator message.
     """
     import json as _json
+    import urllib.error
+    import urllib.parse
+    import urllib.request
 
-    dirs = [c for c in BUNDLES_DIR.glob(f"{domain}-*") if c.is_dir()]
-    # Also search .bundles/domains/ (Sprint 125: new canonical location)
-    if DOMAIN_BUNDLES_DIR.is_dir():
-        dirs.extend(c for c in DOMAIN_BUNDLES_DIR.glob(f"{domain}-*") if c.is_dir())
+    from kgspin_core.registry_client import AdminServiceUnreachableError
 
-    def _compiled_at(d):
-        try:
-            with open(d / "bundle.json") as f:
-                return _json.load(f).get("compiled_at", "")
-        except Exception:
-            return ""
+    qs = urllib.parse.urlencode({"kind": kind, **params})
+    url = f"{_admin_url()}/resources?{qs}"
+    try:
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            payload = _json.loads(resp.read().decode("utf-8"))
+    except urllib.error.URLError as exc:
+        raise AdminServiceUnreachableError(
+            f"admin unreachable at {url}: {exc}"
+        ) from exc
 
-    dirs.sort(key=lambda d: (_compiled_at(d), d.name), reverse=True)
-    return [d.name for d in dirs]
+    items = payload.get("resources") if isinstance(payload, dict) else payload
+    if not isinstance(items, list):
+        return []
+    return [item for item in items if isinstance(item, dict)]
 
 
-def _registry_bundles_or_none(domain: str) -> list[dict] | None:
-    """Sprint 10 Task 5: try reading BUNDLE_COMPILED resources from admin.
+def _bundle_name_from_pointer(resource: dict) -> str:
+    """Derive the user-facing bundle name from a ``bundle_compiled`` resource.
 
-    Returns a list of dicts in the ``list_bundle_options`` ``domains``
-    schema — ``{domain_id, version, compiled_at, description}`` — when
-    at least one compiled bundle is registered for the domain. Returns
-    ``None`` on zero results or any registry-side error.
-
-    TODO(sprint-10-task-5): this fallback-only integration ships ahead
-    of the archetypes Sprint 02 cutover. Rip-out criteria documented in
-    ``docs/sprints/sprint-10/sprint-plan.md#task-5``:
-      (a) ``client.list(BUNDLE_COMPILED, domain="financial")`` returns
-          >=1 Resource with ``metadata.name == "financial-v2"`` in prod.
-      (b) same for ``clinical-v2``.
-      (c) ``resolve_pointer(id)`` returns a readable ``FilePointer``.
-      (d) archetypes team announces GA via their Sprint 02 dev report.
+    Admin stores pointer at ``<tree>/<bundle-name>/bundle.json``. The
+    ``<bundle-name>`` directory (e.g. ``financial-v2``) is what the UI
+    shows and what on-disk bundles historically used. Empty string if
+    the pointer is malformed.
     """
-    try:
-        from kgspin_demo_app.registry_http import HttpResourceRegistryClient
-        from kgspin_interface.registry_client import ResourceKind
-    except Exception:
-        return None
-    try:
-        client = HttpResourceRegistryClient()
-        resources = client.list(ResourceKind.BUNDLE_COMPILED, domain=domain)
-    except Exception:
-        return None
-    if not resources:
-        return None
-    out: list[dict] = []
-    for r in resources:
-        meta = r.metadata or {}
-        out.append({
-            "domain_id": meta.get("name") or r.id,
-            "version": meta.get("version", ""),
-            "compiled_at": (r.provenance.registered_at.isoformat()
-                            if r.provenance and r.provenance.registered_at
-                            else ""),
-            "description": meta.get("description", ""),
-        })
-    return out
+    pointer = resource.get("pointer") or {}
+    value = pointer.get("value", "")
+    if not value:
+        return ""
+    path = Path(value)
+    # pointer points at bundle.json; its parent dir carries the bundle name.
+    return path.parent.name
+
+
+def list_bundles(domain: str = "financial") -> list[str]:
+    """List compiled bundle names registered in admin for ``domain``.
+
+    Sorted newest-first by admin's registration timestamp (fallback to
+    alphabetical). Raises ``AdminServiceUnreachableError`` if admin
+    can't be reached — there is no filesystem fallback.
+    """
+    resources = _admin_list("bundle_compiled", domain=domain)
+
+    def _registered_at(r: dict) -> str:
+        prov = r.get("provenance") or {}
+        return prov.get("registered_at", "")
+
+    resources.sort(
+        key=lambda r: (_registered_at(r), _bundle_name_from_pointer(r)),
+        reverse=True,
+    )
+    return [_bundle_name_from_pointer(r) for r in resources if _bundle_name_from_pointer(r)]
 
 
 def list_bundle_options(domain: str = "financial") -> dict:
-    """Return bundle options for the UI: split domains + pipelines + legacy bundles.
+    """Return bundle options for the UI dropdown.
 
-    Sprint 118: Discovers split domain bundles from ``.bundles/domains/`` and
-    pipeline configs from ``bundles/pipelines/``. Also includes legacy monolithic
-    bundles for backward compatibility.
-
-    Returns::
-
-        {
-            "domains": [
-                {"domain_id": "financial-v12", "version": "v12", "compiled_at": "..."},
-                ...
-            ],
-            "pipelines": [
-                {"pipeline_id": "emergent", "name": "emergent", "strategy": "emergent"},
-                ...
-            ],
-            "default_domain_id": "financial-v12",
-            "default_pipeline_id": "emergent",
-            # Legacy fields for backward compat
-            "strategies": [...],
-            "linguistics": [...],
-            "bundles": [...],
-            "default_bundle_id": "..."
-        }
+    Admin-only. Raises ``AdminServiceUnreachableError`` if admin is down
+    — no silent disk fallback. Output shape preserved for UI code that
+    still reads the ``strategies`` / ``linguistics`` / ``bundles`` legacy
+    fields (populated empty when only the split format is available).
     """
-    import json as _json
     import logging as _logging
-    import yaml as _yaml
 
     _log = _logging.getLogger(__name__)
 
-    # --- Sprint 10 Task 5: prefer registry-registered compiled bundles ---
-    # [CTO-AMEND-1] Canonical names from kgspin-blueprint are
-    # ``financial-v2`` and ``clinical-v2``. Until archetypes Sprint 02
-    # publishes compiled bundles, the registry lookup returns zero and
-    # we fall through silently to the on-disk scan below.
-    registry_domains = _registry_bundles_or_none(domain)
+    # Split-format domains sourced from admin's bundle_compiled registry.
+    resources = _admin_list("bundle_compiled", domain=domain)
 
-    # --- Sprint 118: Discover split domain bundles ---
-    domains = []
-    if DOMAIN_BUNDLES_DIR.is_dir():
-        for d in DOMAIN_BUNDLES_DIR.glob(f"{domain}-*"):
-            if not d.is_dir():
-                continue
-            try:
-                with open(d / "bundle.json") as f:
-                    meta = _json.load(f)
-            except Exception:
-                continue
-            version = meta.get("version", d.name)
-            compiled_at = meta.get("compiled_at", "")
-            domains.append({
-                "domain_id": d.name,
-                "version": version,
-                "compiled_at": compiled_at,
-                "description": meta.get("description", ""),
-            })
-    # Sort: highest version first (numeric sort for vN format)
+    domains: list[dict] = []
+    for r in resources:
+        name = _bundle_name_from_pointer(r)
+        if not name:
+            continue
+        meta = r.get("metadata") or {}
+        prov = r.get("provenance") or {}
+        domains.append({
+            "domain_id": name,
+            "version": name,
+            "compiled_at": prov.get("registered_at", ""),
+            "description": meta.get("description", ""),
+        })
+
     def _version_sort_key(d):
-        v = d["version"]
-        # Extract numeric part from "vN" or "vN.N" format
         import re as _re
-        m = _re.search(r'(\d+)', v)
+        m = _re.search(r'(\d+)', d["version"])
         return int(m.group(1)) if m else 0
-    domains.sort(key=_version_sort_key, reverse=True)
 
-    # Sprint 10 Task 5 continued: registry wins when non-empty.
-    if registry_domains:
-        _log.info("bundle options source=registry count=%d", len(registry_domains))
-        domains = registry_domains
-    else:
-        _log.info("bundle options source=disk count=%d", len(domains))
+    domains.sort(key=_version_sort_key, reverse=True)
+    _log.info("bundle options source=admin count=%d", len(domains))
 
     # W1-D (ADR-003 §5): pipelines come from admin's registry, not the
     # filesystem. list_available_pipelines() handles admin-down gracefully
@@ -214,97 +180,76 @@ def list_bundle_options(domain: str = "financial") -> dict:
     ]
 
     default_domain_id = domains[0]["domain_id"] if domains else ""
-    default_pipeline_id = "emergent" if any(p["pipeline_id"] == "emergent" for p in pipelines) else (pipelines[0]["pipeline_id"] if pipelines else "")
+    default_pipeline_id = pipelines[0]["pipeline_id"] if pipelines else ""
 
-    # --- Legacy: monolithic bundles (backward compat) ---
-    dirs = [c for c in BUNDLES_DIR.glob(f"{domain}-*") if c.is_dir()]
-    bundles = []
-    strategies = set()
-    linguistics = set()
-
-    for d in dirs:
-        try:
-            with open(d / "bundle.json") as f:
-                meta = _json.load(f)
-        except Exception:
-            continue
-
-        strategy = meta.get("execution_strategy", "default")
-        linguistic = meta.get("linguistic_schema", "")
-        compiled_at = meta.get("compiled_at", "")
-
-        if not linguistic:
-            import re as _re
-            version = meta.get("version", "")
-            linguistic = _re.sub(r"-(structural|emergent|default|fast)$", "", version)
-
-        if not linguistic:
-            continue
-
-        strategies.add(strategy)
-        linguistics.add(linguistic)
-        bundles.append({
-            "bundle_id": d.name,
-            "strategy": strategy,
-            "linguistic": linguistic,
-            "compiled_at": compiled_at,
-        })
-
-    bundles.sort(key=lambda b: (b["compiled_at"], b["bundle_id"]), reverse=True)
-
-    default_id = ""
-    if _DEFAULT_BUNDLE:
-        default_id = _DEFAULT_BUNDLE
-    elif bundles:
-        default_id = bundles[0]["bundle_id"]
+    default_id = _DEFAULT_BUNDLE or default_domain_id
 
     return {
-        # Sprint 118: Split format
         "domains": domains,
         "pipelines": pipelines,
         "default_domain_id": default_domain_id,
         "default_pipeline_id": default_pipeline_id,
-        # Legacy fields
-        "strategies": sorted(strategies),
-        "linguistics": sorted(linguistics, reverse=True),
-        "bundles": bundles,
+        "strategies": [],
+        "linguistics": [],
+        "bundles": [],
         "default_bundle_id": default_id,
     }
 
 
 def resolve_bundle_path(name: str) -> Path:
-    """Resolve a bundle name (e.g. 'financial-v1.3.0') to its full path.
+    """Resolve a compiled bundle name to its on-disk directory via admin.
 
-    Sprint 118: Also checks ``.bundles/domains/`` for split domain bundles.
+    Queries admin for ``bundle_compiled`` resources, matches on the
+    pointer's enclosing directory name, and returns that directory.
+    Raises ``FileNotFoundError`` if admin has no matching registration.
     """
-    path = BUNDLES_DIR / name
-    if path.is_dir():
-        return path
-    # Sprint 118: Check split domain bundles directory
-    domain_path = DOMAIN_BUNDLES_DIR / name
-    if domain_path.is_dir():
-        return domain_path
-    raise FileNotFoundError(f"Bundle not found: {path}")
+    # Bundle names encode the domain class prefix (``financial-v2`` →
+    # ``financial``). Use the prefix to scope the admin query.
+    domain = name.split("-", 1)[0] if "-" in name else name
+    resources = _admin_list("bundle_compiled", domain=domain)
+    for r in resources:
+        if _bundle_name_from_pointer(r) != name:
+            continue
+        pointer = r.get("pointer") or {}
+        value = pointer.get("value", "")
+        if not value:
+            continue
+        return Path(value).parent
+    raise FileNotFoundError(
+        f"Bundle {name!r} not registered in admin at {_admin_url()}. "
+        f"Run `kgspin-admin sync archetypes <blueprint>` to register it."
+    )
 
 
 def resolve_domain_bundle_path(domain_id: str) -> Path:
-    """Resolve a domain bundle (e.g. 'financial-v12') to its compiled path."""
-    path = DOMAIN_BUNDLES_DIR / domain_id
-    if not path.is_dir():
-        raise FileNotFoundError(f"Domain bundle not found: {path}")
-    return path
+    """Resolve a split-format domain bundle to its compiled directory via admin.
+
+    Equivalent to ``resolve_bundle_path`` today — kept as a named entry
+    point because callers express intent when resolving split bundles.
+    """
+    return resolve_bundle_path(domain_id)
 
 
 def resolve_domain_yaml_path(domain_id: str) -> Path:
-    """Resolve a domain YAML source file (e.g. 'financial-v12' → bundles/domains/financial-v12.yaml).
+    """Resolve a domain source YAML via admin's bundle_source_yaml registry.
 
-    Sprint 118: Used by LLM extractors to build prompts with domain-specific
-    entity types and relationship patterns.
+    Matches by pointer filename stem (e.g. ``financial-v2.yaml`` ↔
+    ``domain_id='financial-v2'``). Raises ``FileNotFoundError`` if
+    admin has no registration for the requested stem.
     """
-    path = DOMAIN_YAMLS_DIR / f"{domain_id}.yaml"
-    if path.is_file():
-        return path
-    raise FileNotFoundError(f"Domain YAML not found: {path}")
+    domain = domain_id.split("-", 1)[0] if "-" in domain_id else domain_id
+    resources = _admin_list("bundle_source_yaml", domain=domain)
+    for r in resources:
+        pointer = r.get("pointer") or {}
+        value = pointer.get("value", "")
+        if not value:
+            continue
+        if Path(value).stem == domain_id:
+            return Path(value)
+    raise FileNotFoundError(
+        f"Domain YAML {domain_id!r} not registered in admin at {_admin_url()}. "
+        f"Run `kgspin-admin sync archetypes <blueprint>` to register it."
+    )
 
 
 _pipeline_resolver = None
@@ -365,46 +310,38 @@ def list_available_pipelines() -> list[str]:
 
 
 def _resolve_latest_bundle(domain: str = "financial") -> Path:
-    """Find the latest versioned bundle directory for a domain."""
+    """Return the newest compiled bundle directory for ``domain`` via admin."""
     names = list_bundles(domain)
     if not names:
-        raise FileNotFoundError(f"No bundles found matching {domain}-v* in {BUNDLES_DIR}")
-    name = names[0]
-    # Check domains/ first (canonical location), then root (legacy)
-    domain_path = DOMAIN_BUNDLES_DIR / name
-    if domain_path.is_dir():
-        return domain_path
-    return BUNDLES_DIR / name
+        raise FileNotFoundError(
+            f"No {domain!r} bundles registered in admin at {_admin_url()}. "
+            f"Run `kgspin-admin sync archetypes <blueprint>` to register them."
+        )
+    return resolve_bundle_path(names[0])
 
 
 def _resolve_default_bundle(domain: str = "financial") -> Path:
-    """Resolve the default bundle, respecting KGEN_DEFAULT_BUNDLE env var."""
+    """Resolve the default bundle via admin, honoring KGEN_DEFAULT_BUNDLE."""
     if _DEFAULT_BUNDLE:
-        # Check domains/ first (canonical), then root (legacy)
-        domain_pinned = DOMAIN_BUNDLES_DIR / _DEFAULT_BUNDLE
-        if domain_pinned.is_dir():
-            return domain_pinned
-        pinned = BUNDLES_DIR / _DEFAULT_BUNDLE
-        if not pinned.is_dir():
-            raise FileNotFoundError(
-                f"Pinned bundle not found: {_DEFAULT_BUNDLE}. "
-                f"Available: {list_bundles(domain)}"
-            )
-        return pinned
+        return resolve_bundle_path(_DEFAULT_BUNDLE)
     return _resolve_latest_bundle(domain)
 
 
-# INIT-001 Sprint 01: Guard module-level bundle resolution so the server can boot
-# without compiled bundles on disk. Downstream code that actually uses BUNDLE_PATH
-# will fail loudly at call time; that's Sprint 02 scope (bundle/corpus wiring).
+# Module-level default bundle resolution: admin-only. If admin is down
+# or hasn't registered any financial bundles at import time, the demo
+# boots with BUNDLE_PATH=None — the split-bundle path (UI-driven
+# domain+pipeline selection) keeps working, and downstream call sites
+# that actually require the default bundle raise a clear error.
 try:
     BUNDLE_PATH = _resolve_default_bundle("financial")
-except FileNotFoundError as _bundle_err:
+except (FileNotFoundError, Exception) as _bundle_err:
     import logging as _logging
     _logging.getLogger(__name__).warning(
-        "No financial bundles found at %s — demo will boot without a default bundle. "
-        "Extraction endpoints will fail until bundles are compiled (Sprint 02). Error: %s",
-        BUNDLES_DIR, _bundle_err,
+        "No financial bundle resolved at import — admin at %s reports no "
+        "matching bundle_compiled resource. Split-bundle UI paths still "
+        "work; endpoints that rely on the module-level default will "
+        "raise at call time. Error: %s",
+        _admin_url(), _bundle_err,
     )
     BUNDLE_PATH = None  # type: ignore[assignment]
 # Prefer tuned YAML if it exists, otherwise fall back to sample patterns
