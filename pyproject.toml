@@ -1,0 +1,81 @@
+[project]
+name = "kgspin-demo-app"
+version = "0.1.0"
+description = "KGSpin Demo — application layer (Layer 3): compare UI, landers, FastAPI services, benchmarks"
+requires-python = ">=3.11"
+dependencies = [
+    "kgspin-interface>=0.5.0,<1.0",  # DocumentFetcher ABC + FetchResult + Pointer types.
+    "kgspin-core[gemini]",
+    # Plugin deps consolidated into kgspin-core; data acquisition is the
+    # landers in src/kgspin_demo_app/landers/, and extractor-side plugin
+    # execution (xbrl scrubbing etc.) is consumed via kgspin-core.
+    "fastapi>=0.100",
+    "uvicorn>=0.20",
+    "beautifulsoup4>=4.12",
+    "numpy>=1.26",
+    "requests>=2.31",  # used by landers for HTTP fetches
+    "tenacity>=8.0",   # used by landers for retry/backoff
+    "feedparser>=6.0", # used by landers for RSS feeds
+    "httpx>=0.27",     # HttpResourceRegistryClient
+    "pydantic-settings>=2.2",  # ADR-001: YAML-backed settings
+]
+# GLiREL is the optional zero-shot relation extractor used by the KGSpin
+# Base / Emergent / Structural pipelines. kgspin-core gracefully degrades
+# without it ("GLiREL not available; skipping GLiREL head" warnings).
+#
+# DELIBERATELY NOT INSTALLED via this pyproject. The current PyPI release
+# (glirel 1.2.1) ships a broken HuggingFaceHub mixin: its `_from_pretrained`
+# declares `proxies` and `resume_download` as keyword-only required
+# parameters with no defaults, but every recent `huggingface-hub` release
+# has removed those from the `from_pretrained` dispatch chain. Result:
+# `GLiREL.from_pretrained(model_name)` raises
+#   TypeError: GLiREL._from_pretrained() missing 2 required keyword-only
+#   arguments: 'proxies' and 'resume_download'
+# ...on EVERY model load attempt. Until upstream `glirel` adds defaults
+# to those kwargs, the demo runs in degraded-recall mode (relation
+# extraction without GLiREL head). To re-enable when fixed:
+#   uv pip install glirel
+# and verify the smoke
+#   from glirel import GLiREL
+#   GLiREL.from_pretrained('jackboyla/glirel-large-v0')
+# succeeds.
+#
+# spaCy itself is pulled in transitively via kgspin-core. The `en_core_web_sm`
+# language model is NOT declared as a dep — wiring it as a URL source through
+# [tool.uv.sources] exposes the venv to GitHub CDN 504s on every `uv run`.
+# Install the model once after sync via:
+#   uv run python -m spacy download en_core_web_sm
+
+[project.optional-dependencies]
+dev = ["pytest>=9.0"]
+test = [
+    "pytest>=9.0",
+    "pytest-httpx>=0.30",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+kgspin-demo-lander-sec = "kgspin_demo_app.landers.sec:main"
+kgspin-demo-lander-clinical = "kgspin_demo_app.landers.clinical:main"
+kgspin-demo-lander-marketaux = "kgspin_demo_app.landers.marketaux:main"
+kgspin-demo-lander-yahoo-rss = "kgspin_demo_app.landers.yahoo_rss:main"
+kgspin-demo-lander-newsapi = "kgspin_demo_app.landers.newsapi:main"
+kgspin-demo-register-fetchers = "kgspin_demo_app.cli.register_fetchers:main"
+kgspin-demo-generate-clinical-gold = "kgspin_demo_app.services.clinical_gold:main"
+
+[tool.uv.sources]
+kgspin-interface = { path = "../kgspin-interface", editable = true }
+kgspin-core = { path = "../kgspin-core", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kgspin_demo_app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Make `uv run pytest` work without `python -m` by ensuring src/ is
+# importable when pytest resolves the rootdir. Matches the src-layout
+# hatchling build.
+pythonpath = ["src"]

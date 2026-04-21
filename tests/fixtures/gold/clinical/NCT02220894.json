@@ -1,0 +1,519 @@
+{
+  "nct_id": "NCT02220894",
+  "trial_title": "A Randomized, Open Label, Phase III Study of Overall Survival Comparing Pembrolizumab (MK-3475) Versus Platinum Based Chemotherapy in Treatment Na\u00efve Subjects With PD-L1 Positive Advanced or Metastatic Non-Small Cell Lung Cancer (Keynote 042)",
+  "gold_triples": [
+    {
+      "subject_text": "Merck Sharp & Dohme LLC",
+      "subject_type": "ORGANIZATION",
+      "predicate": "sponsors",
+      "object_text": "NCT02220894",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "sponsor",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "pembrolizumab",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT02220894",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "pembrolizumab",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Non-small Cell Lung Cancer",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "carboplatin",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT02220894",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "carboplatin",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Non-small Cell Lung Cancer",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "paclitaxel",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT02220894",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "paclitaxel",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Non-small Cell Lung Cancer",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "pemetrexed",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT02220894",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "pemetrexed",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Non-small Cell Lung Cancer",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT02220894",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "studies",
+      "object_text": "Non-small Cell Lung Cancer",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT02220894",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_phase",
+      "object_text": "PHASE3",
+      "object_type": "PHASE",
+      "source": "ClinicalTrials.gov",
+      "source_field": "phase",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT02220894",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_status",
+      "object_text": "COMPLETED",
+      "object_type": "STATUS",
+      "source": "ClinicalTrials.gov",
+      "source_field": "status",
+      "confidence": 1.0
+    }
+  ],
+  "input_documents": [
+    {
+      "pmid": "30955977",
+      "pmcid": null,
+      "title": "Pembrolizumab versus chemotherapy for previously untreated, PD-L1-expressing, locally advanced or metastatic non-small-cell lung cancer (KEYNOTE-042): a randomised, open-label, controlled, phase 3 trial.",
+      "text": "Pembrolizumab versus chemotherapy for previously untreated, PD-L1-expressing, locally advanced or metastatic non-small-cell lung cancer (KEYNOTE-042): a randomised, open-label, controlled, phase 3 trial.\n\nBACKGROUND: First-line pembrolizumab monotherapy improves overall and progression-free survival in patients with untreated metastatic non-small-cell lung cancer with a programmed death ligand 1 (PD-L1) tumour proportion score (TPS) of 50% or greater. We investigated overall survival after treatment with pembrolizumab monotherapy in patients with a PD-L1 TPS of 1% or greater.\nMETHODS: This randomised, open-label, phase 3 study was done in 213 medical centres in 32 countries. Eligible patients were adults (\u226518 years) with previously untreated locally advanced or metastatic non-small-cell lung cancer without a sensitising EGFR mutation or ALK translocation and with an Eastern Cooperative Oncology Group (ECOG) performance status score of 0 or 1, life expectancy 3 months or longer, and a PD-L1 TPS of 1% or greater. Randomisation was computer generated, accessed via an interactive voice-response and integrated web-response system, and stratified by region of enrolment (east Asia vs rest of world), ECOG performance status score (0 vs 1), histology (squamous vs non-squamous), and PD-L1 TPS (\u226550% vs 1-49%). Enrolled patients were randomly assigned 1:1 in blocks of four per stratum to receive pembrolizumab 200 mg every 3 weeks for up to 35 cycles or the investigator's choice of platinum-based chemotherapy for four to six cycles. Primary endpoints were overall survival in patients with a TPS of 50% or greater, 20% or greater, and 1% or greater (one-sided significance thresholds, p=0\u00b70122, p=0\u00b70120, and p=0\u00b70124, respectively) in the intention-to-treat population, assessed sequentially if the previous findings were significant. This study is registered at ClinicalTrials.gov, number NCT02220894.\nFINDINGS: From Dec 19, 2014, to March 6, 2017, 1274 patients (902 men, 372 women, median age 63 years [IQR 57-69]) with a PD-L1 TPS of 1% or greater were allocated to pembrolizumab (n=637) or chemotherapy (n=637) and included in the intention-to-treat population. 599 (47%) had a TPS of 50% or greater and 818 patients (64%) had a TPS of 20% or greater. As of Feb 26, 2018, median follow-up was 12\u00b78 months. Overall survival was significantly longer in the pembrolizumab group than in the chemotherapy group in all three TPS populations (\u226550% hazard ratio 0\u00b769, 95% CI 0\u00b756-0\u00b785, p=0\u00b70003; \u226520% 0\u00b777, 0\u00b764-0\u00b792, p=0\u00b70020, and \u22651% 0\u00b781, 0\u00b771-0\u00b793, p=0\u00b70018). The median surival values by TPS population were 20\u00b70 months (95% CI 15\u00b74-24\u00b79) for pembrolizumab versus 12\u00b72 months (10\u00b74-14\u00b72) for chemotherapy, 17\u00b77 months (15\u00b73-22\u00b71) versus 13\u00b70 months (11\u00b76-15\u00b73), and 16\u00b77 months (13\u00b79-19\u00b77) versus 12\u00b71 months (11\u00b73-13\u00b73), respectively. Treatment-related adverse events of grade 3 or worse occurred in 113 (18%) of 636 treated patients in the pembrolizumab group and in 252 (41%) of 615 in the chemotherapy group and led to death in 13 (2%) and 14 (2%) patients, respectively.\nINTERPRETATION: The benefit-to-risk profile suggests that pembrolizumab monotherapy can be extended as first-line therapy to patients with locally advanced or metastatic non-small-cell lung cancer without sensitising EGFR or ALK alterations and with low PD-L1 TPS.\nFUNDING: Merck Sharp & Dohme.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Mok Tony S K",
+          "affiliation": "Department of Clinical Oncology, State Key Laboratory of South China, Chinese University of Hong Kong, Shatin, Hong Kong Special Administrative Region, China. Electronic address: tony@clo.cuhk.edu.hk."
+        },
+        {
+          "name": "Wu Yi-Long",
+          "affiliation": "Department of Pulmonary Oncology, Guangdong Lung Cancer Institute, Guangdong General Hospital and Guangdong Academy of Medical Sciences, Guandong, China."
+        },
+        {
+          "name": "Kudaba Iveta",
+          "affiliation": "Department of Internal Diseases, Riga East Clinical University-Latvian Oncology Center, Riga, Latvia."
+        },
+        {
+          "name": "Kowalski Dariusz M",
+          "affiliation": "Department of Lung Cancer and Chest Tumours, Maria Sklodowska-Curie Memorial Cancer Centre and Institute of Oncology, Warsaw, Poland."
+        },
+        {
+          "name": "Cho Byoung Chul",
+          "affiliation": "Division of Medical Oncology, Yonsei Cancer Center, Seoul, South Korea."
+        },
+        {
+          "name": "Turna Hande Z",
+          "affiliation": "Department of Internal Medicine, Division of Medical Oncology, Istanbul University Cerrahpasa Medical Faculty, Istanbul, Turkey."
+        },
+        {
+          "name": "Castro Gilberto",
+          "affiliation": "Department of Medical Oncology, Instituto do C\u00e2ncer do Estado de S\u00e3o Paulo, S\u00e3o Paulo, Brazil."
+        },
+        {
+          "name": "Srimuninnimit Vichien",
+          "affiliation": "Division of Medical Oncology, Department of Medicine, Siriraj Hospital, Bangkok, Thailand."
+        },
+        {
+          "name": "Laktionov Konstantin K",
+          "affiliation": "Department of Thoracic and Abdominal Oncology, N N Blokhin Russian Cancer Research Center, Moscow, Russia."
+        },
+        {
+          "name": "Bondarenko Igor",
+          "affiliation": "Oncology and Medical Radiology Department, Dnipropetrovsk Medical Academy, Dnipro, Ukraine."
+        },
+        {
+          "name": "Kubota Kaoru",
+          "affiliation": "Department of Pulmonary Medicine and Oncology, Nippon Medical School Hospital, Tokyo, Japan."
+        },
+        {
+          "name": "Lubiniecki Gregory M",
+          "affiliation": "Global Clinical Development, Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Zhang Jin",
+          "affiliation": "Biostatistics and Research Design Statistics, Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Kush Debra",
+          "affiliation": "Global Clinical Development, Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Lopes Gilberto",
+          "affiliation": "Department of Medical Oncology, Sylvester Comprehensive Cancer Center at the University of Miami, Miami, FL, USA."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Anaplastic Lymphoma Kinase",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Combined Chemotherapy Protocols",
+        "B7-H1 Antigen",
+        "Carcinoma, Non-Small-Cell Lung",
+        "Disease-Free Survival",
+        "Drug Administration Schedule",
+        "Asia, Eastern",
+        "Female",
+        "Genes, erbB-1",
+        "Humans",
+        "Lung Neoplasms",
+        "Male",
+        "Middle Aged",
+        "Mutation",
+        "Neoplasm Metastasis",
+        "Translocation, Genetic"
+      ]
+    },
+    {
+      "pmid": "36306479",
+      "pmcid": "PMC6768611",
+      "title": "Five-Year Outcomes With Pembrolizumab Versus Chemotherapy as First-Line Therapy in Patients With Non-Small-Cell Lung Cancer and Programmed Death Ligand-1 Tumor Proportion Score \u2265 1% in the KEYNOTE-042 Study.",
+      "text": "Five-Year Outcomes With Pembrolizumab Versus Chemotherapy as First-Line Therapy in Patients With Non-Small-Cell Lung Cancer and Programmed Death Ligand-1 Tumor Proportion Score \u2265 1% in the KEYNOTE-042 Study.\n\n",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "de Castro Gilberto",
+          "affiliation": "Instituto do C\u00e2ncer do Estado de S\u00e3o Paulo, S\u00e3o Paulo, Brazil."
+        },
+        {
+          "name": "Kudaba Iveta",
+          "affiliation": "Latvian Oncology Center, Riga East Clinical University, Riga, Latvia."
+        },
+        {
+          "name": "Wu Yi-Long",
+          "affiliation": "Guangdong Lung Cancer Institute, Guangdong Provinicial People's Hospital and Guangdong Academy of Medical Sciences, Guandong, China."
+        },
+        {
+          "name": "Lopes Gilberto",
+          "affiliation": "Department of Medical Oncology, Sylvester Comprehensive Cancer Center at the University of Miami, FL."
+        },
+        {
+          "name": "Kowalski Dariusz M",
+          "affiliation": "Department of Lung Cancer and Chest Tumours, Maria Sklodowska-Curie National Research Institute of Oncology, Warsaw, Poland."
+        },
+        {
+          "name": "Turna Hande Z",
+          "affiliation": "Department of Internal Medicine, Istanbul University-Cerrahpasa, Cerrahpasa Medical Faculty, Istanbul, Turkey."
+        },
+        {
+          "name": "Caglevic Christian",
+          "affiliation": "Cancer Research Department, Instituto Oncol\u00f3gico Fundaci\u00f3n Arturo L\u00f3pez P\u00e9rez, Santiago, Chile."
+        },
+        {
+          "name": "Zhang Li",
+          "affiliation": "Peking Union Medical College Hospital, Beijing, China."
+        },
+        {
+          "name": "Karaszewska Boguslawa",
+          "affiliation": "Przychodnia Lekarska KOMED, Konin, Poland."
+        },
+        {
+          "name": "Laktionov Konstantin K",
+          "affiliation": "Federal State Budgetary Institution, \"N.N. Blokhin National Medical Research Center of Oncology\" of the Ministry of Health of the Russian Federation (N.N. Blokhin NMRCO), Moscow, Russia."
+        },
+        {
+          "name": "Srimuninnimit Vichien",
+          "affiliation": "Department of Medicine, Siriraj Hospital, Bangkok, Thailand."
+        },
+        {
+          "name": "Bondarenko Igor",
+          "affiliation": "Oncology and Medical Radiology Department, Dnipro State Medical Academy, Dnipro, Ukraine."
+        },
+        {
+          "name": "Kubota Kaoru",
+          "affiliation": "Department of Pulmonary Medicine and Oncology, Nippon Medical School Hospital, Tokyo, Japan."
+        },
+        {
+          "name": "Mukherjee Rinee",
+          "affiliation": "Merck & Co, Inc, Rahway, NJ."
+        },
+        {
+          "name": "Lin Jianxin",
+          "affiliation": "Merck & Co, Inc, Rahway, NJ."
+        },
+        {
+          "name": "Souza Fabricio",
+          "affiliation": "Merck & Co, Inc, Rahway, NJ."
+        },
+        {
+          "name": "Mok Tony S K",
+          "affiliation": "Clinical Oncology, State Key Laboratory of Translational Oncology, Chinese University of Hong Kong, Shatin, Hong Kong, China."
+        },
+        {
+          "name": "Cho Byoung Chul",
+          "affiliation": "Division of Medical Oncology, Yonsei Cancer Center, Yonsei University College of Medicine, Seoul, Republic of Korea."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Carcinoma, Non-Small-Cell Lung",
+        "B7-H1 Antigen",
+        "Lung Neoplasms",
+        "Pemetrexed",
+        "Carboplatin",
+        "Paclitaxel",
+        "Antineoplastic Combined Chemotherapy Protocols",
+        "ErbB Receptors",
+        "Receptor Protein-Tyrosine Kinases",
+        "Antibodies, Monoclonal, Humanized"
+      ]
+    },
+    {
+      "pmid": "33231285",
+      "pmcid": "PMC5994501",
+      "title": "Randomized clinical trial of pembrolizumab vs chemotherapy for previously untreated Chinese patients with PD-L1-positive locally advanced or metastatic non-small-cell lung cancer: KEYNOTE-042 China Study.",
+      "text": "Randomized clinical trial of pembrolizumab vs chemotherapy for previously untreated Chinese patients with PD-L1-positive locally advanced or metastatic non-small-cell lung cancer: KEYNOTE-042 China Study.\n\nIn the global KEYNOTE-042 study (Clinicaltrials.gov, NCT02220894), pembrolizumab significantly improved overall survival (OS) vs chemotherapy in patients with previously untreated programmed death ligand 1 (PD-L1)-positive locally advanced/metastatic non-small-cell lung cancer (NSCLC) without EGFR/ALK alterations. We present results from patients in KEYNOTE-042 enrolled from China in the global or extension study (NCT03850444; protocol identical to global study). Patients were randomized 1:1 (stratified by ECOG performance status 0 vs 1, squamous vs nonsquamous histology and PD-L1 tumor proportion score [TPS] \u226550% vs 1%-49%) to 35\u2009cycles of pembrolizumab 200\u2009mg every 3\u2009weeks (Q3W) or investigator's choice of 4 to 6 cycles of carboplatin plus paclitaxel or pemetrexed Q3W with optional pemetrexed maintenance for nonsquamous tumors. Primary endpoints were OS in patients with PD-L1 TPS \u226550%, \u226520% or \u22651%. Two hundred sixty-two patients (pembrolizumab, n = 128; chemotherapy, n = 134) were enrolled from China. At data cutoff (February 21, 2020; median follow-up, 33.0 [range, 25.6-41.9] months), pembrolizumab was shown to improve OS vs chemotherapy in patients with PD-L1 TPS \u226550% (hazard ratio [95% CI], 0.63 [0.43-0.94]), TPS \u226520% (0.66 [0.47-0.92]) and TPS \u22651% (0.67 [0.50-0.89]). Grade 3 to 5 treatment-related adverse events occurred less frequently with pembrolizumab vs chemotherapy (19.5% vs 68.8%). In 22 patients who completed 35\u2009cycles of pembrolizumab, objective response rate was 77.3% and median duration of response was 27.6 months. Consistent with the global KEYNOTE-042 study, pembrolizumab improved OS vs chemotherapy in this study of Chinese patients with locally advanced/metastatic NSCLC and PD-L1 TPS \u22651%, supporting first-line pembrolizumab monotherapy for PD-L1-positive advanced/metastatic NSCLC in China.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Wu Yi-Long",
+          "affiliation": "Guangdong Lung Cancer Institute, Guangdong Provincial People's Hospital & Guangdong Academy of Medical Sciences, Guangzhou, China."
+        },
+        {
+          "name": "Zhang Li",
+          "affiliation": "Peking Union Medical College Hospital, Beijing, China."
+        },
+        {
+          "name": "Fan Yun",
+          "affiliation": "The Cancer Hospital of the University of Chinese Academy of Sciences (Zhejiang Cancer Hospital), Hangzhou, China."
+        },
+        {
+          "name": "Zhou JianYing",
+          "affiliation": "The First Affiliated Hospital of Zhejiang University, Hangzhou, China."
+        },
+        {
+          "name": "Zhang Li",
+          "affiliation": "Sun Yat-Sen University Cancer Center, Guangzhou, China."
+        },
+        {
+          "name": "Zhou Qing",
+          "affiliation": "Guangdong Lung Cancer Institute, Guangdong Provincial People's Hospital & Guangdong Academy of Medical Sciences, Guangzhou, China."
+        },
+        {
+          "name": "Li Wei",
+          "affiliation": "The First Hospital of Jilin University, Changchun, China."
+        },
+        {
+          "name": "Hu ChengPing",
+          "affiliation": "Xiangya Hospital-Central South University, Changsha, China."
+        },
+        {
+          "name": "Chen GongYan",
+          "affiliation": "The Third Affiliated Hospital of Harbin Medical University, Harbin, China."
+        },
+        {
+          "name": "Zhang Xin",
+          "affiliation": "Zhongshan Hospital Fudan University Respiratory Diseases Department, Shanghai, China."
+        },
+        {
+          "name": "Zhou CaiCun",
+          "affiliation": "Shanghai Pulmonary Hospital and Tongji University School of Medicine, Shanghai, China."
+        },
+        {
+          "name": "Dang Thao",
+          "affiliation": "Merck & Co., Inc., Kenilworth, New Jersey, USA."
+        },
+        {
+          "name": "Sadowski Sara",
+          "affiliation": "Merck & Co., Inc., Kenilworth, New Jersey, USA."
+        },
+        {
+          "name": "Kush Debra A",
+          "affiliation": "Merck & Co., Inc., Kenilworth, New Jersey, USA."
+        },
+        {
+          "name": "Zhou Yu",
+          "affiliation": "MSD China, Shanghai, China."
+        },
+        {
+          "name": "Li Ben",
+          "affiliation": "MSD China, Shanghai, China."
+        },
+        {
+          "name": "Mok Tony",
+          "affiliation": "State Key Laboratory of Translation Oncology, Chinese University of Hong Kong, Hong Kong, China."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Aged",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Combined Chemotherapy Protocols",
+        "Carcinoma, Non-Small-Cell Lung",
+        "China",
+        "Female",
+        "Humans",
+        "Lung Neoplasms",
+        "Male",
+        "Middle Aged",
+        "Young Adult"
+      ]
+    },
+    {
+      "pmid": "31610828",
+      "pmcid": "PMC5548835",
+      "title": "Cost-Utility Analysis of Pembrolizumab Versus Chemotherapy as First-Line Treatment for Metastatic Non-Small Cell Lung Cancer With Different PD-L1 Expression Levels.",
+      "text": "Cost-Utility Analysis of Pembrolizumab Versus Chemotherapy as First-Line Treatment for Metastatic Non-Small Cell Lung Cancer With Different PD-L1 Expression Levels.\n\nTo evaluate the cost-utility of pembrolizumab versus chemotherapy as the first-line setting for metastatic non-small cell lung cancer (NSCLC) from the US health care system perspective, a Markov model was developed to compare the lifetime cost and effectiveness of pembrolizumab versus chemotherapy for untreated metastatic NSCLC, based on the clinical data derived from phase III randomized controlled trial (KEYNOTE-042; ClinicalTrials.gov; NCT02220894). Weibull distribution was fitted to simulate the parametric survival functions. Drug costs were collected from official websites, and utility values were obtained from published literature. Total costs, quality-adjusted life years (QALYs), and incremental cost-effectiveness ratios (ICERs) were computed as primary output indicators. The impact of different PD-L1 expression levels on ICER was also evaluated. One-way and probabilistic sensitivity analyses were performed to assess the model uncertainty. Compared with chemotherapy, patients treated with pembrolizumab provided an additional 1.13, 1.01, and 0.59 QALYs in patients with PD-L1 expression levels of \u226550%, \u226520%, and \u22651%, with corresponding incremental cost of 53,784, 47,479, and 39,827, respectively. The resultant ICERs of pembrolizumab versus chemotherapy were 47,596, 47,184, and 68,061/QALY, in three expression levels of PD-L1, respectively, all of which did not exceed the WTP threshold of 180,000/QALY. Probability sensitivity analysis outcome supported that pembrolizumab exhibited evident advantage over chemotherapy to be cost-effective. One-way sensitivity analysis found that ICERs were most sensitive to utility value of pembrolizumab in progression survival state. All the adjustment of parameters did not qualitatively change the result. For treatment-naive, metastatic NSCLC patients with PD-L1",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Weng Xiuhua",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        },
+        {
+          "name": "Luo Shaohong",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        },
+        {
+          "name": "Lin Shen",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        },
+        {
+          "name": "Zhong Lixian",
+          "affiliation": "College of Pharmacy, Texas A&M UniversityCollege Station, TXUSA."
+        },
+        {
+          "name": "Li Meiyue",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        },
+        {
+          "name": "Xin Rao",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        },
+        {
+          "name": "Huang Pinfang",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        },
+        {
+          "name": "Xu Xiongwei",
+          "affiliation": "Department of Pharmacy, First Affiliated Hospital of Fujian Medical UniversityTaijiang, FuzhouP.R. China."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Combined Chemotherapy Protocols",
+        "B7-H1 Antigen",
+        "Carcinoma, Non-Small-Cell Lung",
+        "Clinical Trials, Phase III as Topic",
+        "Cost-Benefit Analysis",
+        "Disease-Free Survival",
+        "Female",
+        "Gene Expression Regulation, Neoplastic",
+        "Humans",
+        "Male",
+        "Markov Chains",
+        "Middle Aged",
+        "Neoplasm Metastasis",
+        "Quality-Adjusted Life Years",
+        "Randomized Controlled Trials as Topic"
+      ]
+    },
+    {
+      "pmid": "35073727",
+      "pmcid": null,
+      "title": "Indirect comparison of pembrolizumab monotherapy versus nivolumab\u00a0+\u00a0ipilimumab in first-line metastatic lung cancer.",
+      "text": "Indirect comparison of pembrolizumab monotherapy versus nivolumab\u00a0+\u00a0ipilimumab in first-line metastatic lung cancer.\n\n",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Halmos Balazs",
+          "affiliation": "Department of Oncology, Montefiore/Albert Einstein Cancer Center, 2nd floor, 1695 Eastchester Rd, Bronx, NY\u00a010461, USA."
+        },
+        {
+          "name": "Burke Thomas",
+          "affiliation": "Center for Observational & Real World Evidence, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Kalyvas Chrysostomos",
+          "affiliation": "Biostatistics & Research Decision Sciences, MSD Europe, Inc., Brussels, 1200, Belgium."
+        },
+        {
+          "name": "Insinga Ralph",
+          "affiliation": "Center for Observational & Real World Evidence, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Vandormael Kristel",
+          "affiliation": "Biostatistics & Research Decision Sciences, MSD Europe, Inc., Brussels, 1200, Belgium."
+        },
+        {
+          "name": "Frederickson Andrew",
+          "affiliation": "PrecisionHEOR, Oakland, CA 94612, USA."
+        },
+        {
+          "name": "Piperdi Bilal",
+          "affiliation": "Clinical Development, Merck & Co., Inc., Kenilworth, NJ, USA."
+        }
+      ],
+      "mesh_terms": [
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Combined Chemotherapy Protocols",
+        "Carcinoma, Non-Small-Cell Lung",
+        "Humans",
+        "Ipilimumab",
+        "Lung Neoplasms",
+        "Nivolumab"
+      ]
+    }
+  ],
+  "metadata": {
+    "sponsor": "Merck Sharp & Dohme LLC",
+    "phase": "PHASE3",
+    "status": "COMPLETED",
+    "conditions": [
+      "Non-small Cell Lung Cancer"
+    ],
+    "enrollment": 1274,
+    "num_publications": 5,
+    "num_with_full_text": 0
+  }
+}

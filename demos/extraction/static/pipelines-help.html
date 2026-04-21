@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KGSpin Pipelines — Help</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0f0f23;
+    color: #e8e8f0;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    line-height: 1.55;
+  }
+  h1 { color: #fff; border-bottom: 2px solid #5B9FE6; padding-bottom: 8px; }
+  h2 {
+    color: #5B9FE6;
+    margin-top: 36px;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a3e;
+  }
+  h2 .tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  .tag.zero { background: rgba(94, 214, 138, 0.2); color: #5ED68A; }
+  .tag.llm { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
+  code { background: #1a1a2e; padding: 1px 6px; border-radius: 3px; color: #FFD700; font-size: 90%; }
+  .toc { background: #1a1a2e; padding: 12px 20px; border-radius: 6px; margin: 24px 0; }
+  .toc a { color: #5B9FE6; text-decoration: none; display: block; padding: 4px 0; }
+  .toc a:hover { text-decoration: underline; }
+  .meta { color: #888; font-size: 13px; margin-bottom: 24px; }
+  .capability { color: #B0B0C0; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<h1>KGSpin Pipelines — Help</h1>
+<p class="meta">Canonical descriptions of the five extraction pipelines exposed in the compare-UI.
+Source of truth: <code>docs/architecture/product_naming_proposal.md</code> and
+<code>kgspin-core/docs/architecture/pipelines.md</code>.</p>
+
+<div class="toc">
+  <strong>Jump to:</strong>
+  <a href="#discovery-rapid">Rapid Discovery</a>
+  <a href="#discovery-deep">Deep Discovery</a>
+  <a href="#fan-out">Signal Fan-out</a>
+  <a href="#agentic-flash">Agentic Flash</a>
+  <a href="#agentic-analyst">Agentic Analyst</a>
+</div>
+
+<h2 id="discovery-rapid">Rapid Discovery <span class="tag zero">0 tokens</span></h2>
+<p class="capability">Capability: Discovery</p>
+<p>Entity-first, zero-token linguistic baseline. Uses spaCy NER plus the
+Greedy Harvester and disables all neural relation heads. The fastest
+actor-inventory baseline — good for quickly surfacing who/what a document
+is about without paying for neural inference.</p>
+<p><strong>Strategy:</strong> <code>discovery_rapid</code> &nbsp;
+<strong>Pipeline YAML:</strong> <code>discovery-rapid.yaml</code></p>
+
+<h2 id="discovery-deep">Deep Discovery <span class="tag zero">0 tokens</span></h2>
+<p class="capability">Capability: Discovery</p>
+<p>Entity-first, zero-token neural-hybrid. GLiNER per-chunk entity
+detection plus enabled neural relation heads (GLiREL / NLI / pairwise).
+The "Restored Greedy Neural" path — high-density actor inventory with
+validated links. This is the canonical discovery-density baseline and is
+the default for slot 2.</p>
+<p><strong>Strategy:</strong> <code>discovery_deep</code> &nbsp;
+<strong>Pipeline YAML:</strong> <code>discovery-deep.yaml</code></p>
+<p><em>Note:</em> Post-INIT-006 Amendment 002 (2026-04-14), this path is
+pure zero-token — any supplied chat backend is silently ignored.</p>
+
+<h2 id="fan-out">Signal Fan-out <span class="tag zero">0 tokens</span></h2>
+<p class="capability">Capability: Fan-out</p>
+<p>Relation-first, zero-token. Identifies relationship anchors first,
+then "fans out" to bind the relevant actors around each anchor. The
+complement to Discovery strategies — where Discovery asks "who is in
+this document", Fan-out asks "what are the events/relationships in this
+document, and who participates". Default for slot 1.</p>
+<p><strong>Strategy:</strong> <code>fan_out</code> &nbsp;
+<strong>Pipeline YAML:</strong> <code>fan-out.yaml</code></p>
+
+<h2 id="agentic-flash">Agentic Flash <span class="tag llm">LLM</span></h2>
+<p class="capability">Capability: Agentic</p>
+<p>Single-prompt monolithic LLM extraction. Lower latency and a simpler
+prompt than Agentic Analyst, and uses the generic NER types
+(<code>ORGANIZATION</code>, <code>PERSON</code>). Good for a baseline
+comparison of "what does a raw LLM pull out" against the zero-token
+KGSpin pipelines.</p>
+<p><strong>Strategy:</strong> <code>agentic_flash</code> &nbsp;
+<strong>Pipeline YAML:</strong> <code>discovery-deep.yaml</code> (backend-driven)</p>
+
+<h2 id="agentic-analyst">Agentic Analyst <span class="tag llm">LLM</span></h2>
+<p class="capability">Capability: Agentic</p>
+<p>Schema-aware chunked LLM extraction with entity-map carryover across
+chunks. Highest fidelity of the agentic path — uses the bundle's richer
+types (e.g., <code>COMPANY</code>, <code>CORPORATE_LEADER</code>) and
+maintains cross-chunk context. Default for slot 3.</p>
+<p><strong>Strategy:</strong> <code>agentic_analyst</code> &nbsp;
+<strong>Pipeline YAML:</strong> <code>discovery-deep.yaml</code> (backend-driven)</p>
+
+<h2 id="sec-user-agent">Setting SEC_USER_AGENT</h2>
+<p class="capability">Configuration</p>
+<p>Live SEC EDGAR fetch (required for any ticker other than the offline
+<code>demo_mock</code> fixtures, e.g. MSFT / PFE / AAPL) requires a
+<code>SEC_USER_AGENT</code> environment variable. SEC compliance rules
+mandate that all EDGAR API consumers identify themselves with a real
+name and email — the <code>kgspin-plugin-financial</code> EDGAR provider
+enforces this at construction time.</p>
+<p><strong>One-line setup:</strong></p>
+<pre style="background:#1a1a2e; padding:12px 16px; border-radius:6px; overflow-x:auto; color:#FFD700;">export SEC_USER_AGENT='Your Name your@email.com'</pre>
+<p>Then re-run the demo:</p>
+<pre style="background:#1a1a2e; padding:12px 16px; border-radius:6px; overflow-x:auto; color:#c9d1d9;">uv run python demos/extraction/demo_compare.py</pre>
+<p>Once set, every ticker in the dropdown (and any free-text ticker) will
+work against live SEC data. The first fetch per ticker is slow (one
+live EDGAR HTTP round-trip); subsequent fetches hit the local cache at
+<code>~/.kgenskills/data_lake/financial/sec_edgar/</code>.</p>
+<p><em>Offline mode:</em> if <code>SEC_USER_AGENT</code> is unset, only
+tickers with fixture files at <code>tests/fixtures/corpus/{ticker}.html</code>
+will work. The default fixture is <code>JNJ</code>; other tickers will
+surface an actionable error in the slot.</p>
+
+<hr style="margin-top:48px; border:none; border-top:1px solid #2a2a3e;">
+<p class="meta">Sprint 04 — Unified Product Naming Refactor. Sprint 05 —
+CorpusProvider wire-up beyond JNJ. For the canonical rename table and
+downstream migration playbook, see
+<code>kgspin-core/docs/memos/2026-04-13-strategy-rename-downstream-teams.md</code>.</p>
+</body>
+</html>

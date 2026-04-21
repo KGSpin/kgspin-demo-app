@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kgspin.dev/benchmarks/schemas/graph-v0.json",
+  "title": "KGSpin Benchmark Graph Interchange — v0",
+  "description": "Shared graph shape both Arm A (KGSpin-tuned, alpha_runner output) and Arm B (LLM-extracted, Gemini per-chunk) populate. The harness scores the same retrieval strategies against whichever arm's graph is loaded.",
+  "type": "object",
+  "required": ["schema_version", "corpus_id", "arm", "chunks", "nodes", "edges"],
+  "properties": {
+    "schema_version": {
+      "const": "graph-v0",
+      "description": "Frozen schema tag. Bump to graph-v1 on breaking changes."
+    },
+    "corpus_id": {
+      "type": "string",
+      "description": "Corpus identifier this graph was built against (e.g. 'financebench-10k' or 'multihop-rag-news')."
+    },
+    "arm": {
+      "enum": ["a", "b"],
+      "description": "Which arm produced this graph. Arm A = KGSpin-tuned, Arm B = LLM-extracted."
+    },
+    "producer": {
+      "type": "object",
+      "description": "Provenance for the producing system (tuner alpha_runner for Arm A, extract.py for Arm B).",
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "llm_alias": {
+          "type": ["string", "null"],
+          "description": "Admin-registered alias used for extraction. Null for deterministic Arm A pipelines that do not call an LLM."
+        },
+        "llm_provider": {"type": ["string", "null"]},
+        "llm_model": {"type": ["string", "null"]},
+        "config_hash": {
+          "type": ["string", "null"],
+          "description": "SHA-256 of the producer config used to generate this graph. Enables like-for-like reproducibility."
+        }
+      }
+    },
+    "chunks": {
+      "type": "array",
+      "description": "Source text chunks referenced by node/edge provenance. Kept in-graph so retrieval strategies can operate without reloading corpus.",
+      "items": {
+        "type": "object",
+        "required": ["chunk_id", "doc_id", "text"],
+        "properties": {
+          "chunk_id": {"type": "string"},
+          "doc_id": {"type": "string", "description": "Matches corpus manifest doc_name (e.g. 'PEPSICO_2022_10K')."},
+          "span_start": {"type": ["integer", "null"]},
+          "span_end": {"type": ["integer", "null"]},
+          "text": {"type": "string"}
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "surface_form", "node_type"],
+        "properties": {
+          "node_id": {"type": "string"},
+          "surface_form": {"type": "string", "description": "Canonical label after cross-chunk resolution."},
+          "aliases": {"type": "array", "items": {"type": "string"}},
+          "node_type": {"type": "string", "description": "Entity type (ORGANIZATION, PERSON, METRIC, SEGMENT, PRODUCT, LOCATION, ...)."},
+          "provenance": {
+            "type": "array",
+            "description": "Chunks this entity was observed in.",
+            "items": {
+              "type": "object",
+              "required": ["chunk_id"],
+              "properties": {
+                "chunk_id": {"type": "string"},
+                "span_start": {"type": ["integer", "null"]},
+                "span_end": {"type": ["integer", "null"]},
+                "surface_form": {"type": "string"}
+              }
+            }
+          },
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["edge_id", "subject", "predicate", "object"],
+        "properties": {
+          "edge_id": {"type": "string"},
+          "subject": {"type": "string", "description": "node_id of subject."},
+          "predicate": {"type": "string"},
+          "object": {"type": "string", "description": "node_id of object."},
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["chunk_id"],
+              "properties": {
+                "chunk_id": {"type": "string"},
+                "span_start": {"type": ["integer", "null"]},
+                "span_end": {"type": ["integer", "null"]},
+                "evidence_text": {"type": "string"}
+              }
+            }
+          },
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1328 @@
+{
+  "nct_id": "NCT01866319",
+  "trial_title": "A Multicenter, Randomized, Controlled, Three-Arm, Phase III Study to Evaluate the Safety and Efficacy of Two Dosing Schedules of Pembrolizumab (MK-3475) Compared to Ipilimumab in Patients With Advanced Melanoma",
+  "gold_triples": [
+    {
+      "subject_text": "Merck Sharp & Dohme LLC",
+      "subject_type": "ORGANIZATION",
+      "predicate": "sponsors",
+      "object_text": "NCT01866319",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "sponsor",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Pembrolizumab",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT01866319",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Pembrolizumab",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Melanoma",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Ipilimumab",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT01866319",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Ipilimumab",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Melanoma",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT01866319",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "studies",
+      "object_text": "Melanoma",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT01866319",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_phase",
+      "object_text": "PHASE3",
+      "object_type": "PHASE",
+      "source": "ClinicalTrials.gov",
+      "source_field": "phase",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT01866319",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_status",
+      "object_text": "COMPLETED",
+      "object_type": "STATUS",
+      "source": "ClinicalTrials.gov",
+      "source_field": "status",
+      "confidence": 1.0
+    }
+  ],
+  "input_documents": [
+    {
+      "pmid": "25891173",
+      "pmcid": null,
+      "title": "Pembrolizumab versus Ipilimumab in Advanced Melanoma.",
+      "text": "Pembrolizumab versus Ipilimumab in Advanced Melanoma.\n\nBACKGROUND: The immune checkpoint inhibitor ipilimumab is the standard-of-care treatment for patients with advanced melanoma. Pembrolizumab inhibits the programmed cell death 1 (PD-1) immune checkpoint and has antitumor activity in patients with advanced melanoma.\nMETHODS: In this randomized, controlled, phase 3 study, we assigned 834 patients with advanced melanoma in a 1:1:1 ratio to receive pembrolizumab (at a dose of 10 mg per kilogram of body weight) every 2 weeks or every 3 weeks or four doses of ipilimumab (at 3 mg per kilogram) every 3 weeks. Primary end points were progression-free and overall survival.\nRESULTS: The estimated 6-month progression-free-survival rates were 47.3% for pembrolizumab every 2 weeks, 46.4% for pembrolizumab every 3 weeks, and 26.5% for ipilimumab (hazard ratio for disease progression, 0.58; P<0.001 for both pembrolizumab regimens versus ipilimumab; 95% confidence intervals [CIs], 0.46 to 0.72 and 0.47 to 0.72, respectively). Estimated 12-month survival rates were 74.1%, 68.4%, and 58.2%, respectively (hazard ratio for death for pembrolizumab every 2 weeks, 0.63; 95% CI, 0.47 to 0.83; P=0.0005; hazard ratio for pembrolizumab every 3 weeks, 0.69; 95% CI, 0.52 to 0.90; P=0.0036). The response rate was improved with pembrolizumab administered every 2 weeks (33.7%) and every 3 weeks (32.9%), as compared with ipilimumab (11.9%) (P<0.001 for both comparisons). Responses were ongoing in 89.4%, 96.7%, and 87.9% of patients, respectively, after a median follow-up of 7.9 months. Efficacy was similar in the two pembrolizumab groups. Rates of treatment-related adverse events of grade 3 to 5 severity were lower in the pembrolizumab groups (13.3% and 10.1%) than in the ipilimumab group (19.9%).\nCONCLUSIONS: The anti-PD-1 antibody pembrolizumab prolonged progression-free survival and overall survival and had less high-grade toxicity than did ipilimumab in patients with advanced melanoma. (Funded by Merck Sharp & Dohme; KEYNOTE-006 ClinicalTrials.gov number, NCT01866319.).",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Robert Caroline",
+          "affiliation": "The authors' affiliations are listed in the Appendix."
+        },
+        {
+          "name": "Schachter Jacob",
+          "affiliation": ""
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": ""
+        },
+        {
+          "name": "Arance Ana",
+          "affiliation": ""
+        },
+        {
+          "name": "Grob Jean Jacques",
+          "affiliation": ""
+        },
+        {
+          "name": "Mortier Laurent",
+          "affiliation": ""
+        },
+        {
+          "name": "Daud Adil",
+          "affiliation": ""
+        },
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": ""
+        },
+        {
+          "name": "McNeil Catriona",
+          "affiliation": ""
+        },
+        {
+          "name": "Lotem Michal",
+          "affiliation": ""
+        },
+        {
+          "name": "Larkin James",
+          "affiliation": ""
+        },
+        {
+          "name": "Lorigan Paul",
+          "affiliation": ""
+        },
+        {
+          "name": "Neyns Bart",
+          "affiliation": ""
+        },
+        {
+          "name": "Blank Christian U",
+          "affiliation": ""
+        },
+        {
+          "name": "Hamid Omid",
+          "affiliation": ""
+        },
+        {
+          "name": "Mateus Christine",
+          "affiliation": ""
+        },
+        {
+          "name": "Shapira-Frommer Ronnie",
+          "affiliation": ""
+        },
+        {
+          "name": "Kosh Michele",
+          "affiliation": ""
+        },
+        {
+          "name": "Zhou Honghong",
+          "affiliation": ""
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": ""
+        },
+        {
+          "name": "Ebbinghaus Scot",
+          "affiliation": ""
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Adolescent",
+        "Adult",
+        "Aged",
+        "Aged, 80 and over",
+        "Antibodies, Monoclonal",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents",
+        "Female",
+        "Humans",
+        "Ipilimumab",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Programmed Cell Death 1 Receptor",
+        "Skin Neoplasms",
+        "Survival Analysis",
+        "Young Adult"
+      ]
+    },
+    {
+      "pmid": "39306585",
+      "pmcid": null,
+      "title": "Pembrolizumab versus ipilimumab for advanced melanoma: 10-year follow-up of the phase III KEYNOTE-006 study.",
+      "text": "Pembrolizumab versus ipilimumab for advanced melanoma: 10-year follow-up of the phase III KEYNOTE-006 study.\n\nBACKGROUND: Pembrolizumab significantly improved overall survival (OS) versus ipilimumab for unresectable advanced melanoma in KEYNOTE-006 (NCT01866319); 10-year follow-up data are presented.\nPATIENTS AND METHODS: Patients with unresectable stage III or IV melanoma were randomly assigned (1:1:1) to pembrolizumab 10 mg/kg i.v. every 2 weeks or every 3 weeks for \u22642 years (pooled), or ipilimumab 3 mg/kg i.v. every 3 weeks for four cycles. After KEYNOTE-006, patients could transition to KEYNOTE-587 (NCT03486873) for long-term follow-up. Eligible patients could receive second-course pembrolizumab. The primary endpoint was OS; modified progression-free survival (PFS; censored at date last known alive), modified PFS on second-course pembrolizumab, and melanoma-specific survival were exploratory.\nRESULTS: Of 834 patients randomly assigned in KEYNOTE-006 (pembrolizumab, n\u00a0= 556; ipilimumab, n\u00a0= 278), 333 (39.9%) were eligible for KEYNOTE-587; 211/333 patients (25.3%) transitioned to KEYNOTE-587 (pembrolizumab, n\u00a0= 159; ipilimumab, n\u00a0= 52) and 122 (14.6%) did not. For patients who transitioned to KEYNOTE-587 (n\u00a0= 211), median time from randomization in KEYNOTE-006 to data cut-off for KEYNOTE-587 (1 May 2024) was 123.7 months (range, 122.0-127.3 months). Median OS was 32.7 months [95% confidence interval (CI) 24.5-41.6 months] for pembrolizumab and 15.9 months (95% CI 13.3-22.0 months) for ipilimumab [hazard ratio (HR), 0.71 (95% CI 0.60-0.85)]; 10-year OS was 34.0% and 23.6%, respectively. Among patients who completed \u226594 weeks of pembrolizumab, median OS from week 94 was not reached (NR; 95% CI NR-NR); 8-year OS rate was 80.8%. Median modified PFS was 9.4 months (95% CI 6.7-11.6 months) for pembrolizumab and 3.8 months (2.9-4.3 months) for ipilimumab [HR, 0.64 (95% CI 0.54-0.75)]. Among patients who received second-course pembrolizumab, median modified PFS from start of second course was 51.8 months (95% CI 11.0 months-NR); 6-year modified PFS was 49.2%. Median melanoma-specific survival was 51.9 months (95% CI 30.0-114.7 months) for pembrolizumab and 17.2 months (13.9-25.9 months) for ipilimumab [HR, 0.66 (95% CI 0.55-0.81)].\nCONCLUSIONS: These results confirm that pembrolizumab provides long-term survival benefits in advanced melanoma, supporting it as a standard of care in this setting.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Long G V",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, Sydney, Australia; Faculty of Medicine & Health, The University of Sydney, Sydney, Australia; Charles Perkins Centre, The University of Sydney, Sydney, Australia; Royal North Shore and Mater Hospitals, Sydney, Australia. Electronic address: georgina.long@sydney.edu.au."
+        },
+        {
+          "name": "Carlino M S",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, Sydney, Australia; Faculty of Medicine & Health, The University of Sydney, Sydney, Australia; Westmead and Blacktown Hospitals, Sydney, Australia."
+        },
+        {
+          "name": "McNeil C",
+          "affiliation": "Chris O'Brien Lifehouse, Camperdown, Australia."
+        },
+        {
+          "name": "Ribas A",
+          "affiliation": "Jonsson Comprehensive Cancer Center at The University of California Los Angeles (UCLA), Los Angeles, USA."
+        },
+        {
+          "name": "Gaudy-Marqueste C",
+          "affiliation": "Aix-Marseille University, Assistance Publique-H\u00f4pitaux de Marseille, CRCM La Timone Hospital, Dermatology and Skin Cancer Department, Marseille, France."
+        },
+        {
+          "name": "Schachter J",
+          "affiliation": "Sheba Medical Center-Tel HaShomer, Ramat Gan, Israel."
+        },
+        {
+          "name": "Nyakas M",
+          "affiliation": "Oslo University Hospital, Oslo, Norway."
+        },
+        {
+          "name": "Kee D",
+          "affiliation": "Austin Health, Heidelberg, Australia."
+        },
+        {
+          "name": "Petrella T M",
+          "affiliation": "Sunnybrook Health Sciences Centre, Toronto, Canada."
+        },
+        {
+          "name": "Blaustein A",
+          "affiliation": "Mount Sinai Medical Center Comprehensive Cancer Center, Miami Beach, USA."
+        },
+        {
+          "name": "Lotem M",
+          "affiliation": "Sharett Institute of Oncology, Hadassah University Hospital Ein Kerem, Jerusalem, Israel."
+        },
+        {
+          "name": "Arance A M",
+          "affiliation": "Hospital Clinic Barcelona and IDIBAPS, Barcelona, Spain."
+        },
+        {
+          "name": "Daud A I",
+          "affiliation": "Melanoma & Skin Cancer Center, University of California San Francisco, San Francisco."
+        },
+        {
+          "name": "Hamid O",
+          "affiliation": "The Angeles Clinic and Research Institute, a Cedars-Sinai Affiliate, Los Angeles, USA."
+        },
+        {
+          "name": "Larkin J",
+          "affiliation": "The Royal Marsden NHS Foundation Trust, London, UK."
+        },
+        {
+          "name": "Yao L",
+          "affiliation": "Merck & Co., Inc., Rahway, USA."
+        },
+        {
+          "name": "Singh R",
+          "affiliation": "Merck & Co., Inc., Rahway, USA."
+        },
+        {
+          "name": "Lal R",
+          "affiliation": "Merck & Co., Inc., Rahway, USA."
+        },
+        {
+          "name": "Robert C",
+          "affiliation": "Gustave Roussy and Paris-Saclay University, Villejuif, France. Electronic address: caroline.robert@gustaveroussy.fr."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Melanoma",
+        "Ipilimumab",
+        "Antibodies, Monoclonal, Humanized",
+        "Follow-Up Studies",
+        "Male",
+        "Female",
+        "Middle Aged",
+        "Aged",
+        "Antineoplastic Agents, Immunological",
+        "Adult",
+        "Skin Neoplasms",
+        "Progression-Free Survival",
+        "Aged, 80 and over",
+        "Neoplasm Staging"
+      ]
+    },
+    {
+      "pmid": "28822576",
+      "pmcid": null,
+      "title": "Pembrolizumab versus ipilimumab for advanced melanoma: final overall survival results of a multicentre, randomised, open-label phase 3 study (KEYNOTE-006).",
+      "text": "Pembrolizumab versus ipilimumab for advanced melanoma: final overall survival results of a multicentre, randomised, open-label phase 3 study (KEYNOTE-006).\n\nBACKGROUND: Interim analyses of the phase 3 KEYNOTE-006 study showed superior overall and progression-free survival of pembrolizumab versus ipilimumab in patients with advanced melanoma. We present the final protocol-specified survival analysis.\nMETHODS: In this multicentre, open-label, randomised, phase 3 trial, we recruited patients from 87 academic institutions, hospitals, and cancer centres in 16 countries (Australia, Austria, Belgium, Canada, Chile, Colombia, France, Germany, Israel, Netherlands, New Zealand, Norway, Spain, Sweden, UK, and USA). We randomly assigned participants (1:1:1) to one of two dose regimens of pembrolizumab, or one regimen of ipilimumab, using a centralised, computer-generated allocation schedule. Treatment assignments used blocked randomisation within strata. Eligible patients were at least 18 years old, with an Eastern Cooperative Oncology Group (ECOG) performance status of 0 or 1, at least one measurable lesion per Response Evaluation Criteria In Solid Tumors version 1.1 (RECIST v1.1), unresectable stage III or IV melanoma (excluding ocular melanoma), and up to one previous systemic therapy (excluding anti-CTLA-4, PD-1, or PD-L1 agents). Secondary eligibility criteria are described later. Patients were excluded if they had active brain metastases or active autoimmune disease requiring systemic steroids. The primary outcome was overall survival (defined as the time from randomisation to death from any cause). Response was assessed per RECIST v1.1 by independent central review at week 12, then every 6 weeks up to week 48, and then every 12 weeks thereafter. Survival was assessed every 12 weeks, and final analysis occurred after all patients were followed up for at least 21 months. Primary analysis was done on the intention-to-treat population (all randomly assigned patients) and safety analyses were done in the treated population (all randomly assigned patients who received at least one dose of study treatment). Data cutoff date for this analysis was Dec 3, 2015. This study was registered with ClinicalTrials.gov, number NCT01866319.\nFINDINGS: Between Sept 18, 2013, and March 3, 2014, 834 patients with advanced melanoma were enrolled and randomly assigned to receive intravenous pembrolizumab every 2 weeks (n=279), intravenous pembrolizumab every 3 weeks (n=277), or intravenous ipilimumab every 3 weeks (ipilimumab for four doses; n=278). One patient in the pembrolizumab 2 week group and 22 patients in the ipilimumab group withdrew consent and did not receive treatment. A total of 811 patients received at least one dose of study treatment. Median follow-up was 22\u00b79 months; 383 patients died. Median overall survival was not reached in either pembrolizumab group and was 16\u00b70 months with ipilimumab (hazard ratio [HR] 0\u00b768, 95% CI 0\u00b753-0\u00b787 for pembrolizumab every 2 weeks vs ipilimumab; p=0\u00b70009 and 0\u00b768, 0\u00b753-0\u00b786 for pembrolizumab every 3 weeks vs ipilimumab; p=0\u00b70008). 24-month overall survival rate was 55% in the 2-week group, 55% in the 3-week group, and 43% in the ipilimumab group.\nINTERPRETATION: Substantiating the results of the interim analyses of KEYNOTE-006, pembrolizumab continued to provide superior overall survival versus ipilimumab, with no difference between pembrolizumab dosing schedules. These conclusions further support the use of pembrolizumab as a standard of care for advanced melanoma.\nFUNDING: Merck & Co.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Schachter Jacob",
+          "affiliation": "Division of Oncology, Ella Lemelbaum Institute for Melanoma, Sheba Medical Center, Tel Hashomer, Israel. Electronic address: jacob.schachter@sheba.health.gov.il."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "Department of Medicine, University of California, Los Angeles, Los Angeles, CA, USA."
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": "Department of Medical Oncology and Translational Research, Melanoma Institute Australia, The University of Sydney, Mater Hospital and Royal North Shore Hospital, Sydney, Australia."
+        },
+        {
+          "name": "Arance Ana",
+          "affiliation": "Department of Medical Oncology, Hospital Clinic de Barcelona, Barcelona, Spain."
+        },
+        {
+          "name": "Grob Jean-Jacques",
+          "affiliation": "Department of Dermatology and Skin Cancer, Aix Marseille University, H\u00f4pital de la Timone, Marseille, France."
+        },
+        {
+          "name": "Mortier Laurent",
+          "affiliation": "Department of Dermatology, Universit\u00e9 Lille, INSERM U1189, CHU Lille, F-59000, France."
+        },
+        {
+          "name": "Daud Adil",
+          "affiliation": "Department of Hematology/Oncology, University of California, San Francisco, San Francisco, CA, USA."
+        },
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": "Department of Medical Oncology, Westmead and Blacktown Hospitals, Melanoma Institute Australia, and The University of Sydney, Sydney, Australia."
+        },
+        {
+          "name": "McNeil Catriona",
+          "affiliation": "Department of Medical Oncology, Chris O'Brien Lifehouse, Royal Prince Alfred Hospital, and Melanoma Institute Australia, Camperdown, Australia."
+        },
+        {
+          "name": "Lotem Michal",
+          "affiliation": "Department of Melanoma and Cancer Immunotherapy, Sharett Institute of Oncology, Hadassah Hebrew University Medical Center, Jerusalem, Israel."
+        },
+        {
+          "name": "Larkin James",
+          "affiliation": "Department of Medical Oncology, Royal Marsden Hospital, London, UK."
+        },
+        {
+          "name": "Lorigan Paul",
+          "affiliation": "Department of Medical Oncology University of Manchester and the Christie NHS Foundation Trust, Manchester, UK."
+        },
+        {
+          "name": "Neyns Bart",
+          "affiliation": "Department of Medical Oncology, Universitair Ziekenhuis Brussel, Brussels, Belgium."
+        },
+        {
+          "name": "Blank Christian",
+          "affiliation": "Department of Medical Oncology, Netherlands Cancer Institute, Amsterdam, Netherlands."
+        },
+        {
+          "name": "Petrella Teresa M",
+          "affiliation": "Department of Medicine, Division of Medical Oncology/Hematology, Sunnybrook Health Sciences Center, Toronto, ON, Canada."
+        },
+        {
+          "name": "Hamid Omid",
+          "affiliation": "Department of Hematology/Oncology, The Angeles Clinic and Research Institute, Los Angeles, CA, USA."
+        },
+        {
+          "name": "Zhou Honghong",
+          "affiliation": "Department of BARDS, Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ebbinghaus Scot",
+          "affiliation": "Department of Clinical Oncology, Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Department of Clinical Oncology, Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Department of Oncology, Gustave Roussy and Paris-Sud University, Villejuif, France."
+        }
+      ],
+      "mesh_terms": [
+        "Adolescent",
+        "Adult",
+        "Aged",
+        "Aged, 80 and over",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Chemical and Drug Induced Liver Injury",
+        "Colitis",
+        "Drug Administration Schedule",
+        "Endocrine System Diseases",
+        "Female",
+        "Humans",
+        "Ipilimumab",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Skin Neoplasms",
+        "Young Adult"
+      ]
+    },
+    {
+      "pmid": "32305010",
+      "pmcid": null,
+      "title": "A six-weekly dosing schedule for pembrolizumab in patients with cancer based on evaluation using modelling and simulation.",
+      "text": "A six-weekly dosing schedule for pembrolizumab in patients with cancer based on evaluation using modelling and simulation.\n\nBACKGROUND: Pembrolizumab is approved for multiple cancer types at 200\u00a0mg and 2\u00a0mg/kg dose every 3 weeks (Q3W). We used a model-based approach to compare the exposure of pembrolizumab 400\u00a0mg dose every 6 weeks (Q6W) with the Q3W regimens.\nMETHODS: The Q6W dose was selected by matching exposure with the 200\u00a0mg and 2\u00a0mg/kg Q3W doses. Concentration-time profiles were simulated using the established population pharmacokinetic\u00a0model of pembrolizumab based on 2993 subjects from five clinical trials across tumour types. Efficacy was bridged by evaluating projections of average concentration over the dosing interval (C\nRESULTS: The 400\u00a0mg Q6W dose had similar predicted exposure (C\nCONCLUSIONS: Exposures expected for pembrolizumab 400\u00a0mg Q6W were similar to the 200\u00a0mg and 2\u00a0mg/kg Q3W and below the 10\u00a0mg/kg Q2W regimens. Established exposure-response relationships for pembrolizumab over a 5-fold dose range (2\u00a0mg/kg Q3W to 10\u00a0mg Q2W) support that clinical efficacy and safety of 400\u00a0mg Q6W would be similar to the 200\u00a0mg and 2\u00a0mg/kg Q3W doses across tumour types.\nCLINICAL TRIAL REGISTRATION NUMBERS: NCT01295827, NCT01704287, NCT01866319, NCT01905657, NCT02142738.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Lala Mallika",
+          "affiliation": "Quantitative Pharmacology and Pharmacometrics; Pharmacokinetics, Pharmacodynamics and Drug Metabolism, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Li Tommy Ruosi",
+          "affiliation": "Quantitative Pharmacology and Pharmacometrics; Pharmacokinetics, Pharmacodynamics and Drug Metabolism, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "de Alwis Dinesh P",
+          "affiliation": "Quantitative Pharmacology and Pharmacometrics; Pharmacokinetics, Pharmacodynamics and Drug Metabolism, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Sinha Vikram",
+          "affiliation": "Quantitative Pharmacology and Pharmacometrics; Pharmacokinetics, Pharmacodynamics and Drug Metabolism, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Mayawala Kapil",
+          "affiliation": "Quantitative Pharmacology and Pharmacometrics; Pharmacokinetics, Pharmacodynamics and Drug Metabolism, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Yamamoto Noboru",
+          "affiliation": "Department of Experimental Therapeutics, National Cancer Center Hospital, Tokyo, Japan."
+        },
+        {
+          "name": "Siu Lillian L",
+          "affiliation": "University of Toronto, Princess Margaret Cancer Centre, Toronto, Ontario, Canada."
+        },
+        {
+          "name": "Chartash Elliot",
+          "affiliation": "Oncology Early Development, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Aboshady Hesham",
+          "affiliation": "Clinical Safety and Risk Management, Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Jain Lokesh",
+          "affiliation": "Quantitative Pharmacology and Pharmacometrics; Pharmacokinetics, Pharmacodynamics and Drug Metabolism, Merck & Co., Inc., Kenilworth, NJ, USA. Electronic address: lokesh_jain@merck.com."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Computer Simulation",
+        "Dose-Response Relationship, Drug",
+        "Drug Administration Schedule",
+        "Female",
+        "Humans",
+        "Infusions, Intravenous",
+        "Male",
+        "Middle Aged",
+        "Models, Biological",
+        "Neoplasms",
+        "Randomized Controlled Trials as Topic",
+        "Time Factors",
+        "Treatment Outcome"
+      ]
+    },
+    {
+      "pmid": "31345627",
+      "pmcid": null,
+      "title": "Pembrolizumab versus ipilimumab in advanced melanoma (KEYNOTE-006): post-hoc 5-year results from an open-label, multicentre, randomised, controlled, phase 3 study.",
+      "text": "Pembrolizumab versus ipilimumab in advanced melanoma (KEYNOTE-006): post-hoc 5-year results from an open-label, multicentre, randomised, controlled, phase 3 study.\n\nBACKGROUND: Pembrolizumab improved progression-free survival and overall survival versus ipilimumab in patients with advanced melanoma and is now a standard of care in the first-line setting. However, the optimal duration of anti-PD-1 administration is unknown. We present results from 5 years of follow-up of patients in KEYNOTE-006.\nMETHODS: KEYNOTE-006 was an open-label, multicentre, randomised, controlled, phase 3 study done at 87 academic institutions, hospitals, and cancer centres in 16 countries. Patients aged at least 18 years with Eastern Cooperative Oncology Group performance status of 0 or 1, ipilimumab-naive histologically confirmed advanced melanoma with known BRAF\nFINDINGS: Between Sept 18, 2013, and March 3, 2014, 834 patients were enrolled and randomly assigned to receive pembrolizumab (every 2 weeks, n=279; every 3 weeks, n=277), or ipilimumab (n=278). After a median follow-up of 57\u00b77 months (IQR 56\u00b77-59\u00b72) in surviving patients, median overall survival was 32\u00b77 months (95% CI 24\u00b75-41\u00b76) in the combined pembrolizumab groups and 15\u00b79 months (13\u00b73-22\u00b70) in the ipilimumab group (hazard ratio [HR] 0\u00b773, 95% CI 0\u00b761-0\u00b788, p=0\u00b700049). Median progression-free survival was 8\u00b74 months (95% CI 6\u00b76-11\u00b73) in the combined pembrolizumab groups versus 3\u00b74 months (2\u00b79-4\u00b72) in the ipilimumab group (HR 0\u00b757, 95% CI 0\u00b748-0\u00b767, p<0\u00b70001). Grade 3-4 treatment-related adverse events occurred in 96 (17%) of 555 patients in the combined pembrolizumab groups and in 50 (20%) of 256 patients in the ipilimumab group; the most common of these events were colitis (11 [2%] vs 16 [6%]), diarrhoea (ten [2%] vs seven [3%]), and fatigue (four [<1%] vs three [1%]). Any-grade serious treatment-related adverse events occurred in 75 (14%) patients in the combined pembrolizumab groups and in 45 (18%) patients in the ipilimumab group. One patient assigned to pembrolizumab died from treatment-related sepsis.\nINTERPRETATION: Pembrolizumab continued to show superiority over ipilimumab after almost 5 years of follow-up. These results provide further support for use of pembrolizumab in patients with advanced melanoma.\nFUNDING: Merck Sharp & Dohme.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Institut de Canc\u00e9rologie Gustave Roussy, Universit\u00e9 Paris-Sud, Villejuif, France. Electronic address: caroline.robert@gustaveroussy.fr."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "David Geffen School of Medicine, University of California, Los Angeles, CA, USA."
+        },
+        {
+          "name": "Schachter Jacob",
+          "affiliation": "Sheba Medical Center at Tel HaShomer, Tel HaShomer, Ramat Gan, Israel."
+        },
+        {
+          "name": "Arance Ana",
+          "affiliation": "Hospital Clinic de Barcelona, Barcelona, Spain."
+        },
+        {
+          "name": "Grob Jean-Jacques",
+          "affiliation": "Aix Marseille Universit\u00e9, H\u00f4pital de la Timone, Marseille, France."
+        },
+        {
+          "name": "Mortier Laurent",
+          "affiliation": "Universit\u00e9 Lille, Centre Hospitalier Regional Universitaire de Lille, Lille, France."
+        },
+        {
+          "name": "Daud Adil",
+          "affiliation": "University of California San Francisco, San Francisco, CA, USA."
+        },
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": "Westmead and Blacktown Hospitals, Melanoma Institute Australia, and The University of Sydney, Sydney, NSW, Australia."
+        },
+        {
+          "name": "McNeil Catriona M",
+          "affiliation": "Chris O'Brien Lifehouse, Royal Prince Alfred Hospital, and Melanoma Institute Australia, Camperdown, NSW, Australia."
+        },
+        {
+          "name": "Lotem Michal",
+          "affiliation": "Sharett Institute of Oncology, Hadassah Hebrew Medical Center, Jerusalem, Israel."
+        },
+        {
+          "name": "Larkin James M G",
+          "affiliation": "Royal Marsden Hospital, London, UK."
+        },
+        {
+          "name": "Lorigan Paul",
+          "affiliation": "University of Manchester and the Christie NHS Foundation Trust, Manchester, UK."
+        },
+        {
+          "name": "Neyns Bart",
+          "affiliation": "Universitair Ziekenhuis Brussel, Brussels, Belgium."
+        },
+        {
+          "name": "Blank Christian U",
+          "affiliation": "Netherlands Cancer Institute, Amsterdam, Netherlands."
+        },
+        {
+          "name": "Petrella Teresa M",
+          "affiliation": "Sunnybrook Health Sciences Centre, Toronto, ON, Canada."
+        },
+        {
+          "name": "Hamid Omid",
+          "affiliation": "The Angeles Clinic and Research Institute, Los Angeles, CA, USA."
+        },
+        {
+          "name": "Su Shu-Chih",
+          "affiliation": "Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Krepler Clemens",
+          "affiliation": "Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Merck & Co, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": "Melanoma Institute Australia, University of Sydney, Mater Hospital, and Royal North Shore Hospital, Sydney, NSW, Australia."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Aged",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Combined Chemotherapy Protocols",
+        "Drug Administration Schedule",
+        "Female",
+        "Humans",
+        "Ipilimumab",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Neoplasm Staging",
+        "Progression-Free Survival",
+        "Proportional Hazards Models"
+      ]
+    },
+    {
+      "pmid": "37348035",
+      "pmcid": null,
+      "title": "Seven-Year Follow-Up of the Phase III KEYNOTE-006 Study: Pembrolizumab Versus Ipilimumab in Advanced Melanoma.",
+      "text": "Seven-Year Follow-Up of the Phase III KEYNOTE-006 Study: Pembrolizumab Versus Ipilimumab in Advanced Melanoma.\n\n",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Gustave Roussy and Paris-Saclay University, Villejuif, France."
+        },
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, Westmead and Blacktown Hospitals, Sydney, NSW, Australia."
+        },
+        {
+          "name": "McNeil Catriona",
+          "affiliation": "Chris O'Brien Lifehouse, Camperdown, NSW, Australia."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "Jonsson Comprehensive Cancer Center at The University of California, Los Angeles (UCLA), Los Angeles, CA."
+        },
+        {
+          "name": "Grob Jean-Jacques",
+          "affiliation": "Aix-Marseille University, Hospital of the Timone, Marseille, France."
+        },
+        {
+          "name": "Schachter Jacob",
+          "affiliation": "Sheba Medical Center-Tel HaShomer, Ramat Gan, Israel."
+        },
+        {
+          "name": "Nyakas Marta",
+          "affiliation": "Oslo University Hospital, Oslo, Norway."
+        },
+        {
+          "name": "Kee Damien",
+          "affiliation": "Austin Health, Heidelberg, VIC, Australia."
+        },
+        {
+          "name": "Petrella Teresa M",
+          "affiliation": "Sunnybrook Health Sciences Centre, Toronto, ON, Canada."
+        },
+        {
+          "name": "Blaustein Arnold",
+          "affiliation": "Mount Sinai Medical Center Comprehensive Cancer Center, Miami Beach, FL."
+        },
+        {
+          "name": "Lotem Michal",
+          "affiliation": "Sharett Institute of Oncology, Hadassah University Hospital Ein Kerem, Jerusalem, Israel."
+        },
+        {
+          "name": "Arance Ana",
+          "affiliation": "Hospital Clinic Barcelona and IDIBAPS, Barcelona, Spain."
+        },
+        {
+          "name": "Daud Adil I",
+          "affiliation": "UCSF, San Francisco, CA."
+        },
+        {
+          "name": "Hamid Omid",
+          "affiliation": "The Angeles Clinic and Research Institute, a Cedars-Sinai Affiliate, Los Angeles, CA."
+        },
+        {
+          "name": "Larkin James",
+          "affiliation": "The Royal Marsden NHS Foundation Trust, London, United Kingdom."
+        },
+        {
+          "name": "Anderson James",
+          "affiliation": "Merck & Co, Inc, Rahway, NJ."
+        },
+        {
+          "name": "Krepler Clemens",
+          "affiliation": "Merck & Co, Inc, Rahway, NJ."
+        },
+        {
+          "name": "Grebennik Dmitri",
+          "affiliation": "Merck & Co, Inc, Rahway, NJ."
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, Royal North Shore and Mater Hospitals, Sydney, NSW, Australia."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Follow-Up Studies",
+        "Ipilimumab",
+        "Melanoma",
+        "Protein Kinase Inhibitors",
+        "Proto-Oncogene Proteins B-raf",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological"
+      ]
+    },
+    {
+      "pmid": "31395089",
+      "pmcid": "PMC4727393",
+      "title": "Immunogenicity of pembrolizumab in patients with advanced tumors.",
+      "text": "Immunogenicity of pembrolizumab in patients with advanced tumors.\n\nBACKGROUND: Pembrolizumab is a potent, humanized, monoclonal anti-programmed death 1 antibody that has demonstrated effective antitumor activity and acceptable safety in multiple tumor types. Therapeutic biologics can result in the development of antidrug antibodies (ADAs), which may alter drug clearance and neutralize target binding, potentially reducing drug efficacy; such immunogenicity may also result in infusion reactions, anaphylaxis, and immune complex disorders. Pembrolizumab immunogenicity and its impact on exposure, safety, and efficacy was assessed in this study.\nPATIENTS AND METHODS: Pembrolizumab immunogenicity was assessed in 3655 patients with advanced or metastatic cancer treated in 12 clinical studies. Patients with melanoma, non-small cell lung cancer, head and neck squamous cell carcinoma, colorectal cancer, urothelial cancer, and Hodgkin lymphoma were treated with pembrolizumab at 2\u2009mg/kg every 3\u2009weeks, 10\u2009mg/kg every 2\u2009weeks, 10\u2009mg/kg every 3\u2009weeks, or 200\u2009mg every 3\u2009weeks. An additional study involving 496 patients with stage III melanoma treated with 200\u2009mg adjuvant pembrolizumab every 3\u2009weeks after complete resection was analyzed separately.\nRESULTS: Of 3655 patients, 2000 were evaluable for immunogenicity analysis, 36 (1.8%) were treatment-emergent (TE) ADA-positive; 9 (0.5%) of these TE-positive patients had antibodies with neutralizing capacity. The presence of pembrolizumab-specific ADAs did not impact pembrolizumab exposure, nor did pembrolizumab immunogenicity affect the incidence of drug-related adverse events (AEs) or infusion-related reactions. There was no clear relationship between the presence of pembrolizumab-specific ADAs and changes in tumor size across treatment regimens. Of the 496 patients treated with pembrolizumab as adjuvant therapy, 495 were evaluable, 17 (3.4%) were TE ADA-positive; none had neutralizing antibodies.\nCONCLUSIONS: The incidence of TE (neutralizing positive) ADAs against pembrolizumab was low in patients with advanced tumors. Furthermore, immunogenicity did not appear to have any clinically relevant effects on the exposure, safety, or efficacy of pembrolizumab.\nTRIAL REGISTRATION: ClinicalTrials.gov, NCT01295827 (February 15, 2011), NCT01704287 (October 11, 2012), NCT01866319 (May 31, 2013), NCT01905657 (July 23, 2013), NCT02142738 (May 20, 2014), NCT01848834 (May 8, 2013), NCT02255097 (October 2, 2014), NCT02460198 (June 2, 2015), NCT01953692 (October 1, 2013), NCT02453594 (May 25, 2015), NCT02256436 (October 3, 2014), NCT02335424 (January 9, 2015), NCT02362594 (February 13, 2015).",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "van Vugt Marianne J H",
+          "affiliation": "Integrated Drug Development, Certara, Oss, Netherlands."
+        },
+        {
+          "name": "Stone Julie A",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "De Greef Rik H J M M",
+          "affiliation": "Integrated Drug Development, Certara, Oss, Netherlands."
+        },
+        {
+          "name": "Snyder Ellen S",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Lipka Leslie",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Turner David C",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Chain Anne",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Lala Mallika",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Li Mengyao",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Robey Seth H",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Kondic Anna G",
+          "affiliation": "Decision Analytics, Certara, Princeton, NJ, USA."
+        },
+        {
+          "name": "De Alwis Dinesh",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Mayawala Kapil",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Jain Lokesh",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Freshwater Tomoko",
+          "affiliation": "Quantitative Pharmacology, Merck & Co., Inc, Kenilworth, NJ, USA. tomoko.freshwater@merck.com."
+        }
+      ],
+      "mesh_terms": [
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Female",
+        "Humans",
+        "Male",
+        "Neoplasms"
+      ]
+    },
+    {
+      "pmid": "30736858",
+      "pmcid": "PMC6916264",
+      "title": "Are tumor size changes predictive of survival for checkpoint blockade based immunotherapy in metastatic melanoma?",
+      "text": "Are tumor size changes predictive of survival for checkpoint blockade based immunotherapy in metastatic melanoma?\n\nBACKGROUND: In oncology clinical development, objective response rate, disease control rate and early tumor size changes are commonly used as efficacy metrics for early decision-making. However, for immunotherapy trials, it is unclear whether these early efficacy metrics are still predictive of long-term clinical benefit such as overall survival. The goal of this paper is to identify appropriate early efficacy metrics predictive of overall survival for immunotherapy trials.\nMETHODS: Based on several checkpoint blockade based immunotherapy studies in metastatic melanoma, we evaluated the predictive value of early tumor size changes and RECIST-based efficacy metrics at various time points on overall survival. The cut-off values for tumor size changes to predict survival were explored via tree based recursive partitioning and validated by external data. Sensitivity analyses were performed for the cut-offs.\nRESULTS: The continuous tumor size change metric and RECIST-based trichotomized response metric at different landmark time points were found to be statistically significantly associated with overall survival. The predictive values were higher at Week 12 and 18 than those at Week 24. The percentage of tumor size changes appeared to have comparable or lower predictive values than the RECIST-based trichotomized metric, and a cut-off of approximately 10% tumor reduction appeared to be reasonable for predicting survival.\nCONCLUSIONS: An approximate 10% tumor reduction may be a reasonable cut-off for early decision-making while the RECIST-based efficacy metric remains the primary tool. Early landmark analysis is especially useful for decision making when accrual is fast. Composite response rate (utilizing different weights for PR/CR and SD) may be worth further investigation.\nTRIAL REGISTRATION: Clinical trials gov, NCT01295827 , Registered February 15, 2011; NCT01704287 , Registered October 11, 2012; NCT01866319 , Registered May 31, 2013.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Wang Meihua",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA. meihua.wang@merck.com."
+        },
+        {
+          "name": "Chen Cong",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Jemielita Thomas",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Anderson James",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Li Xiaoyun Nicole",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Hu Chen",
+          "affiliation": "Sidney Kimmel Comprehensive Cancer Center at Johns Hopkins, Baltimore, MD, USA."
+        },
+        {
+          "name": "Kang S Peter",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ebbinghaus Scot",
+          "affiliation": "Merck & Co., Inc., Kenilworth, NJ, USA."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Aged",
+        "Aged, 80 and over",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Female",
+        "Humans",
+        "Immunotherapy",
+        "Ipilimumab",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Skin Neoplasms",
+        "Survival Analysis",
+        "Treatment Outcome",
+        "Tumor Burden"
+      ]
+    },
+    {
+      "pmid": "30202085",
+      "pmcid": "PMC9004487",
+      "title": "Antitumour activity of pembrolizumab in advanced mucosal melanoma: a post-hoc analysis of KEYNOTE-001, 002, 006.",
+      "text": "Antitumour activity of pembrolizumab in advanced mucosal melanoma: a post-hoc analysis of KEYNOTE-001, 002, 006.\n\nBACKGROUND: Mucosal melanoma is an aggressive melanoma with poor prognosis. We assessed efficacy of pembrolizumab in patients with advanced mucosal melanoma in KEYNOTE-001 (NCT01295827), -002 (NCT01704287), and -006 (NCT01866319).\nMETHODS: Patients received pembrolizumab 2\u2009mg/kg every 3 weeks (Q3W) or 10\u2009mg/kg Q2W or Q3W. Response was assessed by independent central review per RECIST v1.1.\nRESULTS: 1567 patients were treated and 84 (5%) had mucosal melanoma. Fifty-one of 84 were ipilimumab-naive. In patients with mucosal melanoma, the objective response rate (ORR) was 19% (95% CI 11-29%), with median duration of response (DOR) of 27.6 months (range 1.1\u2009+\u2009to 27.6). Median progression-free survival (PFS) was 2.8 months (95% CI 2.7-2.8), with median overall survival (OS) of 11.3 months (7.7-16.6). ORR was 22% (95% CI 11-35%) and 15% (95% CI 5-32%) in ipilimumab-naive and ipilimumab-treated patients.\nCONCLUSION: Pembrolizumab provides durable antitumour activity in patients with advanced mucosal melanoma regardless of prior ipilimumab.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Hamid Omid",
+          "affiliation": "The Angeles Clinic and Research Institute, Los Angeles, CA, USA. ohamid@theangelesclinic.org."
+        },
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Gustave Roussy and Paris-Sud University, Villejuif, France."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "University of California, Los Angeles, Los Angeles, CA, USA."
+        },
+        {
+          "name": "Hodi F Stephen",
+          "affiliation": "Dana-Farber Cancer Institute, Boston, MA, USA."
+        },
+        {
+          "name": "Walpole Euan",
+          "affiliation": "Princess Alexandra Hospital, Brisbane, Australia."
+        },
+        {
+          "name": "Daud Adil",
+          "affiliation": "University of California, San Francisco, San Francisco, CA, USA."
+        },
+        {
+          "name": "Arance Ana S",
+          "affiliation": "Hospital Clinic de Barcelona, Barcelona, Spain."
+        },
+        {
+          "name": "Brown Ewan",
+          "affiliation": "Edinburgh Cancer Research Centre and Western General Hospital, Edinburgh, Scotland, UK."
+        },
+        {
+          "name": "Hoeller Christoph",
+          "affiliation": "Medical University of Vienna, Vienna, Austria."
+        },
+        {
+          "name": "Mortier Laurent",
+          "affiliation": "Centre Hospitalier R\u00e9gional Universitaire de Lille, Universit\u00e9 Lille, Lille, France."
+        },
+        {
+          "name": "Schachter Jacob",
+          "affiliation": "Ella Lemelbaum Institute for Melanoma, Sheba Medical Center, Tel Hashomer, Israel."
+        },
+        {
+          "name": "Long Jianmin",
+          "affiliation": "Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ebbinghaus Scot",
+          "affiliation": "Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Merck & Co., Inc, Kenilworth, NJ, USA."
+        },
+        {
+          "name": "Butler Marcus",
+          "affiliation": "Princess Margaret Cancer Centre, Toronto, ON, Canada."
+        }
+      ],
+      "mesh_terms": [
+        "Adolescent",
+        "Adult",
+        "Aged",
+        "Aged, 80 and over",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Drug Administration Schedule",
+        "Female",
+        "Humans",
+        "Ipilimumab",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Survival Analysis",
+        "Treatment Outcome",
+        "Young Adult"
+      ]
+    },
+    {
+      "pmid": "28987768",
+      "pmcid": null,
+      "title": "Patient-reported outcomes in KEYNOTE-006, a randomised study of pembrolizumab versus ipilimumab in patients with advanced melanoma.",
+      "text": "Patient-reported outcomes in KEYNOTE-006, a randomised study of pembrolizumab versus ipilimumab in patients with advanced melanoma.\n\nOBJECTIVE: Report results of patient-reported health-related quality of life (HRQoL) and symptoms from phase III KEYNOTE-006 study of pembrolizumab versus ipilimumab in patients with ipilimumab-naive advanced melanoma.\nPATIENTS AND METHODS: Patients received pembrolizumab 10\u00a0mg/kg every 2 (Q2W) or every 3 weeks (Q3W) for up to 2 years, or four cycles of ipilimumab 3\u00a0mg/kg Q3W. The European Organisation for Research and Treatment of Cancer Quality of Life Questionnaire C30 (EORTC QLQ-C30) was administered at baseline and throughout the study. Patient-reported outcome (PRO) analyses were pre-specified exploratory endpoints; the primary PRO assessment was the score change from baseline to week 12 in EORTC QLQ-C30 global health status (GHS)/HRQoL score between the arms using constrained longitudinal data analysis.\nRESULTS: The PRO analysis population included 776 patients: pembrolizumab Q2W (n\u00a0=\u00a0270); pembrolizumab Q3W (n\u00a0=\u00a0266); ipilimumab (n\u00a0=\u00a0240). Baseline GHS was similar across arms. QLQ-C30 compliance rates at week 12 were 87% (n\u00a0=\u00a0214), 97% (n\u00a0=\u00a0226),\u00a0and 96% (n\u00a0=\u00a0178), for the pembrolizumab Q2W, pembrolizumab Q3W, and ipilimumab arms, respectively. From baseline to week 12, GHS/HRQoL scores were better maintained with pembrolizumab than with ipilimumab (decrease of -1.9 and -2.5 for pembrolizumab versus -10.0 for ipilimumab; p\u00a0<\u00a00.001 for each pembrolizumab arm versus ipilimumab). Fewer patients treated with pembrolizumab experienced deterioration in GHS at week 12 (31% for pembrolizumab Q2W; 29% for Q3W and 44% for ipilimumab), with similar trends observed for individual functioning and symptoms scales.\nCONCLUSIONS: HRQoL was better maintained with pembrolizumab than with ipilimumab in patients with ipilimumab-naive advanced melanoma. CLINICALTRIALS.\nGOV IDENTIFIER: NCT01866319.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Petrella Teresa M",
+          "affiliation": "Sunnybrook Health Sciences Centre, University of Toronto, 2075 Bayview Ave, T2-041, Toronto, ON, M4N 3M5, Canada. Electronic address: teresa.petrella@sunnybrook.ca."
+        },
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Gustave Roussy and Universit\u00e9 Paris-Sud, 114 Rue Edouard Vaillant, 94800 Villejuif, France. Electronic address: caroline.robert@gustaveroussy.fr."
+        },
+        {
+          "name": "Richtig Erika",
+          "affiliation": "Medical University of Graz, Auenbruggerpl. 2, 8036 Graz, Graz, Austria. Electronic address: erika.richtig@medunigraz.at."
+        },
+        {
+          "name": "Miller Wilson H",
+          "affiliation": "Segal Cancer Centre, Jewish General Hospital, Rossy Cancer Network, and McGill University, 3755 Ch de la C\u00f4te-Sainte-Catherine, Montreal, QC, H3T 1E2, Canada. Electronic address: wilsonmiller@gmail.com."
+        },
+        {
+          "name": "Masucci Giuseppe V",
+          "affiliation": "Karolinska Institute, Solnav\u00e4gen 1, 171 77 Solna, Stockholm, Sweden. Electronic address: giuseppe.masucci@ki.se."
+        },
+        {
+          "name": "Walpole Euan",
+          "affiliation": "Princess Alexandra Hospital and The University of Queensland, 199 Ipswich Rd, Woolloongabba, Brisbane, QLD 4102, Australia. Electronic address: euan.walpole@health.qld.gov.au."
+        },
+        {
+          "name": "Lebbe Celeste",
+          "affiliation": "APHP, Dermatology and CIC, Universit\u00e9 Paris Diderot, H\u00f4pital Saint-Louis, 1 Avenue Claude Vellefaux, 75010 Paris, France. Electronic address: celeste.lebbe@aphp.fr."
+        },
+        {
+          "name": "Steven Neil",
+          "affiliation": "Queen Elizabeth Hospital Birmingham, Mindelsohn Way, Birmingham B15 2TH, UK. Electronic address: N.M.Steven@bham.ac.uk."
+        },
+        {
+          "name": "Middleton Mark R",
+          "affiliation": "The Churchill Hospital and The University of Oxford, Old Rd, Headington, Oxford OX3 7LE, UK. Electronic address: mark.middleton@oncology.ox.ac.uk."
+        },
+        {
+          "name": "Hille Darcy",
+          "affiliation": "Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ 07033, USA. Electronic address: darcy_hille@merck.com."
+        },
+        {
+          "name": "Zhou Wei",
+          "affiliation": "Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ 07033, USA. Electronic address: wei.zhou2@merck.com."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ 07033, USA. Electronic address: nageatte.ibrahim@merck.com."
+        },
+        {
+          "name": "Cebon Jonathan",
+          "affiliation": "Olivia Newton-John Cancer Research Institute, Austin Health, School of Cancer Medicine, La Trobe University, 145 Studley Road, Heidelberg VIC 3084, Melbourne, Australia. Electronic address: jonathan.cebon@onjcri.org.au."
+        }
+      ],
+      "mesh_terms": [
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Female",
+        "Health Status",
+        "Humans",
+        "Ipilimumab",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Patient Reported Outcome Measures",
+        "Quality of Life",
+        "Skin Neoplasms",
+        "Time Factors",
+        "Treatment Outcome"
+      ]
+    },
+    {
+      "pmid": "34571336",
+      "pmcid": "PMC5885201",
+      "title": "Long-term outcomes in patients with advanced melanoma who had initial stable disease with pembrolizumab in KEYNOTE-001 and KEYNOTE-006.",
+      "text": "Long-term outcomes in patients with advanced melanoma who had initial stable disease with pembrolizumab in KEYNOTE-001 and KEYNOTE-006.\n\nOBJECTIVE: Patients with melanoma and early stable disease (SD) with pembrolizumab have unclear prognosis. We present post hoc analyses of long-term outcomes for patients with early SD, partial response (PR)\u00a0or complete response (CR) with pembrolizumab.\nPATIENTS AND METHODS: Patients who received pembrolizumab in the KEYNOTE-001 and KEYNOTE-006 studies and had SD, PR\u00a0or CR at weeks 12 or 24 were included.\nRESULTS: Of 294 patients in the week 12 analysis, 107 (36.4%) had SD at week 12, of whom 7 (6.5%) had a best overall response of CR, 43 (40.2%) had PR\u00a0and 57 (53.3%) had SD. Forty-eight-month overall survival (OS) rates were 95.2%, 73.0%\u00a0and 47.7%, respectively, for patients with CR, PR\u00a0and SD at week 12. Similar results were observed in the 241 patients in the week 24 analysis. Forty-eight-month OS rates were 72.1% for patients with SD at week 12 followed by subsequent response\u00a0and 75.0% for patients with PR at week 12 followed by no change in response or progression. Thirty-six-month and 48-month OS rates were 11.6% and not reached, respectively, for patients with SD at week 12 followed by progression before week 24.\nCONCLUSIONS: A substantial proportion of patients (46.7%) with early (week 12) SD with pembrolizumab achieved subsequent PR or CR. Patients with SD at week 12 and subsequent CR/PR had similar survival to those who maintained PR. In contrast, patients with SD at week 12 and subsequent progression had poor survival outcomes. These findings may guide treatment decisions for patients achieving early SD.\nTRIAL REGISTRATION: Clinicaltrials.gov: NCT01295827 (KEYNOTE-001); NCT01866319 (KEYNOTE-006).",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Hamid Omid",
+          "affiliation": "Department of Oncology, The Angeles Clinic and Research Institute, a Cedars-Sinai Affiliate, 11818 Wilshire Blvd, Los Angeles, CA 90025, USA. Electronic address: ohamid@theangelesclinic.org."
+        },
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Department of Oncology, Service of Dermatology, Gustave Roussy, 114 Rue Edouard Vaillant 94805, Villejuif, France; Paris-Saclay University, 15, Rue Georges Clemenceau 91400, Orsay, France. Electronic address: Caroline.Robert@gustaveroussy.fr."
+        },
+        {
+          "name": "Daud Adil",
+          "affiliation": "Department of Hematology/Oncology, University of California San Francisco, 1600 Divisadero St, San Francisco, CA 94115, USA. Electronic address: adaud@medicine.ucsf.edu."
+        },
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": "The Crown Princess Mary Cancer Centre Westmead, Westmead Hospital, and Blacktown and Mount Druitt Hospital, 166-174 Hawkesbury Rd, Westmead, NSW 2145, Australia; Melanoma Institute Australia, Faculty of Medicine and Health, University of Sydney, 40 Rocklands Rd, Sydney, NSW 2065, Australia. Electronic address: Matteo.carlino@sydney.edu.au."
+        },
+        {
+          "name": "Mitchell Tara C",
+          "affiliation": "Division of Hematology and Oncology, Abramson Cancer Center, Penn Medicine, 3400 Civic Center Blvd, South Pavilion, Floor 10, Philadelphia, PA 19104, USA. Electronic address: tara.mitchell@uphs.upenn.edu."
+        },
+        {
+          "name": "Hersey Peter",
+          "affiliation": "Department of Medicine, University of Sydney, Edward Ford Building A27, Sydney, NSW 2006, Australia. Electronic address: peter.hersey@sydney.edu.au."
+        },
+        {
+          "name": "Schachter Jacob",
+          "affiliation": "The Chaim Sheba Medical Center at Tel HaShomer, Tel HaShomer, Sheba Medical Center, Tel HaShomer Hospital, Ramat Gan 52621, Israel. Electronic address: jacob.schachter@sheba.health.gov.il."
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, 40 Rocklands Rd, North Sydney, NSW 2040, Australia; Faculty of Medicine and Health, The University of Sydney, NSW 2006, Australia; Charles Perkins Centre, The University of Sydney, NSW 2006, Australia; Royal North Shore & Mater Hospitals, Pacific Highway, St. Leonards, NSW 2065, Australia. Electronic address: Georgina.Long@sydney.edu.au."
+        },
+        {
+          "name": "Hodi F Stephen",
+          "affiliation": "Department of Medical Oncology, Dana-Farber Cancer Institute, 450 Brookline Ave, Boston, MA 02215, USA. Electronic address: Stephen_Hodi@dfci.harvard.edu."
+        },
+        {
+          "name": "Wolchok Jedd D",
+          "affiliation": "Department of Medicine, Memorial Sloan Kettering Cancer Center, 1275 York Ave, New York, NY 10065, USA. Electronic address: wolchokj@mskcc.org."
+        },
+        {
+          "name": "Arance Ana",
+          "affiliation": "Department of Medical Oncology, Hospital Clinic de Barcelona, Carrer de Villarroel, 170, 08036 Barcelona, Spain. Electronic address: amarance@clinic.cat."
+        },
+        {
+          "name": "Grob Jean Jacques",
+          "affiliation": "Department of Dermatology and Skin Cancers, Aix Marseille University, H\u00f4pital de la Timone, 264 Rue Saint Pierre 13005, Marseille, France. Electronic address: jean-jacques.grob@ap-hm.fr."
+        },
+        {
+          "name": "Joshua Anthony M",
+          "affiliation": "Department of Medical Oncology, UHN Princess Margaret Cancer Centre, 610 University Ave, Toronto, ON M5G 2C1, Canada; The Kinghorn Cancer Centre at St Vincent's Hospital, 370 Victoria St, Darlinghurst, NSW 2010, Australia; St Vincent's Clinical School, UNSW Sydney, 390 Victoria St, Darlinghurst, NSW 2010, Australia; Melanoma Institute Australia, 40 Rocklands Rd, North Sydney, NSW 2065, Australia. Electronic address: anthony.joshua@doctor.com."
+        },
+        {
+          "name": "Weber Jeffrey S",
+          "affiliation": "Laura and Isaac Perlmutter Cancer Center, NYU Langone Health, 522 First Avenue, Room 1310 Smilow Bldg, New York, NY 10016, USA. Electronic address: Jeffrey.Weber@nyulangone.org."
+        },
+        {
+          "name": "Mortier Laurent",
+          "affiliation": "Department of Dermatology, Lille University, INSERM U1189, 2, Avenue Oscar Lambret 59037, Lille, France. Electronic address: laurent.mortier@chru-lille.fr."
+        },
+        {
+          "name": "Jensen Erin",
+          "affiliation": "Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ 07033, USA. Electronic address: erin_jensen2@merck.com."
+        },
+        {
+          "name": "Diede Scott J",
+          "affiliation": "Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ 07033, USA. Electronic address: scott.diede@merck.com."
+        },
+        {
+          "name": "Moreno Blanca Homet",
+          "affiliation": "Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ 07033, USA. Electronic address: blanca.homet.moreno@merck.com."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "Department of Medicine, Jonsson Comprehensive Cancer Center and David Geffen School of Medicine, University of California Los Angeles, 100 Medical Plaza Driveway #550, Los Angeles, CA 90095, USA. Electronic address: aribas@mednet.ucla.edu."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Antibodies, Monoclonal, Humanized",
+        "Clinical Decision-Making",
+        "Disease Progression",
+        "Drug Administration Schedule",
+        "Female",
+        "Humans",
+        "Immune Checkpoint Inhibitors",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Neoplasm Staging",
+        "Patient Selection",
+        "Prognosis",
+        "Progression-Free Survival",
+        "Skin Neoplasms",
+        "Survival Rate"
+      ]
+    },
+    {
+      "pmid": "30096704",
+      "pmcid": null,
+      "title": "Outcomes by line of therapy and programmed death ligand 1 expression in patients with advanced melanoma treated with pembrolizumab or ipilimumab in KEYNOTE-006: A randomised clinical trial.",
+      "text": "Outcomes by line of therapy and programmed death ligand 1 expression in patients with advanced melanoma treated with pembrolizumab or ipilimumab in KEYNOTE-006: A randomised clinical trial.\n\nBACKGROUND: Predictive biomarkers of patients likely to benefit from anti-programmed death 1\u00a0inhibitor therapy have clinical relevance. We examined whether line of therapy or tumour programmed death ligand 1 (PD-L1) expression affects the efficacy and safety of pembrolizumab, compared with ipilimumab, in advanced melanoma.\nMETHODS: Of 834 patients enrolled in the randomised, open-label phase III KEYNOTE-006 study, 833 were included in this analysis. Patients were randomly assigned 1:1:1 to receive pembrolizumab 10\u00a0mg/kg every 2 or 3 weeks (for 24 months) or ipilimumab 3\u00a0mg/kg every 3 weeks (for four doses) until disease progression/intolerable toxicity. This analysis evaluated progression-free survival (PFS), overall survival (OS)\u00a0and objective response rate (ORR). Data cut-off: 03 November 2016.\nRESULTS: Of the patients, 60.3% were male, 65.9% were treatment naive\u00a0and 80.6% had PD-L1-positive tumours (median follow-up\u00a0was 33.9 months). Twenty-four-month survival rates were higher with pembrolizumab than with ipilimumab in treatment-naive (PFS 31.0% versus 14.6%; OS 58.0% versus 44.7%) and previously treated patients (PFS 25.7% versus 11.3%; OS 49.2% versus 37.9%). Twenty-four-month survival rates were higher with pembrolizumab than with ipilimumab in patients with PD-L1-positive tumours (PFS 33.2% versus 13.1%; OS 58.4% versus 45.0%) and similar in PD-L1-negative tumours (PFS 14.9% versus NR [no data at 24 months for a PFS estimate]; OS 43.6% versus 31.8%). Safety of pembrolizumab by subgroup was consistent with previous reports.\nCONCLUSIONS: Findings support pembrolizumab monotherapy as standard of care in patients with advanced melanoma, regardless of first- or second-line therapy or PD-L1 status. CLINICALTRIALS.\nGOV IDENTIFIER: NCT01866319.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": "Crown Princess Mary Cancer Centre, Westmead Hospital, Sydney, NSW, Australia; Blacktown Hospital, Blacktown, NSW, Australia; Melanoma Institute Australia, Sydney, NSW, Australia; School of Medicine, University of Sydney, Sydney, NSW, Australia. Electronic address: Matteo.carlino@sydney.edu.au."
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": "Melanoma Institute Australia, Sydney, NSW, Australia; Department of Medical Oncology and Translational Research, University of Sydney, Sydney, NSW, Australia; Royal North Shore Hospital, Sydney, NSW, Australia; Mater Hospital, Sydney, NSW, Australia. Electronic address: georgina.long@sydney.edu.au."
+        },
+        {
+          "name": "Schadendorf Dirk",
+          "affiliation": "Department of Dermatology, University Hospital Essen, Essen, Germany; German Cancer Consortium, Heidelberg, Germany. Electronic address: Dirk.Schadendorf@uk-essen.de."
+        },
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Department of Oncology, Gustave Roussy, Villejuif, France; Paris-Sud University, Orsay, France. Electronic address: Caroline.Robert@igr.fr."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "Department of Medicine, University of California, Los Angeles, Los Angeles, CA, USA. Electronic address: aribas@mednet.ucla.edu."
+        },
+        {
+          "name": "Richtig Erika",
+          "affiliation": "Department of Dermatology, Medical University of Graz, Graz, Austria. Electronic address: erika.richtig@medunigraz.at."
+        },
+        {
+          "name": "Nyakas Marta",
+          "affiliation": "Department of Clinical Cancer Research, Oslo University Hospital, Oslo, Norway. Electronic address: marnya@ous-hf.no."
+        },
+        {
+          "name": "Caglevic Christian",
+          "affiliation": "Unit of Investigational Cancer Drugs, Instituto Oncologico Fundaci\u00f3n Arturo L\u00f3pez P\u00e9rez, Santiago, Chile. Electronic address: oncodemia@yahoo.com."
+        },
+        {
+          "name": "Tarhini Ahmed",
+          "affiliation": "Division of Hematology/Oncology, University of Pittsburgh, Pittsburgh, PA, USA. Electronic address: tarhiniaa@upmc.edu."
+        },
+        {
+          "name": "Blank Christian",
+          "affiliation": "Division of Immunology, Netherlands Cancer Institute, Amsterdam, Netherlands. Electronic address: c.blank@nki.nl."
+        },
+        {
+          "name": "Hoeller Christoph",
+          "affiliation": "Department of Dermatology, Medical University of Vienna, Vienna, Austria. Electronic address: christoph.hoeller@meduniwien.ac.at."
+        },
+        {
+          "name": "Bar-Sela Gil",
+          "affiliation": "Division of Oncology, Rambam Health Care Campus, Haifa, Israel. Electronic address: g_barsela@rambam.health.gov.il."
+        },
+        {
+          "name": "Barrow Catherine",
+          "affiliation": "Wellington Blood and Cancer Centre, Wellington Hospital, Wellington, New Zealand. Electronic address: Catherine.Barrow@ccdhb.org.nz."
+        },
+        {
+          "name": "Wolter Pascal",
+          "affiliation": "Leuven Cancer Institute, University Hospitals Leuven, Leuven, Belgium. Electronic address: pascalwolter@hotmail.com."
+        },
+        {
+          "name": "Zhou Honghong",
+          "affiliation": "Department of BARDS, Merck & Co., Inc., Kenilworth, NJ, USA. Electronic address: honghongz@gmail.com."
+        },
+        {
+          "name": "Emancipator Kenneth",
+          "affiliation": "Companion Diagnostics, Merck & Co., Inc., Kenilworth, NJ, USA. Electronic address: kenneth.emancipator@merck.com."
+        },
+        {
+          "name": "Jensen Erin H",
+          "affiliation": "LDS - Medical Communications, Merck & Co., Inc., North Wales, PA, USA. Electronic address: erin_jensen2@merck.com."
+        },
+        {
+          "name": "Ebbinghaus Scot",
+          "affiliation": "Department of Clinical Oncology, Merck & Co., Inc., North Wales, PA, USA. Electronic address: scot_ebbinghaus@merck.com."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Department of Clinical Oncology, Merck & Co., Inc., North Wales, PA, USA. Electronic address: nageatte.ibrahim@merck.com."
+        },
+        {
+          "name": "Daud Adil",
+          "affiliation": "University of California, San Francisco, San Francisco, CA, USA. Electronic address: adaud@medicine.ucsf.edu."
+        }
+      ],
+      "mesh_terms": [
+        "Adolescent",
+        "Adult",
+        "Aged",
+        "Aged, 80 and over",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "B7-H1 Antigen",
+        "Drug Administration Schedule",
+        "Female",
+        "Humans",
+        "Ipilimumab",
+        "Kaplan-Meier Estimate",
+        "Male",
+        "Melanoma",
+        "Middle Aged",
+        "Treatment Outcome",
+        "Young Adult"
+      ]
+    },
+    {
+      "pmid": "33360855",
+      "pmcid": "PMC2147083",
+      "title": "Long-term safety of pembrolizumab monotherapy and relationship with clinical outcome: A landmark analysis in patients with advanced melanoma.",
+      "text": "Long-term safety of pembrolizumab monotherapy and relationship with clinical outcome: A landmark analysis in patients with advanced melanoma.\n\nOBJECTIVE: Long-term safety of pembrolizumab in melanoma was analyzed in KEYNOTE-001, KEYNOTE-002, and KEYNOTE-006.\nPATIENTS AND METHODS: Analysis involved patients who received \u22651 pembrolizumab dose. Lead-time bias was addressed via landmark analyses in patients who were progression-free before day 147.\nRESULTS: Adverse events (AEs) were analyzed for 1567 patients (median follow-up, 42.4 months). Most AEs were mild/moderate; grade 3/4 treatment-related AEs occurred in 17.7% of patients. Two pembrolizumab-related deaths occurred. Any-grade immune-mediated AEs (imAEs) occurred in 23.0%, most commonly hypothyroidism (9.1%), pneumonitis (3.3%), and hyperthyroidism (3.0%); grade 3/4 imAEs occurred in 6.9% of patients. Most imAEs occurred within 16 weeks of treatment. In landmark analysis, patients who did (n\u00a0=\u00a079) versus did not (n\u00a0=\u00a0384) develop imAEs had similar objective response rates (ORRs) (64.6% versus 63.0%); median time to response (TTR), 5.6 months for both; median duration of response (DOR), 20.0 versus 25.3 months; median progression-free survival (PFS), 17.0 versus 17.7 months; median overall survival (OS), not reached (NR) versus 43 months (p\u00a0=\u00a00.1104). Patients who did (n\u00a0=\u00a017) versus did not (n\u00a0=\u00a062) receive systemic corticosteroids had similar ORRs (70.6% vs. 62.9%) and median TTR (6.4 vs. 5.6 months) but numerically shorter median PFS (9.9 vs. 17.0 months); median DOR, 14.2 months versus NR; median OS, NR for both.\nCONCLUSIONS: These results enhance the knowledge base for pembrolizumab in advanced melanoma, with no new toxicity signals after lengthy follow-up of a large population. In landmark analyses, pembrolizumab efficacy was similar regardless of imAEs or systemic corticosteroid use.\nCLINICAL TRIAL REGISTRY: NCT01295827, NCT01704287, NCT01866319.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Robert Caroline",
+          "affiliation": "Department of Oncology, Service of Dermatology, Institut de Canc\u00e9rologie Gustave Roussy, 114 Rue Edouard Vaillant, Gustave Roussy, Villejuif, 94805, France; Paris-Saclay University, CNRS UMR 3348, Orsay, France. Electronic address: caroline.robert@gustaveroussy.fr."
+        },
+        {
+          "name": "Hwu Wen-Jen",
+          "affiliation": "Department of Melanoma Medical Oncology, The University of Texas MD Anderson Cancer Center, 1515 Holcombe Blvd, Houston, TX, 77030, USA. Electronic address: hwu.wenjen@gmail.com."
+        },
+        {
+          "name": "Hamid Omid",
+          "affiliation": "Department of Hematology/Oncology, The Angeles Clinic and Research Institute, a Cedars-Sinai Affiliate, 11800 Wilshire Blvd Suite 300, Los Angeles, CA, 90025, USA. Electronic address: ohamid@theangelesclinic.org."
+        },
+        {
+          "name": "Ribas Antoni",
+          "affiliation": "Department of Medicine and the Jonsson Comprehensive Cancer Center, University of California, Los Angeles (UCLA), 11-934 Factor bldg., Los Angeles, CA, 90095, USA. Electronic address: aribas@mednet.ucla.edu."
+        },
+        {
+          "name": "Weber Jeffrey S",
+          "affiliation": "Department of Medicine, Laura and Isaac Perlmutter Cancer Center at NYU Langone Health, 522 First Avenue, 1310 Smilow Building, New York, NY, 10016, USA. Electronic address: Jeffrey.Weber@nyulangone.org."
+        },
+        {
+          "name": "Daud Adil I",
+          "affiliation": "Department of Medicine, University of California San Francisco, 1600 Divisadero St, San Francisco, CA, 94158, USA. Electronic address: adaud@medicine.ucsf.edu."
+        },
+        {
+          "name": "Hodi F Stephen",
+          "affiliation": "Melanoma Center and Center for Immuno-Oncology, Dana-Farber Cancer Institute, 450 Brookline Ave, Boston, MA, 02215, USA. Electronic address: Stephen_Hodi@dfci.harvard.edu."
+        },
+        {
+          "name": "Wolchok Jedd D",
+          "affiliation": "Department of Medicine, Memorial Sloan Kettering Cancer Center, 1275 York Ave, New York, NY, 10065, USA. Electronic address: wolchokj@mskcc.org."
+        },
+        {
+          "name": "Mitchell Tara C",
+          "affiliation": "Division of Hematology and Oncology, Abramson Cancer Center, University of Pennsylvania, 3400 Civic Center Blvd South Pavilion, Flr 10, Philadelphia, PA, 19104, USA. Electronic address: tara.mitchell@uphs.upenn.edu."
+        },
+        {
+          "name": "Hersey Peter",
+          "affiliation": "Department of Medicine, The University of Sydney, Camperdown, NSW, 2006, Australia; Centenary Institute, Misendon Rd, Bldg 93, Camperdown, NSW, 2050, Australia; Melanoma Institute Australia, The University of Sydney, 40 Rocklands Rd, Wollstonecraft, NSW, 2065, Australia. Electronic address: peter.hersey@sydney.edu.au."
+        },
+        {
+          "name": "Dronca Roxana",
+          "affiliation": "Department of Hematology/Oncology, Mayo Clinic, 200 1st St. SW, Rochester, MN, 55905, USA. Electronic address: Dronca.Roxana@mayo.edu."
+        },
+        {
+          "name": "Joseph Richard W",
+          "affiliation": "Division of Cancer Medicine, Mayo Clinic Cancer Center-Florida, 4500 San Pablo Rd, Jacksonville, FL, 32224, USA. Electronic address: joseph.richard@mayo.edu."
+        },
+        {
+          "name": "Boutros Celine",
+          "affiliation": "Department of Oncology, Service of Dermatology, Institut de Canc\u00e9rologie Gustave Roussy, 114 Rue Edouard Vaillant, Gustave Roussy, Villejuif, 94805, France. Electronic address: celine.boutros@gustaveroussy.fr."
+        },
+        {
+          "name": "Min Le",
+          "affiliation": "Division of Endocrinology, Diabetes and Hypertension, Brigham and Women's Hospital, Harvard Medical School, 221 Longwood Avenue, Boston, MA, 02115, USA. Electronic address: lmin@bwh.harvard.edu."
+        },
+        {
+          "name": "Long Georgina V",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, 40 Rocklands Rd, Wollstonecraft, NSW, 2065, Australia; Royal North Shore Hospital, Reserve Road, St Leonards, NSW, 2065, Australia; Mater Hospital, Wollstonecraft, NSW, 2065, Australia; Faculty of Medicine and Health, The University of Sydney, Sydney, NSW, 2006, Australia. Electronic address: Georgina.Long@melanoma.org.au."
+        },
+        {
+          "name": "Schachter Jacob",
+          "affiliation": "Division of Oncology, Level 2 Cancer Center, Sheba Medical Center, Tel HaShomer Hospital, Emek HaEla Street 1, Tel HaShomer, Ramat Gan, 52621, Israel. Electronic address: jacob.schachter@sheba.health.gov.il."
+        },
+        {
+          "name": "Puzanov Igor",
+          "affiliation": "Melanoma Section Department of Medicine, Roswell Park Comprehensive Cancer Center, 915 CSC Building, Elm & Carlton Streets, Buffalo, NY, 14263, USA. Electronic address: Igor.Puzanov@RoswellPark.org."
+        },
+        {
+          "name": "Dummer Reinhard",
+          "affiliation": "Department of Dermatology, University Hospital Z\u00fcrich, University of Zurich, R\u00e4mistrasse 100, Z\u00fcrich, 8091, Switzerland. Electronic address: reinhard.Dummer@usz.ch."
+        },
+        {
+          "name": "Lin Jianxin",
+          "affiliation": "Department of Clinical Oncology, Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ, 07033, USA. Electronic address: jianxin_lin@merck.com."
+        },
+        {
+          "name": "Ibrahim Nageatte",
+          "affiliation": "Department of Clinical Oncology, Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ, 07033, USA. Electronic address: nageatte.ibrahim@merck.com."
+        },
+        {
+          "name": "Diede Scott J",
+          "affiliation": "Department of Clinical Oncology, Merck & Co., Inc., 2000 Galloping Hill Road, Kenilworth, NJ, 07033, USA. Electronic address: scott.diede@merck.com."
+        },
+        {
+          "name": "Carlino Matteo S",
+          "affiliation": "Department of Medicine, The University of Sydney, Camperdown, NSW, 2006, Australia; Melanoma Institute Australia, The University of Sydney, 40 Rocklands Rd, Wollstonecraft, NSW, 2065, Australia; Department of Medical Oncology, The Crown Princess Mary Cancer Centre, Westmead Hospital, 12 Moris Road, Westmead, NSW, 2145, Australia; Blacktown Hospital, 18 Blacktown Road, Blacktown, NSW, 2148, Australia. Electronic address: matteo.carlino@sydney.edu.au."
+        },
+        {
+          "name": "Joshua Anthony M",
+          "affiliation": "Melanoma Institute Australia, The University of Sydney, 40 Rocklands Rd, Wollstonecraft, NSW, 2065, Australia; Department of Medical Oncology, Princess Margaret Cancer Centre, University Health Network, 610 University Ave, Toronto, ON, M5G2C1, Canada; The Kinghorn Cancer Centre at St Vincent's Hospital, 370 Victoria St, Darlinghurst, NSW, 2010, Australia; St Vincent's Clinical School, UNSW Sydney, Victoria St, Darlinghurst, NSW, 2010, Australia. Electronic address: Anthony.joshua@svha.org.au."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Aged",
+        "Aged, 80 and over",
+        "Antibodies, Monoclonal, Humanized",
+        "Antineoplastic Agents, Immunological",
+        "Clinical Trials as Topic",
+        "Drug-Related Side Effects and Adverse Reactions",
+        "Female",
+        "Follow-Up Studies",
+        "Humans",
+        "Male",
+        "Melanoma",
+        "Meta-Analysis as Topic",
+        "Middle Aged",
+        "Prognosis",
+        "Young Adult"
+      ]
+    }
+  ],
+  "metadata": {
+    "sponsor": "Merck Sharp & Dohme LLC",
+    "phase": "PHASE3",
+    "status": "COMPLETED",
+    "conditions": [
+      "Melanoma"
+    ],
+    "enrollment": 834,
+    "num_publications": 13,
+    "num_with_full_text": 0
+  }
+}

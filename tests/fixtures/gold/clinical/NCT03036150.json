@@ -1,0 +1,2259 @@
+{
+  "nct_id": "NCT03036150",
+  "trial_title": "A Study to Evaluate the Effect of Dapagliflozin on Renal Outcomes and Cardiovascular Mortality in Patients With Chronic Kidney Disease",
+  "gold_triples": [
+    {
+      "subject_text": "AstraZeneca",
+      "subject_type": "ORGANIZATION",
+      "predicate": "sponsors",
+      "object_text": "NCT03036150",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "sponsor",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Dapagliflozin",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT03036150",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Dapagliflozin",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Chronic Kidney Disease",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Placebo",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT03036150",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "Placebo",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Chronic Kidney Disease",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT03036150",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "studies",
+      "object_text": "Chronic Kidney Disease",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT03036150",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_phase",
+      "object_text": "PHASE3",
+      "object_type": "PHASE",
+      "source": "ClinicalTrials.gov",
+      "source_field": "phase",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT03036150",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_status",
+      "object_text": "COMPLETED",
+      "object_type": "STATUS",
+      "source": "ClinicalTrials.gov",
+      "source_field": "status",
+      "confidence": 1.0
+    }
+  ],
+  "input_documents": [
+    {
+      "pmid": "32970396",
+      "pmcid": null,
+      "title": "Dapagliflozin in Patients with Chronic Kidney Disease.",
+      "text": "Dapagliflozin in Patients with Chronic Kidney Disease.\n\nBACKGROUND: Patients with chronic kidney disease have a high risk of adverse kidney and cardiovascular outcomes. The effect of dapagliflozin in patients with chronic kidney disease, with or without type 2 diabetes, is not known.\nMETHODS: We randomly assigned 4304 participants with an estimated glomerular filtration rate (GFR) of 25 to 75 ml per minute per 1.73 m\nRESULTS: The independent data monitoring committee recommended stopping the trial because of efficacy. Over a median of 2.4 years, a primary outcome event occurred in 197 of 2152 participants (9.2%) in the dapagliflozin group and 312 of 2152 participants (14.5%) in the placebo group (hazard ratio, 0.61; 95% confidence interval [CI], 0.51 to 0.72; P<0.001; number needed to treat to prevent one primary outcome event, 19 [95% CI, 15 to 27]). The hazard ratio for the composite of a sustained decline in the estimated GFR of at least 50%, end-stage kidney disease, or death from renal causes was 0.56 (95% CI, 0.45 to 0.68; P<0.001), and the hazard ratio for the composite of death from cardiovascular causes or hospitalization for heart failure was 0.71 (95% CI, 0.55 to 0.92; P\u2009=\u20090.009). Death occurred in 101 participants (4.7%) in the dapagliflozin group and 146 participants (6.8%) in the placebo group (hazard ratio, 0.69; 95% CI, 0.53 to 0.88; P\u2009=\u20090.004). The effects of dapagliflozin were similar in participants with type 2 diabetes and in those without type 2 diabetes. The known safety profile of dapagliflozin was confirmed.\nCONCLUSIONS: Among patients with chronic kidney disease, regardless of the presence or absence of diabetes, the risk of a composite of a sustained decline in the estimated GFR of at least 50%, end-stage kidney disease, or death from renal or cardiovascular causes was significantly lower with dapagliflozin than with placebo. (Funded by AstraZeneca; DAPA-CKD ClinicalTrials.gov number, NCT03036150.).",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Stef\u00e1nsson Bergur V",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Hou Fan-Fan",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Mann Johannes F E",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Lindberg Magnus",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Toto Roberto D",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Langkilde Anna-Maria",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "From the Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands (H.J.L.H.); the George Institute for Global Health, Sydney (H.J.L.H., D.C.W.); Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., M.L., C.D.S., A.-M.L.); the National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City (R.C.-R.); the Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA (G.M.C.); the Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.); the Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.-F.H.); KfH Kidney Center, Munich, and Department of Medicine 4, University of Erlangen-Nuremberg, Erlangen - both in Germany (J.F.E.M.); the Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow (J.J.V.M.), and the Department of Renal Medicine, University College London, London (D.C.W.) - both in the United Kingdom; Steno Diabetes Center Copenhagen, Gentofte, and the Department of Clinical Medicine, University of Copenhagen, Copenhagen - both in Denmark (P.R.); and the Department of Internal Medicine, UT Southwestern Medical Center, Dallas (R.D.T.)."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Benzhydryl Compounds",
+        "Cardiovascular Diseases",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Female",
+        "Glomerular Filtration Rate",
+        "Glucosides",
+        "Humans",
+        "Kaplan-Meier Estimate",
+        "Kidney Failure, Chronic",
+        "Male",
+        "Middle Aged",
+        "Regression Analysis",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "33338413",
+      "pmcid": null,
+      "title": "Effects of dapagliflozin on major adverse kidney and cardiovascular events in patients with diabetic and non-diabetic chronic kidney disease: a prespecified analysis from the DAPA-CKD trial.",
+      "text": "Effects of dapagliflozin on major adverse kidney and cardiovascular events in patients with diabetic and non-diabetic chronic kidney disease: a prespecified analysis from the DAPA-CKD trial.\n\nBACKGROUND: Dapagliflozin reduces the risk of kidney failure and heart failure in patients with chronic kidney disease. We aimed to investigate the effects of dapagliflozin on kidney, cardiovascular, and mortality outcomes according to presence or absence of type 2 diabetes and according to underlying cause of chronic kidney disease, reported as diabetic nephropathy, chronic glomerulonephritides, ischaemic or hypertensive chronic kidney disease, or chronic kidney disease of other or unknown cause.\nMETHODS: DAPA-CKD was a multicentre, double-blind, placebo-controlled, randomised trial done at 386 study sites in 21 countries, in which participants with a urinary albumin-to-creatinine ratio of 200-5000 mg/g and an estimated glomerular filtration rate (eGFR) of 25-75 mL/min per 1\u00b773m\nFINDINGS: The study took place between Feb 2, 2017, and June 12, 2020. 4304 participants were randomly assigned (2152 to dapagliflozin and 2152 to placebo) and were followed up for a median of 2\u00b74 years (IQR 2\u00b70-2\u00b77). Overall, 2906 (68%) participants had a diagnosis of type 2 diabetes, of whom 396 (14%) had chronic kidney disease ascribed to causes other than diabetic nephropathy. The relative risk reduction for the primary composite outcome with dapagliflozin was consistent in participants with type 2 diabetes (hazard ratio [HR] 0\u00b764, 95% CI 0\u00b752-0\u00b779) and those without diabetes (0\u00b750, 0\u00b735-0\u00b772; p\nINTERPRETATION: Dapagliflozin reduces the risks of major adverse kidney and cardiovascular events and all-cause mortality in patients with diabetic and non-diabetic chronic kidney disease.\nFUNDING: AstraZeneca.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK; The George Institute for Global Health, Sydney, NSW, Australia. Electronic address: d.wheeler@ucl.ac.uk."
+        },
+        {
+          "name": "Stef\u00e1nsson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City, UT, USA."
+        },
+        {
+          "name": "Hou Fan Fan",
+          "affiliation": "Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular & Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark; Department of Clinical Medicine, University of Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, TX, USA."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "The George Institute for Global Health, Sydney, NSW, Australia; Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Aged",
+        "Benzhydryl Compounds",
+        "Cardiovascular Diseases",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Double-Blind Method",
+        "Female",
+        "Glucosides",
+        "Heart Failure",
+        "Humans",
+        "Kidney",
+        "Kidney Failure, Chronic",
+        "Male",
+        "Middle Aged",
+        "Renal Insufficiency, Chronic",
+        "Treatment Outcome"
+      ]
+    },
+    {
+      "pmid": "32862232",
+      "pmcid": "PMC6055730",
+      "title": "The dapagliflozin and prevention of adverse outcomes in chronic kidney disease (DAPA-CKD) trial: baseline characteristics.",
+      "text": "The dapagliflozin and prevention of adverse outcomes in chronic kidney disease (DAPA-CKD) trial: baseline characteristics.\n\nBACKGROUND: The Dapagliflozin and Prevention of Adverse outcomes in Chronic Kidney Disease (DAPA-CKD; NCT03036150) trial was designed to assess the effect of the sodium-glucose co-transporter 2 (SGLT2) inhibitor dapagliflozin on kidney and cardiovascular events in participants with CKD with and without type 2 diabetes (T2D). This analysis reports the baseline characteristics of those recruited, comparing them with those enrolled in other trials.\nMETHODS: In DAPA-CKD, 4304 participants with a urinary albumin:creatinine ratio (UACR) \u2265200\u2009mg/g and estimated glomerular filtration rate (eGFR) between 25 and 75\u2009mL/min/1.73\u2009m2 were randomized to dapagliflozin 10\u2009mg once daily or placebo. Mean eGFR was 43.1\u2009mL/min/1.73\u2009m2 and median UACR was 949\u2009mg/g (108\u2009mg/mmol).\nRESULTS: Overall, 2906 participants (68%) had a diagnosis of T2D and of these, 396 had CKD ascribed to a cause other than diabetes. The most common causes of CKD after diabetes (n\u2009=\u20092510) were ischaemic/hypertensive nephropathy (n\u2009=\u2009687) and chronic glomerulonephritis (n\u2009=\u2009695), of which immunoglobulin A nephropathy (n\u2009=\u2009270) was the most common. A total of 4174 participants (97%) were receiving an angiotensin-converting enzyme inhibitor or angiotensin receptor blocker, 1882 (43.7%) diuretics, 229 (5.3%) mineralocorticoid receptor antagonists and 122 (2.8%) glucagon-like peptide 1 receptor agonists. In contrast to the Canagliflozin and Renal Events in Diabetes with Established Nephropathy Clinical Evaluation (CREDENCE), the DAPA-CKD trial enrolled participants with CKD due to diabetes and to causes other than diabetes. The mean eGFR of participants in the DAPA-CKD trial was 13.1\u2009mL/min/1.73\u2009m2 lower than in CREDENCE, similar to that in the Finerenone in Reducing Kidney Failure and Disease Progression in DKD (FIDELIO-DKD) trial and the Study Of diabetic Nephropathy with AtRasentan (SONAR).\nCONCLUSIONS: Participants with a wide range of underlying kidney diseases receiving renin-angiotensin system blocking therapy have been enrolled in the DAPA-CKD trial. The trial will examine the efficacy and safety of dapagliflozin in participants with CKD Stages 2-4 and increased albuminuria, with and without T2D.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK."
+        },
+        {
+          "name": "Stefansson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Batiushin Mikhail",
+          "affiliation": "Department of Nephrology, Rostov State Medical University, Rostov, Russia."
+        },
+        {
+          "name": "Bilchenko Oleksandr",
+          "affiliation": "Kharkiv Medical Academy of Postgraduate Education, Kharkiv, Ukraine."
+        },
+        {
+          "name": "Cherney David Z I",
+          "affiliation": "Toronto General Hospital Research Institute, University Health Network, Toronto, ON, Canada."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "Douthat Walter",
+          "affiliation": "Department of Nephrology, Hospital Privado Universitario de Cordoba, Cordoba, Argentina."
+        },
+        {
+          "name": "Dwyer Jamie P",
+          "affiliation": "Vanderbilt University Medical Center, Nashville, TN, USA."
+        },
+        {
+          "name": "Escudero Elizabeth",
+          "affiliation": "Division of Nephrology, Hospital Arzobispo Loayza, Cayetano Heredia University, Lima, Peru."
+        },
+        {
+          "name": "Pecoits-Filho Roberto",
+          "affiliation": "School of Medicine, Pontificia Universidade Catolica do Parana, Curitiba, Brazil."
+        },
+        {
+          "name": "Furuland Hans",
+          "affiliation": "Department of Medical Sciences Renal Unit, Uppsala University Hospital, Uppsala, Sweden."
+        },
+        {
+          "name": "G\u00f3rriz Jos\u00e9 Luis",
+          "affiliation": "Department of Nephrology, University Clinic Hospital, INCLIVA, University of Valencia, Valencia, Spain."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City, UT, USA."
+        },
+        {
+          "name": "Haller Hermann",
+          "affiliation": "Hannover Medical School, Hanover, Germany."
+        },
+        {
+          "name": "Hou Fan Fan",
+          "affiliation": "Department of Medicine, Division of Nephrology, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "Kang Shin-Wook",
+          "affiliation": "Department of Internal Medicine, Division of Nephrology, Yonsei University College of Medicine, Seoul, Korea."
+        },
+        {
+          "name": "Isidto Rey",
+          "affiliation": "Healthlink Medical, Dental, Surgical Clinics and Diagnostics Center, Iloilo City, Philippines."
+        },
+        {
+          "name": "Khullar Dinesh",
+          "affiliation": "Department of Nephrology and Renal Transplant Medicine, Max Super Speciality Hospital, Saket, New Delhi, India."
+        },
+        {
+          "name": "Mark Patrick B",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Kashihara Naoki",
+          "affiliation": "Department of Nephrology and Hypertension, Kawasaki Medical School, Okayama, Japan."
+        },
+        {
+          "name": "Nowicki Michal",
+          "affiliation": "Department of Nephrology, Hypertension and Kidney Transplantation, Medical University of \u0141\u00f3d\u017a, \u0141\u00f3d\u017a, Poland."
+        },
+        {
+          "name": "Persson Frederik",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, TX, USA."
+        },
+        {
+          "name": "Umanath Kausik",
+          "affiliation": "Division of Nephrology and Hypertension, Henry Ford Hospital, Detroit, MI, USA."
+        },
+        {
+          "name": "Van Bui Pham",
+          "affiliation": "Pham Ngoc Thach Medicine University, Ho Chi Minh City, Vietnam."
+        },
+        {
+          "name": "Wittmann Istv\u00e1n",
+          "affiliation": "Second Department of Medicine and Nephrology-Diabetes Center, University of P\u00e9cs Medical School, P\u00e9cs, Hungary."
+        },
+        {
+          "name": "Lindberg Magnus",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Benzhydryl Compounds",
+        "Cardiovascular Diseases",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Double-Blind Method",
+        "Female",
+        "Glomerular Filtration Rate",
+        "Glucosides",
+        "Humans",
+        "Male",
+        "Prognosis",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "35977807",
+      "pmcid": "PMC7005525",
+      "title": "Correlates and Consequences of an Acute Change in eGFR in Response to the SGLT2 Inhibitor Dapagliflozin in Patients with CKD.",
+      "text": "Correlates and Consequences of an Acute Change in eGFR in Response to the SGLT2 Inhibitor Dapagliflozin in Patients with CKD.\n\nBACKGROUND: Dapagliflozin reduces kidney failure risk in patients with CKD but can result in a reversible acute reduction in eGFR upon treatment initiation. Determinants of this eGFR reduction and its associations with efficacy and safety outcomes are unknown.\nMETHODS: The DAPA-CKD trial randomized 4304 adults with CKD and albuminuria to once-daily dapagliflozin 10 mg or placebo, added to standard care. We prespecified an analysis comparing the effects of dapagliflozin among patients who experienced relative reductions in eGFR (>10% or >0%-10%) or an increase in eGFR from baseline to 2 weeks and assessed long-term efficacy and safety thereafter.\nRESULTS: A total of 4157 (96.6%) patients had eGFR data available at baseline and at 2 weeks. In the dapagliflozin and placebo groups, 1026 (49.4%) and 494 (23.7%), respectively, experienced an acute reduction in eGFR >10%. Among patients receiving dapagliflozin, those with an acute reduction in eGFR >10% experienced a long-term eGFR decline of -1.58 ml/min per 1.73 m\nCONCLUSIONS: Among patients with CKD and albuminuria treated with dapagliflozin, an acute reduction in eGFR (from baseline to 2 weeks) is not associated with higher rates of CKD progression.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City, UT."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, United Kingdom."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Kashihara Naoki",
+          "affiliation": "Department of Nephrology and Hypertension, Kawasaki Medical School, Kurashiki, Japan."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Herlev, Denmark."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Stef\u00e1nsson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, TX."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Humans",
+        "Sodium-Glucose Transporter 2 Inhibitors",
+        "Albuminuria",
+        "Glomerular Filtration Rate",
+        "Diabetes Mellitus, Type 2",
+        "Benzhydryl Compounds",
+        "Renal Insufficiency, Chronic",
+        "Glucosides"
+      ]
+    },
+    {
+      "pmid": "34619108",
+      "pmcid": null,
+      "title": "Effect of dapagliflozin on the rate of decline in kidney function in patients with chronic kidney disease with and without type 2 diabetes: a prespecified analysis from the DAPA-CKD trial.",
+      "text": "Effect of dapagliflozin on the rate of decline in kidney function in patients with chronic kidney disease with and without type 2 diabetes: a prespecified analysis from the DAPA-CKD trial.\n\nBACKGROUND: Dapagliflozin reduced the risk of kidney failure in patients with chronic kidney disease with and without type 2 diabetes in the DAPA-CKD trial. In this pre-specified analysis, we assessed the effect of dapagliflozin on the rate of change in estimated glomerular filtration rate (eGFR)-ie, the eGFR slope.\nMETHODS: DAPA-CKD was a randomised controlled trial that enrolled participants aged 18 years or older, with or without type 2 diabetes, with a urinary albumin-to-creatinine ratio (UACR) of 200-5000 mg/g, and an eGFR of 25-75 mL/min per 1\u00b773m\nFINDINGS: Between Feb 2, 2017, and April 3, 2020, 4304 participants were recruited, of whom 2152 (50%) were assigned to dapagliflozin and 2152 (50%) were assigned to placebo. At baseline, the mean age was 62 years (SD 12), 1425 (33\u00b71%) participants were women, 2906 (67\u00b75%) participants had type 2 diabetes. The median on-treatment follow-up was 2\u00b73 years (IQR 1\u00b78-2\u00b76). From baseline to the end of treatment, dapagliflozin compared with placebo slowed eGFR decline by 0\u00b795 mL/min per 1\u00b773 m\nINTERPRETATION: Dapagliflozin significantly slowed long-term eGFR decline in patients with chronic kidney disease compared with placebo. The mean difference in eGFR slope between patients treated with dapagliflozin versus placebo was greater in patients with type 2 diabetes, higher HbA\nFUNDING: AstraZeneca.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, Netherlands; The George Institute for Global Health, Sydney, NSW, Australia. Electronic address: h.j.lambers.heerspink@umcg.nl."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark; Department of Clinical Medicine, University of Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Stefansson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, TX, USA."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "The George Institute for Global Health, Sydney, NSW, Australia; Department of Renal Medicine, University College London, London, UK."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City, UT, USA."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Benzhydryl Compounds",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Double-Blind Method",
+        "Female",
+        "Glomerular Filtration Rate",
+        "Glucosides",
+        "Humans",
+        "Kidney",
+        "Male",
+        "Middle Aged",
+        "Placebos",
+        "Renal Insufficiency",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "34619106",
+      "pmcid": null,
+      "title": "Effect of dapagliflozin on urinary albumin excretion in patients with chronic kidney disease with and without type 2 diabetes: a prespecified analysis from the DAPA-CKD trial.",
+      "text": "Effect of dapagliflozin on urinary albumin excretion in patients with chronic kidney disease with and without type 2 diabetes: a prespecified analysis from the DAPA-CKD trial.\n\nBACKGROUND: Reductions in albuminuria are associated with a subsequent lower risk of kidney failure in patients with chronic kidney disease. The SGLT2 inhibitor dapagliflozin significantly reduced albuminuria in patients with type 2 diabetes and normal or near-normal kidney function. Whether this effect persists in patients with chronic kidney disease with and without type 2 diabetes is unknown. We assessed the effects of dapagliflozin on albuminuria in patients with chronic kidney disease with and without type 2 diabetes in the dapagliflozin and prevention of adverse outcomes in chronic kidney disease (DAPA-CKD) trial.\nMETHODS: DAPA-CKD was a multicentre, double-blind, placebo-controlled, randomised trial done at 386 sites in 21 countries. Patients were eligible for the trial if they had chronic kidney disease, defined as an estimated glomerular filtration rate (eGFR) between 25 mL/min per 1\u00b773 m\nFINDINGS: Between Feb 2, 2017, and April 3, 2020, 4304 patients were recruited and randomly assigned to either dapagliflozin (n=2152) or placebo (n=2152). Median UACR was 949 mg/g (IQR 477 to 1885). Overall, compared with placebo, dapagliflozin reduced geometric mean UACR by 29\u00b73% (95% CI -33\u00b71 to -25\u00b72; p<0\u00b70001); relative to placebo, treatment with dapagliflozin resulted in a geometric mean percentage change of -35\u00b71% (95% CI -39\u00b74 to -30\u00b76; p<0\u00b70001) in patients with type 2 diabetes and -14\u00b78% (-22\u00b79 to -5\u00b79; p=0\u00b70016) in patients without type 2 diabetes over the follow-up visits (p\nINTERPRETATION: In patients with chronic kidney disease with and without type 2 diabetes, dapagliflozin significantly reduced albuminuria, with a larger relative reduction in patients with type 2 diabetes. The similar effects of dapagliflozin on clinical outcomes in patients with or without type 2 diabetes, but different effects on UACR, suggest that part of the protective effect of dapagliflozin in patients with chronic kidney disease might be mediated through pathways unrelated to reduction in albuminuria.\nFUNDING: AstraZeneca.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Centre Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City, UT, USA."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark; Department of Clinical Medicine, University of Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Stefansson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, TX, USA."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK; The George Institute for Global Health, Sydney, NSW, Australia."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Centre Groningen, Groningen, Netherlands; The George Institute for Global Health, Sydney, NSW, Australia. Electronic address: h.j.lambers.heerspink@umcg.nl."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Albuminuria",
+        "Benzhydryl Compounds",
+        "Creatinine",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Double-Blind Method",
+        "Female",
+        "Glomerular Filtration Rate",
+        "Glucosides",
+        "Humans",
+        "Male",
+        "Middle Aged",
+        "Placebos",
+        "Renal Insufficiency",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "37876229",
+      "pmcid": "PMC8598122",
+      "title": "Effect of SGLT2 Inhibitors on Discontinuation of Renin-angiotensin System Blockade: A Joint Analysis of the CREDENCE and DAPA-CKD Trials.",
+      "text": "Effect of SGLT2 Inhibitors on Discontinuation of Renin-angiotensin System Blockade: A Joint Analysis of the CREDENCE and DAPA-CKD Trials.\n\nSIGNIFICANCE STATEMENT: Angiotensin-converting enzyme (ACE) inhibitors and angiotensin receptor blockers (ARBs) are foundational therapy for CKD but are underused, in part because they are frequently withheld and not restarted due to hyperkalemia, AKI, or hospitalization. Consequently, ensuring persistent use of ACE inhibitors and ARBs in CKD has long been a major clinical priority. In this joint analysis of the CREDENCE and DAPA-CKD trials, the relative risk of discontinuation of ACE inhibitors and ARBs was reduced by 15% in patients randomized to sodium-glucose cotransporter 2 (SGLT2) inhibitors. This effect was more pronounced in patients with urine albumin:creatinine ratio \u22651000 mg/g, for whom the absolute benefits of these medications are the greatest. These findings indicate that SGLT2 inhibitors may enable better use of ACE inhibitors and ARBs in patients with CKD.\nBACKGROUND: Strategies to enable persistent use of renin-angiotensin system (RAS) blockade to improve outcomes in CKD have long been sought. The effect of SGLT2 inhibitors on discontinuation of RAS blockade has yet to be evaluated.\nMETHODS: We conducted a joint analysis of canagliflozin and renal events in diabetes with established nephropathy clinical evaluation (CREDENCE) and dapagliflozin and prevention of adverse outcomes in CKD (DAPA-CKD), two randomized, double-blind, placebo-controlled, event-driven trials of SGLT2 inhibitors in patients with albuminuric CKD. The main outcome was time to incident temporary or permanent discontinuation of RAS blockade, defined as interruption of an ACE inhibitor or ARB for at least 4 weeks or complete cessation during the double-blind on-treatment period. Cox regression analyses were used to estimate the treatment effects from each trial. Hazard ratios (HRs) and corresponding 95% confidence intervals (CIs) were pooled with fixed effects meta-analysis to obtain summary treatment effects, overall and across key subgroups.\nRESULTS: During median follow-up of 2.2 years across both trials, 740 of 8483 (8.7%) patients discontinued RAS blockade. The relative risk for discontinuation of RAS blockade was 15% lower in patients randomized to receiving SGLT2 inhibitors (HR, 0.85; 95% CI, 0.74 to 0.99), with consistent effects across trials ( P -heterogeneity = 0.92). The relative effect on RAS blockade discontinuation was more pronounced among patients with baseline urinary albumin:creatinine ratio \u22651000 mg/g (pooled HR, 0.77; 95% CI, 0.63 to 0.94; P -heterogeneity = 0.009).\nCONCLUSIONS: In patients with albuminuric CKD with and without type 2 diabetes, SGLT2 inhibitors facilitate the use of RAS blockade.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER: ClinicalTrials.gov, NCT02065791 and NCT03036150 .\nPODCAST: This article contains a podcast at https://dts.podtrac.com/redirect.mp3/www.asn-online.org/media/podcast/JASN/2023_11_21_JASN0000000000000248.mp3.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Fletcher Robert A",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine, Epidemiology and Population Health, and Health Policy, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, United Kingdom."
+        },
+        {
+          "name": "Arnott Clare",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Jardine Meg J",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Mahaffey Kenneth W",
+          "affiliation": "Department of Medicine, Stanford Center for Clinical Research, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Perkovic Vlado",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Rockenschaub Patrick",
+          "affiliation": "Charit\u00e9 Lab for Artificial Intelligence in Medicine, Charit\u00e9 Universit\u00e4tsmedizin Berlin, Berlin, Germany."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Complications Research, Steno Diabetes Center Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas."
+        },
+        {
+          "name": "Vaduganathan Muthiah",
+          "affiliation": "Cardiovascular Division, Brigham and Women's Hospital, Boston, Massachusetts."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Neuen Brendon L",
+          "affiliation": "The George Institute for Global Health, UNSW, Sydney, New South Wales, Australia."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Renin-Angiotensin System",
+        "Sodium-Glucose Transporter 2 Inhibitors",
+        "Angiotensin-Converting Enzyme Inhibitors",
+        "Angiotensin Receptor Antagonists",
+        "Diabetes Mellitus, Type 2",
+        "Creatinine",
+        "Renal Insufficiency, Chronic",
+        "Double-Blind Method",
+        "Albumins",
+        "Randomized Controlled Trials as Topic",
+        "Benzhydryl Compounds",
+        "Glucosides"
+      ]
+    },
+    {
+      "pmid": "34446370",
+      "pmcid": null,
+      "title": "Effects of Dapagliflozin in Patients With Kidney Disease, With and Without Heart\u00a0Failure.",
+      "text": "Effects of Dapagliflozin in Patients With Kidney Disease, With and Without Heart\u00a0Failure.\n\nOBJECTIVES: The purpose of this paper was to investigate the effects of dapagliflozin in chronic kidney disease (CKD) patients, with and without heart failure (HF).\nBACKGROUND: Patients with CKD, with and without type 2 diabetes, were enrolled in the DAPA-CKD (Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease) trial. Some patients had HF at baseline.\nMETHODS: A total of 4,304 participants were randomized to dapagliflozin 10\u00a0mg daily or placebo. The primary composite endpoint was\u00a0\u226550% decline in estimated glomerular filtration rate, end-stage kidney disease, or kidney/cardiovascular death. Secondary endpoints were a kidney composite (primary endpoint minus cardiovascular death), the composite of cardiovascular death/HF hospitalization, and all-cause death. Analysis of outcomes according to HF history was prespecified.\nRESULTS: HF patients (n\u00a0=\u00a0468; 11%) were older and had more coronary disease, atrial fibrillation, and type 2 diabetes. Mean estimated glomerular filtration rate was similar in patients with and without HF. Rates of HF hospitalization/cardiovascular death and death from any cause were higher in HF patients, but the secondary kidney failure outcome occurred at the same rate in people with and without HF. Dapagliflozin reduced the risk of the primary outcome equally in patients with HF (HR: 0.58 [95%\u00a0CI: 0.37-0.91]) and without HF (HR: 0.62 [95%\u00a0CI: 0.51-0.75]) (P interaction\u00a0=\u00a00.59). The proportional risk-reductions were similar in patients with and without HF for the cardiovascular death/HF hospitalization composite (HR: 0.68 [95%\u00a0CI: 0.44-1.05] vs HR: 0.70 [95%\u00a0CI: 0.51-0.97], respectively; P interaction\u00a0=\u00a00.90), and all-cause death (HR: 0.56 [95%\u00a0CI: 0.34-0.93] vs HR: 0.73 [95%\u00a0CI: 0.54-0.97], respectively; P interaction\u00a0=\u00a00.39), although absolute risk reductions were larger in HF patients. Adverse event rates were low and did not differ among patients with or without HF.\nCONCLUSIONS: Dapagliflozin reduced the risk of kidney failure and cardiovascular death/HF hospitalization and prolonged survival in CKD patients with or without type 2 diabetes, independently of history of HF. (A Study to Evaluate the Effect of Dapagliflozin on Renal Outcomes and Cardiovascular Mortality in Patients With Chronic Kidney Disease [DAPA-CKD]; NCT03036150).",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, United Kingdom. Electronic address: john.mcmurray@glasgow.ac.uk."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom; The George Institute for Global Health, Sydney, Australia."
+        },
+        {
+          "name": "Stef\u00e1nsson Bergur V",
+          "affiliation": "Late-stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Postmus Douwe",
+          "affiliation": "Department Epidemiology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, California, USA."
+        },
+        {
+          "name": "Hou Fan Fan",
+          "affiliation": "Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark; Department of Clinical Medicine, University of Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Solomon Scott D",
+          "affiliation": "Cardiovascular Division, Brigham and Women's Hospital, Boston, Massachusetts, USA."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas, USA."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "The George Institute for Global Health, Sydney, Australia; Department Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Benzhydryl Compounds",
+        "Diabetes Mellitus, Type 2",
+        "Glucosides",
+        "Heart Failure",
+        "Humans",
+        "Renal Insufficiency, Chronic"
+      ]
+    },
+    {
+      "pmid": "36323444",
+      "pmcid": "PMC5046160",
+      "title": "Cost-Effectiveness of Dapagliflozin as a Treatment for Chronic Kidney Disease: A Health-Economic Analysis of DAPA-CKD.",
+      "text": "Cost-Effectiveness of Dapagliflozin as a Treatment for Chronic Kidney Disease: A Health-Economic Analysis of DAPA-CKD.\n\nBACKGROUND AND OBJECTIVES: CKD imposes a significant burden on patients and health care providers, particularly upon reaching kidney failure when patients may require KRT. The Dapagliflozin and Prevention of Adverse Outcomes in CKD (DAPA-CKD) trial demonstrated that dapagliflozin, with standard therapy, reduced CKD progression and KRT requirement. The study objective was to estimate the cost-effectiveness of dapagliflozin for the treatment of CKD from payer perspectives in the United Kingdom, Germany, and Spain.\nDESIGN, SETTING, PARTICIPANTS, & MEASUREMENTS: We constructed a lifetime Markov model to characterize outcomes in patients with CKD on the basis of the DAPA-CKD trial. Health states were defined by eGFR level and KRT type. Direct health care costs and utility values were sourced from published literature and the DAPA-CKD trial, respectively. Costs and benefits were discounted at 3.5% per annum in the United Kingdom and 3% in Germany and Spain.\nRESULTS: In patients eligible for the DAPA-CKD trial, treatment with dapagliflozin was predicted to reduce rates of CKD progression, with patients predicted to spend 1.7 (95% credibility interval, 0.8 to 2.4) more years in the eGFR range 15-89 ml/min per 1.73 m\nCONCLUSIONS: In patients meeting the eligibility requirements for the DAPA-CKD trial, dapagliflozin is likely to be a cost-effective treatment within the UK, German, and Spanish health care systems.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER: Dapagliflozin and Prevention of Adverse Outcomes in CKD (DAPA-CKD), NCT03036150.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "McEwan Phil",
+          "affiliation": "Health Economics and Outcomes Research Ltd., Cardiff, United Kingdom."
+        },
+        {
+          "name": "Darlington Oliver",
+          "affiliation": "Health Economics and Outcomes Research Ltd., Cardiff, United Kingdom."
+        },
+        {
+          "name": "Miller Ryan",
+          "affiliation": "Health Economics and Outcomes Research Ltd., Cardiff, United Kingdom."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "British Heart Foundation Cardiovascular Research Centre, University of Glasgow, Glasgow, United Kingdom."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Briggs Andrew",
+          "affiliation": "Department of Health Services Research & Policy, London School of Hygiene & Tropical Medicine, London, United Kingdom."
+        },
+        {
+          "name": "Bergenheim Klas",
+          "affiliation": "Global Market Access and Pricing, BioPharmaceuticals, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Garcia Sanchez Juan Jose",
+          "affiliation": "Global Market Access and Pricing, BioPharmaceuticals, AstraZeneca, Cambridge, United Kingdom."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Cost-Benefit Analysis",
+        "Renal Insufficiency, Chronic",
+        "Benzhydryl Compounds",
+        "Glucosides",
+        "Diabetes Mellitus, Type 2"
+      ]
+    },
+    {
+      "pmid": "38097862",
+      "pmcid": "PMC8729835",
+      "title": "Effects of Dapagliflozin in Chronic Kidney Disease Across the Spectrum of Age and by Sex.",
+      "text": "Effects of Dapagliflozin in Chronic Kidney Disease Across the Spectrum of Age and by Sex.\n\nBACKGROUND: The sodium-glucose cotransporter type 2 inhibitor dapagliflozin reduces the risk of progressive kidney disease and cardiovascular events in patients with chronic kidney disease, with and without type 2 diabetes. Whether its effects are uniform across the spectrum of age and among men and women is unknown.\nOBJECTIVE: We performed a pre-specified analysis in DAPA-CKD to evaluate efficacy and safety of dapagliflozin according to baseline age and sex.\nDESIGN: Prospective randomized placebo-controlled trial.\nPARTICIPANTS: A total of 4304 adults with chronic kidney disease (estimated glomerular filtration rate (eGFR) 25-75 mL/min/1.73 m\nINTERVENTION: Dapagliflozin 10 mg versus placebo once daily.\nMAIN MEASURES: Primary endpoint was a composite of \u2265 50% sustained eGFR decline, end-stage kidney disease, and kidney or cardiovascular death. Secondary endpoints included kidney composite endpoint (same as primary composite endpoint but without cardiovascular death), cardiovascular composite endpoint (hospitalized heart failure or cardiovascular death), and all-cause mortality.\nKEY RESULTS: Median follow-up was 2.4 years. Absolute risks of cardiovascular composite endpoint and all-cause mortality were higher in older patients. Absolute risk of kidney composite endpoint was highest in patients < 50 years (10.7 and 6.2 per 100 patient-years in the placebo and dapagliflozin groups, respectively) and lowest in patients \u2265 80 years (3.0 and 1.2 per 100 patient-years in the placebo and dapagliflozin groups, respectively). There was no evidence of heterogeneity of the effects of dapagliflozin on the primary or secondary endpoints based on age or sex. Neither age nor sex modified the effects of dapagliflozin on total or chronic eGFR slope.\nCONCLUSIONS: Dapagliflozin reduced the risks of mortality, cardiovascular events, and CKD progression in older patients, including in septuagenarians and octogenarians who comprised 25% of participants. Ageism and/or therapeutic nihilism should not discourage the use of dapagliflozin in older women and men who are likely to experience considerable benefit.\nTRIAL REGISTRY: clinicaltrials.gov NIH TRIAL REGISTRY NUMBER: NCT03036150.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Yu Margaret K",
+          "affiliation": "Department of Medicine, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Centre Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Centre Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Hou Fan-Fan",
+          "affiliation": "Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "Douthat Walter",
+          "affiliation": "Department of Nephrology, Hospital Privado Universitario de Cordoba, Cordoba, Argentina."
+        },
+        {
+          "name": "Khullar Dinesh",
+          "affiliation": "Department of Nephrology and Renal Transplant Medicine, Max Super Speciality Hospital, Saket, New Delhi, India."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Centre Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Medicine, Stanford University School of Medicine, Stanford, CA, USA. gchertow@stanford.edu."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Glucosides",
+        "Benzhydryl Compounds",
+        "Male",
+        "Female",
+        "Renal Insufficiency, Chronic",
+        "Middle Aged",
+        "Aged",
+        "Prospective Studies",
+        "Diabetes Mellitus, Type 2",
+        "Sodium-Glucose Transporter 2 Inhibitors",
+        "Age Factors",
+        "Sex Factors",
+        "Glomerular Filtration Rate",
+        "Adult",
+        "Double-Blind Method",
+        "Treatment Outcome",
+        "Follow-Up Studies",
+        "Aged, 80 and over"
+      ]
+    },
+    {
+      "pmid": "38770818",
+      "pmcid": "PMC11106805",
+      "title": "Sodium-glucose co-transporter protein 2 (SGLT2) inhibitors for people with chronic kidney disease and diabetes.",
+      "text": "Sodium-glucose co-transporter protein 2 (SGLT2) inhibitors for people with chronic kidney disease and diabetes.\n\nBACKGROUND: Diabetes is associated with high risks of premature chronic kidney disease (CKD), cardiovascular diseases, cardiovascular death and impaired quality of life. People with diabetes are more likely to develop kidney impairment, and approximately one in three adults with diabetes have CKD. People with CKD and diabetes experience a substantially higher risk of cardiovascular outcomes. Sodium-glucose co-transporter protein 2 (SGLT2) inhibitors have shown potential effects in preventing kidney and cardiovascular outcomes in people with CKD and diabetes. However, new trials are emerging rapidly, and evidence synthesis is essential to summarising cumulative evidence.\nOBJECTIVES: This review aimed to assess the benefits and harms of SGLT2 inhibitors for people with CKD and diabetes.\nSEARCH METHODS: We searched the Cochrane Kidney and Transplant Register of Studies up to 17 November 2023 using a search strategy designed by an Information Specialist. Studies in the Register are continually identified through regular searches of CENTRAL, MEDLINE, and EMBASE, conference proceedings, the International Clinical Trials Registry Platform (ICTRP) Search Portal and ClinicalTrials.gov.\nSELECTION CRITERIA: Randomised controlled studies were eligible if they evaluated SGLT2 inhibitors versus placebo, standard care or other glucose-lowering agents in people with CKD and diabetes. CKD includes all stages (from 1 to 5), including dialysis patients.\nDATA COLLECTION AND ANALYSIS: Two authors independently extracted data and assessed the study risk of bias. Treatment estimates were summarised using random effects meta-analysis and expressed as a risk ratio (RR) or mean difference (MD), with a corresponding 95% confidence interval (CI). Confidence in the evidence was assessed using the Grading of Recommendations Assessment, Development and Evaluation (GRADE) approach. The primary review outcomes were all-cause death, 3-point and 4-point major adverse cardiovascular events (MACE), fatal or nonfatal myocardial infarction (MI), fatal or nonfatal stroke, and kidney failure.\nMAIN RESULTS: Fifty-three studies randomising 65,241 people with CKD and diabetes were included. SGLT2 inhibitors with or without other background treatments were compared to placebo, standard care, sulfonylurea, dipeptidyl peptidase-4 (DPP-4) inhibitors, or insulin. In the majority of domains, the risks of bias in the included studies were low or unclear. No studies evaluated the treatment in children or in people treated with dialysis. No studies compared SGLT2 inhibitors with glucagon-like peptide-1 receptor agonists or tirzepatide. Compared to placebo, SGLT2 inhibitors decreased the risk of all-cause death (20 studies, 44,397 participants: RR 0.85, 95% CI 0.78 to 0.94; I\nAUTHORS' CONCLUSIONS: SGLT2 inhibitors alone or added to standard care decrease all-cause death, cardiovascular death, and kidney failure and probably decrease major cardiovascular events while incurring less hypoglycaemia compared to placebo in people with CKD and diabetes.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Natale Patrizia",
+          "affiliation": "Sydney School of Public Health, The University of Sydney, Sydney, Australia."
+        },
+        {
+          "name": "Tunnicliffe David J",
+          "affiliation": "Sydney School of Public Health, The University of Sydney, Sydney, Australia."
+        },
+        {
+          "name": "Toyama Tadashi",
+          "affiliation": "Department of Nephrology, Kanazawa University, Kanazawa, Japan."
+        },
+        {
+          "name": "Palmer Suetonia C",
+          "affiliation": "Department of Medicine, University of Otago Christchurch, Christchurch, New Zealand."
+        },
+        {
+          "name": "Saglimbene Valeria M",
+          "affiliation": "Sydney School of Public Health, The University of Sydney, Sydney, Australia."
+        },
+        {
+          "name": "Ruospo Marinella",
+          "affiliation": "Sydney School of Public Health, The University of Sydney, Sydney, Australia."
+        },
+        {
+          "name": "Gargano Letizia",
+          "affiliation": "Department of Precision and Regenerative Medicine and Ionian Area (DiMePre-J) Nephrology, Dialysis and Transplantation Unit, University of Bari Aldo Moro, Bari, Italy."
+        },
+        {
+          "name": "Stallone Giovanni",
+          "affiliation": "Nephrology, Dialysis and Transplantation Unit, Department of Medical and Surgical Sciences, University of Foggia, Foggia, Italy."
+        },
+        {
+          "name": "Gesualdo Loreto",
+          "affiliation": "Department of Precision and Regenerative Medicine and Ionian Area (DiMePre-J) Nephrology, Dialysis and Transplantation Unit, University of Bari Aldo Moro, Bari, Italy."
+        },
+        {
+          "name": "Strippoli Giovanni Fm",
+          "affiliation": "Sydney School of Public Health, The University of Sydney, Sydney, Australia."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Sodium-Glucose Transporter 2 Inhibitors",
+        "Renal Insufficiency, Chronic",
+        "Randomized Controlled Trials as Topic",
+        "Diabetes Mellitus, Type 2",
+        "Cardiovascular Diseases",
+        "Bias",
+        "Cause of Death",
+        "Hypoglycemic Agents",
+        "Benzhydryl Compounds",
+        "Glucosides"
+      ]
+    },
+    {
+      "pmid": "35445820",
+      "pmcid": "PMC6275453",
+      "title": "Effect of dapagliflozin on kidney and cardiovascular outcomes by baseline KDIGO risk categories: a post hoc analysis of the DAPA-CKD trial.",
+      "text": "Effect of dapagliflozin on kidney and cardiovascular outcomes by baseline KDIGO risk categories: a post hoc analysis of the DAPA-CKD trial.\n\nAIMS/HYPOTHESIS: In the Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease (DAPA-CKD) trial, dapagliflozin reduced the risks of progressive kidney disease, hospitalised heart failure or cardiovascular death, and death from all causes in patients with chronic kidney disease (CKD) with or without type 2 diabetes. Patients with more severe CKD are at higher risk of kidney failure, cardiovascular events and all-cause mortality. In this post hoc analysis, we assessed the efficacy and safety of dapagliflozin according to baseline Kidney Disease Improving Global Outcomes (KDIGO) risk categories.\nMETHODS: DAPA-CKD was a double-blind, placebo-controlled trial that randomised patients with an eGFR of 25-75\u00a0ml\u00a0min\nRESULTS: Of the 4304 participants in the DAPA-CKD study, 619 (14.4%) were moderately high risk, 1349 (31.3%) were high risk and 2336 (54.3%) were very high risk when categorised by KDIGO risk categories at baseline. Dapagliflozin reduced the hazard of the primary composite (HR 0.61; 95% CI 0.51, 0.72) and secondary endpoints consistently across KDIGO risk categories (all p for interaction >0.09). Absolute risk reductions for the primary outcome were also consistent irrespective of KDIGO risk category (p for interaction 0.26). Analysing patients with and without type 2 diabetes separately, the relative risk reduction with dapagliflozin in terms of the primary outcome was consistent across subgroups of KDIGO risk categories. The relative frequencies of adverse events and serious adverse events were also similar across KDIGO risk categories.\nCONCLUSION/INTERPRETATIONS: The consistent benefits of dapagliflozin on kidney and cardiovascular outcomes across KDIGO risk categories indicate that dapagliflozin is efficacious and safe across a wide spectrum of kidney disease severity.\nTRIAL REGISTRATION: ClinicalTrials.gov NCT03036150.\nFUNDING: The study was funded by AstraZeneca.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Waijer Simke W",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Cherney David Z I",
+          "affiliation": "Department of Medicine, Division of Nephrology, University Health Network and University of Toronto, Toronto, Canada."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Mann Johannes F E",
+          "affiliation": "KfH Kidney Center Munich, Germany, and Department of Medicine 4, University of Erlangen-N\u00fcrnberg, Erlangen, Germany."
+        },
+        {
+          "name": "Mosenzon Ofri",
+          "affiliation": "Diabetes Unit, Department of Internal Medicine, Hadassah Hebrew University Hospital, Jerusalem, Israel."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Stefansson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, TX, USA."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands. h.j.lambers.heerspink@umcg.nl."
+        }
+      ],
+      "mesh_terms": [
+        "Benzhydryl Compounds",
+        "Cardiovascular Diseases",
+        "Diabetes Mellitus, Type 2",
+        "Glomerular Filtration Rate",
+        "Glucosides",
+        "Heart Failure",
+        "Humans",
+        "Kidney",
+        "Kidney Failure, Chronic",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "38320128",
+      "pmcid": null,
+      "title": "Dapagliflozin and Anemia in Patients with Chronic Kidney Disease.",
+      "text": "Dapagliflozin and Anemia in Patients with Chronic Kidney Disease.\n\nBACKGROUND: In the DAPA-CKD (Dapagliflozin in Patients with Chronic Kidney Disease) trial, dapagliflozin improved kidney and cardiovascular outcomes in patients with chronic kidney disease (CKD) with or without type 2 diabetes (T2D). In this post hoc analysis of DAPA-CKD, we assessed the effects of dapagliflozin on the correction and prevention of anemia. METHODS: The DAPA-CKD trial randomized patients (1:1) with an estimated glomerular filtration rate of 25 to 75\u2009ml/min/1.73 m2 and a urinary albumin-to-creatinine ratio of 200 to 5000\u2009mg/g to receive dapagliflozin 10\u2009mg or placebo daily. Hematocrit was measured at baseline, 2 weeks, 2 and 4\u2009months, and every 4\u2009months thereafter. Anemia was defined as hematocrit less than 39% in men and less than 36% in women. Correction and incidence of anemia were defined as two consecutive measurements above or below these thresholds relative to baseline, respectively, during follow-up. We classified anemia-related adverse events using data from site investigator reports. RESULTS: Mean age of the 4304 participants was 61.8 years, and 67.5% had T2D. Among the 4292 (99.7%) participants with baseline hematocrit data, 1716 (40.0%) had anemia. Over the 2.4-year median follow-up, patients assigned to dapagliflozin had an increase in hematocrit of 2.3 percentage points (95% confidence interval [CI], 2.1 to 2.5) greater than those assigned to placebo. Among patients with anemia at baseline, anemia was corrected in 443 (53.3%) patients randomized to receive dapagliflozin and 247 (29.4%) patients randomized to receive placebo (hazard ratio, 2.29; 95% CI, 1.96 to 2.68). Among patients without anemia at baseline, 10.4% of patients assigned to dapagliflozin developed incident anemia compared with 23.7% in the placebo group (hazard ratio, 0.39; 95% CI, 0.31 to 0.48). Anemia-related adverse events occurred in 2.2% of patients assigned to dapagliflozin compared with 3.8% assigned to placebo. Effects of dapagliflozin on the correction and prevention of anemia were consistent in patients with and without T2D. The adverse event profile was similar to that known for dapagliflozin. CONCLUSIONS: This exploratory analysis suggests that dapagliflozin is associated with the prevention or correction of anemia in patients with CKD with and without T2D. (Funded by AstraZeneca; ClinicalTrials.gov number, NCT03036150.)",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Koshino Akihiko",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Schechter Meir",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Herlev, Denmark."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, United Kindom."
+        },
+        {
+          "name": "G\u00f3rriz Jose Luis",
+          "affiliation": "Hospital Clinico Universitario de Valencia, University of Valencia, Valencia, Spain."
+        },
+        {
+          "name": "Isidto Rey",
+          "affiliation": "College of Medicine, West Visayas State University, Iloilo City, Philippines."
+        },
+        {
+          "name": "Kashihara Naoki",
+          "affiliation": "Department of Nephrology and Hypertension, Kawasaki Medical School, Kurashiki, Japan."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Anemia",
+        "Benzhydryl Compounds",
+        "Diabetes Mellitus, Type 2",
+        "Glucosides",
+        "Renal Insufficiency, Chronic"
+      ]
+    },
+    {
+      "pmid": "40679863",
+      "pmcid": "PMC8763045",
+      "title": "Effects of Dapagliflozin on Health-Related Quality of Life in Patients with CKD.",
+      "text": "Effects of Dapagliflozin on Health-Related Quality of Life in Patients with CKD.\n\nKEY POINTS: In patients with CKD with and without type 2 diabetes, treatment with dapagliflozin slowed the decline in health-related quality of life. The effect was particularly evident on physical health\u2013related quality of life, symptom burden, and the effect of kidney disease.\nBACKGROUND: Treatment with the sodium-glucose cotransporter 2 (SGLT2) inhibitor dapagliflozin attenuates progression of kidney disease and reduces the risks of heart failure and death in patients with CKD. Data on the effects of dapagliflozin on health-related quality of life (QoL) are limited.\nMETHODS: Adults with CKD, with and without type 2 diabetes, with eGFR 25\u201375 ml/min per 1.73 m\nRESULTS: A total of 4032/4304 (94%) randomized participants (mean age 62 [12] years, 32% female) had information on KDQOL-36 at baseline. Mean scores on the physical health composite (PHC), mental health composite (MHC), and kidney disease symptoms, effects, and burden were similar between randomized groups at baseline. During a median follow-up of 2.3 (interquartile range, 1.9\u20132.6) years, mean scores were significantly higher in participants randomized to dapagliflozin for PHC (0.71 [95% confidence interval (CI), 0.30 to 1.31]), MHC (0.62 [95% CI, 0.14 to 1.11]), kidney disease symptoms (1.33 [95% CI, 0.57 to 2.10]), kidney disease effects (1.34 [95% CI, 0.43 to 2.26]), and kidney disease burden (1.46 [95% CI, 0.30 to 2.62]). Participants randomized to dapagliflozin were significantly less likely to experience a clinically meaningful (\u226510 units) decline in PHC relative to placebo (hazard ratio, 0.84 [95% CI, 0.74 to 0.96]). Corresponding hazard ratios for \u226510-unit decline in MHC and kidney disease symptoms, effects, and burden were 0.95 (95% CI, 0.85 to 1.07), 0.84 (95% CI, 0.75 to 0.94), 0.84 (95% CI, 0.72 to 0.97), and 0.93 (95% CI, 0.84 to 1.02), respectively.\nCONCLUSIONS: In participants with CKD with and without type 2 diabetes, treatment with dapagliflozin slowed the decline in physical health, reduced worsening of symptoms, and lessened the effect of kidney disease.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER:: Dapagliflozin and Prevention of Adverse Outcomes in CKD, NCT03036150.\nPODCAST: This article contains a podcast at https://dts.podtrac.com/redirect.mp3/www.asn-online.org/media/podcast/JASN/2025_11_11_ASN0000000776.mp3",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Bakker Wisanne M",
+          "affiliation": "Department of Nephrology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, United Kingdom."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Gansevoort Ron T",
+          "affiliation": "Department of Nephrology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": []
+    },
+    {
+      "pmid": "38564654",
+      "pmcid": "PMC6586034",
+      "title": "Combination Treatment with Verinurad and Allopurinol in CKD: A Randomized Placebo and Active Controlled Trial.",
+      "text": "Combination Treatment with Verinurad and Allopurinol in CKD: A Randomized Placebo and Active Controlled Trial.\n\nKEY POINTS: The SAPPHIRE trial was designed to assess albuminuria-lowering effects of the urate transporter 1 inhibitor verinurad combined with allopurinol in patients with CKD. Verinurad 3, 7.5, and 12 mg in combination with allopurinol 300 mg did not reduce albuminuria during 34 weeks treatment compared with allopurinol alone or placebo. Verinurad/allopurinol combination dose-dependently reduced serum urate concentrations compared with placebo.\nBACKGROUND: Hyperuricemia is associated with elevated risks of cardiovascular and chronic kidney disease (CKD). Since inhibition of urate transporter 1 has been suggested to be potentially nephroprotective, we performed a phase 2b study to assess albuminuria-lowering effects of the urate transporter 1 inhibitor verinurad combined with the xanthine oxidase inhibitor allopurinol in patients with CKD and hyperuricemia.\nMETHODS: In this randomized placebo and active controlled trial, we enrolled participants with serum urate concentrations \u22656.0 mg/dl, eGFR \u226525 ml/min per 1.73 m\nRESULTS: Between August 2019 and November 2021, 861 adults with CKD (mean age 65 years, 33.0% female, mean eGFR 48 ml/min per 1.73 m\nCONCLUSIONS: Verinurad in combination with allopurinol did not decrease UACR or eGFR decline, but further reduced serum urate compared with allopurinol alone or placebo.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER:: SAPPHIRE Trial registration number, NCT03990363.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Stack Austin G",
+          "affiliation": "School of Medicine & Health Research Institute, University of Limerick, Limerick, Ireland."
+        },
+        {
+          "name": "Terkeltaub Robert",
+          "affiliation": "University of California San Diego, La Jolla, California."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Inker Lesley A",
+          "affiliation": "Division of Nephrology, Tufts Medical Center, Boston, Massachusetts."
+        },
+        {
+          "name": "Bjursell Magnus",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Maklad Noha",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca, Gaithersburg, Maryland."
+        },
+        {
+          "name": "Perl Shira",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca, Gaithersburg, Maryland."
+        },
+        {
+          "name": "Eklund Olof",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Rikte Tord",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Perkovic Vlado",
+          "affiliation": "The George Institute for Global Health, Sydney, New South Wales, Australia."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Aged",
+        "Female",
+        "Humans",
+        "Male",
+        "Middle Aged",
+        "Allopurinol",
+        "Double-Blind Method",
+        "Drug Therapy, Combination",
+        "Renal Insufficiency, Chronic"
+      ]
+    },
+    {
+      "pmid": "38580424",
+      "pmcid": null,
+      "title": "Ambient heat exposure and kidney function in patients with chronic kidney disease: a post-hoc analysis of the DAPA-CKD trial.",
+      "text": "Ambient heat exposure and kidney function in patients with chronic kidney disease: a post-hoc analysis of the DAPA-CKD trial.\n\nBACKGROUND: Higher temperatures are associated with higher rates of hospital admissions for nephrolithiasis and acute kidney injury. Occupational heat stress is also a risk factor for kidney dysfunction in resource-poor settings. It is unclear whether ambient heat exposure is associated with loss of kidney function in patients with established chronic kidney disease. We assessed the association between heat index and change in estimated glomerular filtration rate (eGFR) in participants from the DAPA-CKD trial in a post-hoc analysis.\nMETHODS: DAPA-CKD was a randomised controlled trial of oral dapagliflozin 10 mg once daily or placebo that enrolled participants aged 18 years or older, with or without type 2 diabetes, with a urinary albumin-to-creatinine ratio of 200-5000 mg/g, and an eGFR of 25-75 mL/min per 1\u00b773 m\nFINDINGS: Climate and eGFR data were available for 4017 (93\u00b73%) of 4304 participants in 21 countries (mean age: 61\u00b79 years; mean eGFR: 43\u00b73 mL per 1\u00b773 m\nINTERPRETATION: Higher ambient heat exposure is associated with more rapid eGFR decline in those with established chronic kidney disease. Efforts to mitigate heat exposure should be tested as part of strategies to attenuate chronic kidney disease progression.\nFUNDING: None.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Zhang Zhiyan",
+          "affiliation": "Department of Medical Statistics, London School of Hygiene & Tropical Medicine, London, UK."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, Groningen, Netherlands; The George Institute for Global Health, Sydney, NSW, Australia."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Medicine, Department of Epidemiology and Population Health, and Department of Health Policy, Stanford University School of Medicine, Stanford, CA, USA."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "Instituto Nacional de Ciencias M\u00e9dicas y Nutrici\u00f3n Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Gasparrini Antonio",
+          "affiliation": "Environment & Health Modelling Lab, Department of Public Health, Environments and Society, London School of Hygiene & Tropical Medicine, London, UK."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Mistry Malcolm N",
+          "affiliation": "Environment & Health Modelling Lab, Department of Public Health, Environments and Society, London School of Hygiene & Tropical Medicine, London, UK; Department of Economics, Ca' Foscari University of Venice, Venice, Italy."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Department of Clinical Medicine, University of Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Centre, Dallas, TX, USA."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "Nitsch Dorothea",
+          "affiliation": "Department of Non-Communicable Disease Epidemiology, London School of Hygiene & Tropical Medicine, London, UK."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK."
+        },
+        {
+          "name": "Caplin Ben",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK. Electronic address: b.caplin@ucl.ac.uk."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Middle Aged",
+        "Diabetes Mellitus, Type 2",
+        "Renal Insufficiency, Chronic",
+        "Glomerular Filtration Rate",
+        "Risk Factors",
+        "Kidney"
+      ]
+    },
+    {
+      "pmid": "40658498",
+      "pmcid": "PMC6058621",
+      "title": "Sodium-Glucose Cotransporter 2 Inhibition and Hospitalizations in Patients with CKD: A Meta-Analysis of Kidney Outcome Trials.",
+      "text": "Sodium-Glucose Cotransporter 2 Inhibition and Hospitalizations in Patients with CKD: A Meta-Analysis of Kidney Outcome Trials.\n\nKEY POINTS: In this \nBACKGROUND: Unplanned hospitalization, irrespective of cause, is a meaningful outcome for patients, caregivers, clinicians, and health systems. The effects of sodium-glucose cotransporter 2 (SGLT2) inhibitors on all-cause hospitalization in patients with CKD have not been systematically evaluated.\nMETHODS: We conducted a \nRESULTS: Over a median follow-up of 2.6 years, 3015 hospitalizations occurred among 1543 of 4401 (35%) participants in the Canagliflozin and Renal Events in Diabetes with Established Nephropathy Clinical Evaluation trial. Compared with placebo, canagliflozin reduced the risk of first all-cause hospitalization (hazard ratio [HR], 0.88; 95% confidence interval [CI], 0.80 to 0.98; \nCONCLUSIONS: SGLT2 inhibitors reduce the risk of hospitalizations from any cause in patients with CKD, irrespective of diabetes status, kidney function, and degree of albuminuria.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER:: NCT02065791.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Oshima Megumi",
+          "affiliation": "The George Institute for Global Health, UNSW Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Buizen Luke",
+          "affiliation": "The George Institute for Global Health, UNSW Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Levin Adeera",
+          "affiliation": "Division of Nephrology, University of British Columbia, Vancouver, British Columbia, Canada."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine, Epidemiology and Population Health, and Health Policy, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "The George Institute for Global Health, UNSW Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Arnott Clare",
+          "affiliation": "The George Institute for Global Health, UNSW Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Jardine Meg J",
+          "affiliation": "NHMRC Clinical Trials Centre, University of Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Mahaffey Kenneth W",
+          "affiliation": "Stanford Center for Clinical Research, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Pollock Carol",
+          "affiliation": "Kolling Institute, University of Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Herrington William G",
+          "affiliation": "Nuffield Department of Population Health, University of Oxford, Oxford, United Kingdom."
+        },
+        {
+          "name": "Perkovic Vlado",
+          "affiliation": "The George Institute for Global Health, UNSW Sydney, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Neuen Brendon L",
+          "affiliation": "The George Institute for Global Health, UNSW Sydney, Sydney, New South Wales, Australia."
+        }
+      ],
+      "mesh_terms": []
+    },
+    {
+      "pmid": "37119064",
+      "pmcid": "PMC7327533",
+      "title": "Effects of Dapagliflozin in Chronic Kidney Disease, With and Without Other Cardiovascular Medications: DAPA-CKD Trial.",
+      "text": "Effects of Dapagliflozin in Chronic Kidney Disease, With and Without Other Cardiovascular Medications: DAPA-CKD Trial.\n\nBackground The DAPA-CKD (Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease) trial (NCT03036150) demonstrated that dapagliflozin reduced the risk of kidney and cardiovascular events in patients with chronic kidney disease and albuminuria with and without type 2 diabetes. We aimed to determine whether baseline cardiovascular medication use modified the dapagliflozin treatment effect. Methods and Results We randomized 4304 adults with baseline estimated glomerular filtration rate 25 to 75\u2009mL/min per 1.73\u2009m",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine, Epidemiology and Population Health, and Health Policy Stanford University School of Medicine Stanford CA."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "Instituto Nacional de Ciencias M\u00e9dicas y Nutrici\u00f3n Salvador Zubir\u00e1n Mexico City Mexico."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology University of Groningen, University Medical Centre Groningen Groningen The Netherlands."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology University of Groningen, University Medical Centre Groningen Groningen The Netherlands."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences University of Glasgow Glasgow UK."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen Herlev Denmark."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca Gothenburg Sweden."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism, BioPharmaceuticals R&D AstraZeneca Gothenburg Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine UT Southwestern Medical Center Dallas TX."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine University College London London UK."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology University of Groningen, University Medical Centre Groningen Groningen The Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Humans",
+        "Diabetes Mellitus, Type 2",
+        "Renal Insufficiency, Chronic",
+        "Kidney Failure, Chronic",
+        "Benzhydryl Compounds",
+        "Glucosides"
+      ]
+    },
+    {
+      "pmid": "39475817",
+      "pmcid": "PMC12124184",
+      "title": "Baseline, Early Changes, and Residual Albuminuria: Post Hoc Analysis of a Randomized Clinical Trial of Dapagliflozin in Chronic Kidney Disease.",
+      "text": "Baseline, Early Changes, and Residual Albuminuria: Post Hoc Analysis of a Randomized Clinical Trial of Dapagliflozin in Chronic Kidney Disease.\n\nKEY POINTS: Dapagliflozin reduced albuminuria in participants with CKD, with reductions being proportional to reductions in the risk of disease progression. Residual albuminuria (at month 4) was linked to higher risks of primary and kidney end points, with no heterogeneity by diabetes status or allocated treatment. Participants with residual albuminuria at month 4 had high rates of kidney end points, implying the need for added therapy for long-term kidney and cardiovascular benefits.\nBACKGROUND: Albuminuria is a strong indicator of kidney and cardiovascular risk in patients with CKD. We assessed risk associations between albuminuria at baseline and 4 months after randomization in a placebo-controlled trial of dapagliflozin and kidney end points in patients with CKD and albuminuria, with and without type 2 diabetes.\nMETHODS: In this \nRESULTS: Compared with placebo, dapagliflozin reduced urinary albumin\u2013creatinine ratio (baseline to month 4) by 36.4% (95% confidence interval, 30.2% to 42.5%) and 20.5% (95% confidence interval, 11.6% to 29.5%) in participants with and without type 2 diabetes, respectively (\nCONCLUSIONS: Dapagliflozin reduced albuminuria, and the magnitude of albuminuria reduction showed similar proportional reductions in risks of the primary and kidney composite end points in participants with and without type 2 diabetes. Participants with residual albuminuria at month 4\u2014whether randomized to dapagliflozin or placebo\u2014experienced relatively high rates of CKD progression kidney end points, suggesting that therapies added to renin-angiotensin system inhibitors and dapagliflozin may be required to sustain kidney and cardiovascular health.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER:: A Study to Evaluate the Effect of Dapagliflozin on Renal Outcomes and Cardiovascular Mortality in Patients with CKD (DAPA-CKD), NCT03036150.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "van Mil Dominique",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine, Epidemiology and Population Health, and Health Policy, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Gansevoort Ron T",
+          "affiliation": "Department of Internal Medicine, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": []
+    },
+    {
+      "pmid": "37071317",
+      "pmcid": "PMC3963436",
+      "title": "The Role of Expert Opinion in Projecting Long-Term Survival Outcomes Beyond the Horizon of a Clinical Trial.",
+      "text": "The Role of Expert Opinion in Projecting Long-Term Survival Outcomes Beyond the Horizon of a Clinical Trial.\n\nINTRODUCTION: Clinical trials often have short follow-ups, and long-term outcomes such as survival must be extrapolated. Current extrapolation methods often produce a wide range of survival values. To minimize uncertainty in projections, we developed a novel method that incorporates formally elicited expert opinion in a Bayesian analysis and used it to extrapolate survival in the placebo arm of DAPA-CKD, a phase\u00a03 trial of dapagliflozin in patients with chronic kidney disease (NCT03036150).\nMETHODS: A summary of mortality data from 13 studies that included DAPA-CKD-like populations and training on elicitation were provided to six experts. An elicitation survey was used to gather the experts' 10- and 20-year survival estimates for patients in the placebo arm of DAPA-CKD. These estimates were combined with DAPA-CKD mortality and general population mortality (GPM) data in a Bayesian analysis to extrapolate long-term survival using seven parametric distributions. Results were compared with those from standard frequentist approaches (with and without GPM data) that do not incorporate expert opinion.\nRESULTS: The group expert-elicited estimate for 20-year survival was 31% (lower estimate, 10%; upper estimate, 40%). In the Bayesian analysis, the 20-year extrapolated survival across the seven distributions was 14.9-39.1%, a range that was 2.4- and 1.6-fold smaller than those produced by the frequentist methods (0.0-56.9% without and 0.0-39.2% with GPM data).\nCONCLUSIONS: Using expert opinion in a Bayesian analysis provided a robust method for extrapolating long-term survival in the placebo arm of DAPA-CKD. The method could be applied to other populations with limited survival data.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Willigers Bartholomeus J A",
+          "affiliation": "Decision Science, Statistical Innovation, Biopharmaceuticals R&D, AstraZeneca, Cambridge, UK. bartholomeus.willigers@astrazeneca.com."
+        },
+        {
+          "name": "Ouwens Mario",
+          "affiliation": "Medical & Payer Evidence Statistics, Real World Science and Digital, Biopharmaceuticals Business Unit, AstraZeneca, M\u00f6lndal, Sweden."
+        },
+        {
+          "name": "Briggs Andrew",
+          "affiliation": "London School of Hygiene & Tropical Medicine, London, UK."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Pollock Carol",
+          "affiliation": "University of Sydney, Sydney, Australia."
+        },
+        {
+          "name": "Pecoits-Filho Roberto",
+          "affiliation": "Pontifical Catholic University of Paran\u00e1, Curitiba, Brazil."
+        },
+        {
+          "name": "Tangri Navdeep",
+          "affiliation": "University of Manitoba, Winnipeg, MB, Canada."
+        },
+        {
+          "name": "Kovesdy Csaba P",
+          "affiliation": "University of Tennessee Health Science Center, Memphis, TN, USA."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "University College London, London, UK."
+        },
+        {
+          "name": "Garcia Sanchez Juan Jose",
+          "affiliation": "Health Economics, Biopharmaceuticals Business Unit, AstraZeneca, Cambridge, UK."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Bayes Theorem",
+        "Surveys and Questionnaires",
+        "Renal Insufficiency, Chronic"
+      ]
+    },
+    {
+      "pmid": "41128261",
+      "pmcid": "PMC11737443",
+      "title": "Effects of Dapagliflozin on Progression of CKD According to Different Rates of Pretrial eGFR Loss.",
+      "text": "Effects of Dapagliflozin on Progression of CKD According to Different Rates of Pretrial eGFR Loss.\n\nKEY POINTS: eGFR slope before a clinical trial may assist in selecting participants at risk of kidney outcomes in whom new therapies are needed. In a post hoc analysis of the Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease trial, we showed that the pretrial eGFR trajectory was associated with CKD progression. Patients who demonstrated rapid progression in advance of the trial experienced more pronounced benefits of dapagliflozin.\nBACKGROUND: Identification of patients likely to experience substantial loss of eGFR is required to detect a kidney protective treatment effect in clinical trials; this is usually achieved by restricting inclusion of patients with elevated albuminuria. However, not all patients with elevated albuminuria show progressive eGFR loss. The eGFR slope before the trial may better predict whether patients experience loss in eGFR during the trial. We assessed the effect of dapagliflozin on eGFR slope according to patients' eGFR slope before enrollment (pretrial eGFR slope) in the Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease study.\nMETHODS: We recorded eGFR data for 2 or less to 2 years from electronic medical records for 4304 patients with CKD before enrollment in the Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease study. We used linear regression to estimate within-patient pre-enrollment eGFR trajectory. We evaluated the association of pre-enrollment eGFR trajectory with total and chronic eGFR slopes and a kidney composite end point. We also determined the degree to which pre-enrollment eGFR trajectory modified the effects of dapagliflozin.\nRESULTS: Eight hundred and seventy (20% of the total cohort) patients with three or more historical eGFR measurements were evaluated (mean [SD] pre-enrollment eGFR slope: \u22126.1 [6.1] ml/min per 1.73 m\nCONCLUSIONS: Determination of pretrial eGFR trajectory may help to identify patients with CKD at higher and lower risks of progression and those more likely to benefit from targeted intervention.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER:: NCT03036150",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine, Epidemiology and Population Health, and Health Policy, Stanford University School of Medicine, Stanford, California."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Herlev, Denmark."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "Instituto Nacional de Ciencias M\u00e9dicas y Nutrici\u00f3n Salvador Zubir\u00e1n, Mexico-City, Mexico."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": []
+    },
+    {
+      "pmid": "40526444",
+      "pmcid": "PMC10330107",
+      "title": "Use of eGFR Slope Thresholds as End Point Components in a Kidney Disease Progression Hierarchical Composite End Point.",
+      "text": "Use of eGFR Slope Thresholds as End Point Components in a Kidney Disease Progression Hierarchical Composite End Point.\n\nKEY POINTS: It is feasible to apply eGFR thresholds in kidney progression hierarchical composite end point (HCE) to minimize variability impact on patient comparisons. Use of eGFR thresholds did not change treatment effect estimates of the kidney progression HCE in seven major CKD trials compared with no threshold. Applying eGFR thresholds had minimal effect on statistical power of the kidney progression HCE across various sample sizes.\nBACKGROUND: We developed and validated a kidney disease progression hierarchical composite end point (HCE) combining time-to-event end points with the rate of eGFR decline (eGFR slope) as a continuous end point. An alternative to this continuous end point is to apply various thresholds on an absolute and relative scale for the pairwise comparisons in the eGFR slope component. We assessed the effect of different thresholds on the treatment effects and statistical power on the kidney disease progression HCE analyzed using win odds.\nMETHODS: We calculated the win odds in seven international phase 3 CKD trials and compared treatment effects for the original HCE versus HCEs with different eGFR thresholds (0.5, 0.75, or 1.0 ml/min per 1.73 m\nRESULTS: For the seven CKD trials, the win odds estimate remained consistent, combined with a minor reduction in statistical power regardless of which eGFR thresholds were applied. For instance, for thresholds 0 (original HCE), 0.5, 0.75, and 1.0, the win odds of the Dapagliflozin and Prevention of Adverse Outcomes in CKD trial were 1.41 (95% confidence interval [CI], 1.32 to 1.52), 1.41 (95% CI, 1.31 to 1.51), 1.40 (95% CI, 1.31 to 1.51), and 1.40 (95% CI, 1.30 to 1.50) with 97%, 92%, 92%, and 93% statistical power for a sample size of 500, respectively.\nCONCLUSIONS: Our findings suggest that using eGFR thresholds in the kidney disease progression HCE did not alter treatment effect estimates and had only a minimal effect on statistical power compared with its continuous use.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Gasparyan Samvel B",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), BioPharmaceuticals R&D, AstraZeneca, Boston, Massachusetts."
+        },
+        {
+          "name": "Frison Lars",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Schloemer Patrick",
+          "affiliation": "Research and Development, Pharmaceuticals, Bayer AG, Berlin, Germany."
+        },
+        {
+          "name": "Brinker Meike",
+          "affiliation": "Research and Development, Pharmaceuticals, Bayer AG, Wuppertal, Germany."
+        },
+        {
+          "name": "Little Dustin J",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gaithersburg, Maryland."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": []
+    },
+    {
+      "pmid": "31939531",
+      "pmcid": null,
+      "title": "SGLT-2 inhibitors in diabetes: a focus on renoprotection.",
+      "text": "SGLT-2 inhibitors in diabetes: a focus on renoprotection.\n\nType 2 diabetes mellitus is an important public health problem, with a significant impact on cardiovascular morbidity and mortality and an important risk factor for chronic kidney disease. Various hypoglycemic therapies have proved to be beneficial to clinical outcomes, while others have failed to provide an improvement in cardiovascular and renal failure, only reducing blood glucose levels. Recently, sodium-glucose cotransporter-2 (SGLT2) inhibitors, represented by the empagliflozin, dapagliflozin, and canagliflozin, have been showing satisfactory and strong results in several clinical trials, especially regarding the reduction of cardiovascular mortality, reduction of hospitalization due to heart failure, reduction of albuminuria, and long-term maintenance of the glomerular filtration rate. The benefit from SGLT2 inhibitors stems from its main mechanism of action, which occurs in the proximal tubule of the nephron, causing glycosuria, and a consequent increase in natriuresis. This leads to increased sodium intake by the juxtaglomerular apparatus, activating the tubule glomerular-feedback and, finally, reducing intraglomerular hypertension, a frequent physiopathological condition in kidney disease caused by diabetes. In addition, this class of medication presents an appropriate safety profile, and its most frequently reported complication is an increase in the incidence of genital infections. Thus, these hypoglycemic agents gained space in practical recommendations for the management of type 2 diabetes mellitus and should be part of the initial therapeutic approach to provide, in addition to glycemic control, cardiovascular outcomes, and the renoprotection in the long term.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Gonzalez Diego Ennes",
+          "affiliation": "Hospital do Rim, Funda\u00e7\u00e3o Oswaldo Ramos, Escola Paulista de Medicina, S\u00e3o Paulo, SP, Brasil."
+        },
+        {
+          "name": "Foresto Renato Demarchi",
+          "affiliation": "Hospital do Rim, Funda\u00e7\u00e3o Oswaldo Ramos, Escola Paulista de Medicina, S\u00e3o Paulo, SP, Brasil."
+        },
+        {
+          "name": "Ribeiro Artur Beltrame",
+          "affiliation": "Hospital do Rim, Funda\u00e7\u00e3o Oswaldo Ramos, S\u00e3o Paulo, SP, Brasil."
+        }
+      ],
+      "mesh_terms": [
+        "Benzhydryl Compounds",
+        "Canagliflozin",
+        "Cardiovascular Diseases",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Glomerular Filtration Rate",
+        "Glucose",
+        "Glucosides",
+        "Humans",
+        "Hypoglycemic Agents",
+        "Kidney",
+        "Kidney Diseases",
+        "Sodium-Glucose Transporter 2",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "33186054",
+      "pmcid": null,
+      "title": "Effect of Dapagliflozin on Clinical Outcomes in Patients With Chronic Kidney Disease, With and Without Cardiovascular Disease.",
+      "text": "Effect of Dapagliflozin on Clinical Outcomes in Patients With Chronic Kidney Disease, With and Without Cardiovascular Disease.\n\nBACKGROUND: Dapagliflozin reduces the risk of end-stage renal disease in patients with chronic kidney disease. We examined the relative risk of cardiovascular and renal events in these patients and the effect of dapagliflozin on either type of event, taking account of history of cardiovascular disease.\nMETHODS: In the DAPA-CKD trial (Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease), 4304 participants with chronic kidney disease were randomly assigned to dapagliflozin 10 mg once daily or placebo. The primary end point was a composite of sustained decline in estimated glomerular filtration rate \u226550%, end-stage kidney disease, or kidney or cardiovascular death. The secondary end points were a kidney composite outcome (primary end point, minus cardiovascular death), the composite of hospitalization for heart failure or cardiovascular death, and all-cause death. In a prespecified subgroup analysis, we divided patients into primary and secondary prevention subgroups according to history of cardiovascular disease.\nRESULTS: Secondary prevention patients (n=1610; 37.4%) were older, were more often male, had a higher blood pressure and body mass index, and were more likely to have diabetes. Mean estimated glomerular filtration rate and median urinary albumin-to-creatinine ratio were similar in the primary and secondary prevention groups. The rates of adverse cardiovascular outcomes were higher in the secondary prevention group, but kidney failure occurred at the same rate in the primary and secondary prevention groups. Dapagliflozin reduced the risk of the primary composite outcome to a similar extent in both the primary (hazard ratio, 0.61 [95% CI, 0.48-0.78]) and secondary (0.61 [0.47-0.79]) prevention groups (\nCONCLUSIONS: Dapagliflozin reduced the risk of kidney failure, death from cardiovascular causes or hospitalization for heart failure, and prolonged survival in people with chronic kidney disease, with or without type 2 diabetes, independently of the presence of concomitant cardiovascular disease. Registration: URL: https://www.clinicaltrials.gov; Unique identifier: NCT03036150.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, United Kingdom (J.J.V.M.)."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, United Kingdom (D.C.W.)."
+        },
+        {
+          "name": "Stef\u00e1nsson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., C.D.S., A.M.L.)."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department Clinical Pharmacy and Pharmacology (N.J., H.J.L.H.), University of Groningen, University Medical Center Groningen, Netherlands."
+        },
+        {
+          "name": "Postmus Douwe",
+          "affiliation": "Department of Epidemiology (D.P.), University of Groningen, University Medical Center Groningen, Netherlands."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico (R.C.-R.)."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, CA (G.M.C.)."
+        },
+        {
+          "name": "Greene Tom",
+          "affiliation": "Study Design and Biostatistics Center, University of Utah Health Sciences, Salt Lake City (T.G.)."
+        },
+        {
+          "name": "Held Claes",
+          "affiliation": "Department of Medical Sciences, Cardiology, Uppsala Clinical Research Center, Uppsala University, Sweden (C.H.)."
+        },
+        {
+          "name": "Hou Fan-Fan",
+          "affiliation": "Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China (F.F.H.)."
+        },
+        {
+          "name": "Mann Johannes F E",
+          "affiliation": "KfH Kidney Center Munich, and Department of Medicine 4, University of Erlangen-N\u00fcrnberg, Germany (J.F.E.M.)."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark (P.R.)."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., C.D.S., A.M.L.)."
+        },
+        {
+          "name": "Toto Roberto D",
+          "affiliation": "Department of Internal Medicine, University of Texas Southwestern Medical Center, Dallas (R.D.T.)."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (B.V.S., C.D.S., A.M.L.)."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "The George Institute for Global Health, Sydney, Australia (D.C.W., H.J.L.H.)."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Benzhydryl Compounds",
+        "Cardiovascular Diseases",
+        "Double-Blind Method",
+        "Female",
+        "Glucosides",
+        "Humans",
+        "Male",
+        "Middle Aged",
+        "Renal Insufficiency, Chronic"
+      ]
+    },
+    {
+      "pmid": "32778748",
+      "pmcid": "PMC6993197",
+      "title": "SGLT-2 inhibitors and nephroprotection: current evidence and future perspectives.",
+      "text": "SGLT-2 inhibitors and nephroprotection: current evidence and future perspectives.\n\nChronic kidney disease (CKD) is a major public health issue and an independent risk factor for cardiovascular and all-cause mortality. Diabetic kidney disease develops in 30-50% of diabetic patients and it is the leading cause of end-stage renal disease in the Western world. Strict blood pressure control and renin-angiotensin system (RAS) blocker use are the cornerstones of CKD treatment; however, their application in everyday clinical practice is not always ideal and in many patients CKD progression still occurs. Accumulated evidence in the past few years clearly suggests that sodium-glucose co-transporter-2 (SGLT-2) inhibitors present potent nephroprotective properties. In clinical trials in patients with type 2 diabetes mellitus, these agents were shown to reduce albuminuria and proteinuria by 30-50% and the incidence of composite hard renal outcomes by 40-50%. Furthermore, their mechanism of action appears rather solid, as they interfere with the major mechanism of proteinuric CKD progression, i.e., glomerular hypertension and hyperfiltration. The present review summarizes the current evidence from human trials on the effects of SGLT-2 inhibitors on nephroprotection and discusses their position in everyday clinical practice.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Piperidou Alexia",
+          "affiliation": "Department of Nephrology, Hippokration Hospital, Aristotle University of Thessaloniki, Thessaloniki, Greece."
+        },
+        {
+          "name": "Loutradis Charalampos",
+          "affiliation": "Department of Nephrology, Hippokration Hospital, Aristotle University of Thessaloniki, Thessaloniki, Greece."
+        },
+        {
+          "name": "Sarafidis Pantelis",
+          "affiliation": "Department of Nephrology, Hippokration Hospital, Aristotle University of Thessaloniki, Thessaloniki, Greece. psarafidis11@yahoo.gr."
+        }
+      ],
+      "mesh_terms": [
+        "Albuminuria",
+        "Diabetes Mellitus, Type 2",
+        "Diabetic Nephropathies",
+        "Humans",
+        "Kidney",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "36469914",
+      "pmcid": null,
+      "title": "Effects of Dapagliflozin on Hospitalizations in Patients With Chronic Kidney Disease : A Post Hoc Analysis of DAPA-CKD.",
+      "text": "Effects of Dapagliflozin on Hospitalizations in Patients With Chronic Kidney Disease : A Post Hoc Analysis of DAPA-CKD.\n\nBACKGROUND: Acute hospitalizations are common in patients with chronic kidney disease (CKD) and often lead to decreases in health-related quality of life and increased care costs.\nOBJECTIVE: To determine the effects of dapagliflozin on first hospitalizations and all (first and subsequent) hospitalizations and to explore effects on cause-specific hospitalizations.\nDESIGN: Post hoc analysis of a randomized, double-blind, placebo-controlled clinical trial. (ClinicalTrials.gov: NCT03036150).\nSETTING: 386 ambulatory practice sites in 21 countries from 2 February 2017 through 12 June 2020.\nPARTICIPANTS: Adults with an estimated glomerular filtration rate of 25 to 75 mL/min/1.73 m\nINTERVENTION: Dapagliflozin, 10 mg once daily, or matching placebo (1:1 ratio).\nMEASUREMENTS: The effects of dapagliflozin on first hospitalizations for any cause, all hospitalizations, and cause-specific (first and recurrent) hospitalizations were determined. The reported system organ class was used to evaluate reasons for admission. Hospitalizations were analyzed using Cox proportional hazards regression models (first hospitalization), the Lin-Wei-Yang-Ying method (all hospitalizations or death), and negative binomial models (cause-specific hospitalizations).\nRESULTS: The study included 4304 patients (mean age, 61.8 years; 33.1% women). During a median follow-up of 2.4 years, 2072 hospitalizations were reported among 1224 (28.4%) participants. Compared with placebo, dapagliflozin reduced risk for a first hospitalization (hazard ratio, 0.84 [95% CI, 0.75 to 0.94]) and all hospitalizations or death (rate ratio, 0.79 [CI, 0.70 to 0.89]). There was no evidence that the effects of dapagliflozin on first and all hospitalizations varied by baseline presence of type 2 diabetes (\nLIMITATIONS: This was a post hoc analysis and should be viewed as hypothesis-generating. Hospitalizations and causes were reported by site investigators and were not centrally adjudicated.\nCONCLUSION: Dapagliflozin reduced the risk for hospitalization for any cause in patients with CKD with and without type 2 diabetes.\nPRIMARY FUNDING SOURCE: AstraZeneca.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Schechter Meir",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, the Netherlands, Diabetes Unit, Department of Endocrinology and Metabolism, Hadassah Medical Center, Jerusalem, Israel, and Faculty of Medicine, Hebrew University of Jerusalem, Jerusalem, Israel (M.S.)."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, the Netherlands (N.J.)."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Medicine and Department of Epidemiology and Population Health, Stanford University School of Medicine, Stanford, California (G.M.C.)."
+        },
+        {
+          "name": "Mosenzon Ofri",
+          "affiliation": "Diabetes Unit, Department of Endocrinology and Metabolism, Hadassah Medical Center, and Faculty of Medicine, Hebrew University of Jerusalem, Jerusalem, Israel (O.M.)."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, United Kingdom (J.J.V.M.)."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico (R.C.)."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark, and Department of Clinical Medicine, University of Copenhagen, Copenhagen, Denmark (P.R.)."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (A.M.L., C.D.S.)."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden (A.M.L., C.D.S.)."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas (R.D.T.)."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom (D.C.W.)."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, the Netherlands, and The George Institute for Global Health, Sydney, New South Wales, Australia (H.J.L.H.)."
+        }
+      ],
+      "mesh_terms": [
+        "Female",
+        "Humans",
+        "Male",
+        "Middle Aged",
+        "Diabetes Mellitus, Type 2",
+        "Glomerular Filtration Rate",
+        "Hospitalization",
+        "Quality of Life",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors",
+        "Benzhydryl Compounds",
+        "Glucosides"
+      ]
+    },
+    {
+      "pmid": "35497805",
+      "pmcid": "PMC5801238",
+      "title": "Efficacy and Safety of Dapagliflozin in Patients With CKD Across Major Geographic Regions.",
+      "text": "Efficacy and Safety of Dapagliflozin in Patients With CKD Across Major Geographic Regions.\n\nINTRODUCTION: This study aimed to examine the efficacy and safety of dapagliflozin in the Dapagliflozin and Prevention of Adverse Outcomes in Chronic Kidney Disease (DAPA-CKD) trial (NCT03036150) by geographic region.\nMETHODS: Adults with chronic kidney disease (CKD) with or without type 2 diabetes, with estimated glomerular filtration rate (eGFR) 25 to 75 ml/min per 1.73 m\nRESULTS: The relative risk of the primary composite end point was lower in patients randomized to dapagliflozin (relative to placebo) in all regions, with hazard ratios (95% CI) of 0.70 (0.48-1.00), 0.60 (0.43-0.85), 0.61 (0.43-0.86), and 0.51 (0.34-0.76) among patients from Asia, Europe, Latin America, and North America, respectively. There was no effect modification by region (interaction \nCONCLUSION: Dapagliflozin reduced kidney and cardiovascular events and prolonged survival in patients with CKD, with and without type 2 diabetes, with no apparent effect modification by geographic region.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "The National Medical Science and Nutrition Institute Salvador Zubiran, Mexico City, Mexico."
+        },
+        {
+          "name": "Hou Fan Fan",
+          "affiliation": "Division of Nephrology, Department of Medicine, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Medicine, Stanford University School of Medicine, Stanford, California, USA."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, UK."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Sj\u00f6str\u00f6m C David",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Stefansson Bergur V",
+          "affiliation": "Late-Stage Development, Cardiovascular, Renal, and Metabolism, BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, UT Southwestern Medical Center, Dallas, Texas, USA."
+        },
+        {
+          "name": "Douthat Walter",
+          "affiliation": "Department of Nephrology, Hospital Privado Universitario de Cordoba, Cordoba, Argentina."
+        },
+        {
+          "name": "Escudero Elizabeth",
+          "affiliation": "Division of Nephrology, Hospital Arzobispo Loayza, Cayetano Heredia University, Lima, Peru."
+        },
+        {
+          "name": "Isidto Rey",
+          "affiliation": "Healthlink Medical, Dental, Surgical Clinics and Diagnostics Center, Iloilo City, Philippines."
+        },
+        {
+          "name": "Khullar Dinesh",
+          "affiliation": "Department of Nephrology and Renal Transplant Medicine, Max Super Speciality Hospital, Saket, New Delhi, India."
+        },
+        {
+          "name": "Bajaj Harpreet S",
+          "affiliation": "LMC Diabetes and Endocrinology, Brampton, Ontario, Canada."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, UK."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": []
+    },
+    {
+      "pmid": "36414316",
+      "pmcid": "PMC8973200",
+      "title": "Estimated Lifetime Benefit of Combined RAAS and SGLT2 Inhibitor Therapy in Patients with Albuminuric CKD without Diabetes.",
+      "text": "Estimated Lifetime Benefit of Combined RAAS and SGLT2 Inhibitor Therapy in Patients with Albuminuric CKD without Diabetes.\n\nBACKGROUND AND OBJECTIVES: Despite high rates of complications in patients with CKD without diabetes, the implementation of proven therapies in this group remains low. Expressing the clinical benefit of a therapy in terms of extra years free from the disease or death may facilitate implementation. We estimated lifetime survival free of kidney failure for patients with albuminuric CKD without diabetes treated with the combination therapy of angiotensin-converting enzyme inhibitors/angiotensin receptor blockers and sodium-glucose cotransporter-2 (SGLT2) inhibitors relative to patients not treated.\nDESIGN, SETTING, PARTICIPANTS, & MEASUREMENTS: We used trial-level estimates of the effect of treatment with angiotensin-converting enzyme inhibitors/angiotensin receptor blockers (ramipril/benazepril; \nRESULTS: The aggregate estimated hazard ratio comparing combination therapy with angiotensin-converting enzyme inhibitors/angiotensin receptor blockers and SGLT2 inhibitor versus no treatment for the primary end point was 0.35 (95% confidence interval, 0.30 to 0.41). For a 50-year-old patient until the age of 75 years, the estimated survival free from the primary composite end point was 17.0 (95% confidence interval, 12.4 to 19.6) years with the combination therapy and 9.6 years (95% confidence interval, 8.4 to 10.7) with no treatment with any of these agents, corresponding to a gain in eventfree survival of 7.4 (95% confidence interval, 6.4 to 8.7) years. When assuming lower adherence and less pronounced efficacy of combination therapy, the gain in eventfree survival ranged from 5.3 years (95% confidence interval, 4.4 to 6.1) to 5.8 years (95% confidence interval, 4.8 to 6.8).\nCONCLUSIONS: Treatment with the combination of angiotensin-converting enzyme inhibitors/angiotensin receptor blockers and SGLT2 inhibitor in patients with albuminuric CKD without diabetes is expected to substantially increase kidney failure-free survival.\nCLINICAL TRIAL REGISTRY NAME AND REGISTRATION NUMBER: Benazepril for Advanced Chronic Renal Insufficiency, NCT00270426, and a Study to Evaluate the Effect of Dapagliflozin on Renal Outcomes and Cardiovascular Mortality in Patients with Chronic Kidney Disease (Dapa-CKD), NCT03036150.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Vaduganathan Muthiah",
+          "affiliation": "Cardiovascular Division, Brigham and Women's Hospital, Harvard Medical School, Boston, Massachusetts."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Remuzzi Giuseppe",
+          "affiliation": "Mario Negri Institute for Pharmacological Research, Bergamo, Italy."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University of College London Medical School, London, United Kingdom."
+        },
+        {
+          "name": "Hou Fan Fan",
+          "affiliation": "Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "McCausland Finnian",
+          "affiliation": "Cardiovascular Division, Brigham and Women's Hospital, Harvard Medical School, Boston, Massachusetts."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Medicine (Nephrology), Stanford University, Palo Alto, California."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, The Netherlands."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Humans",
+        "Middle Aged",
+        "Angiotensin Receptor Antagonists",
+        "Angiotensin-Converting Enzyme Inhibitors",
+        "Diabetes Mellitus",
+        "Diabetes Mellitus, Type 2",
+        "Renal Insufficiency, Chronic",
+        "Renin-Angiotensin System",
+        "Sodium-Glucose Transporter 2 Inhibitors",
+        "Benzhydryl Compounds",
+        "Glucosides"
+      ]
+    },
+    {
+      "pmid": "37872654",
+      "pmcid": "PMC10103374",
+      "title": "Development and Validation of a New Hierarchical Composite End Point for Clinical Trials of Kidney Disease Progression.",
+      "text": "Development and Validation of a New Hierarchical Composite End Point for Clinical Trials of Kidney Disease Progression.\n\nSIGNIFICANCE STATEMENT: The established composite kidney end point in clinical trials combines clinical events with sustained large changes in GFR but does not weigh the relative clinical importance of the end point components. By contrast, a hierarchical composite end point (HCE) accounts for the clinical importance of the end point components. The authors developed and validated a kidney HCE that combines clinical kidney outcomes with longitudinal GFR changes (GFR slope). They demonstrate that in seven major placebo-controlled kidney outcome trials with different medications, treatment effect estimates on the HCE were consistently in similar directions and of similar magnitudes compared with treatment effects on the established kidney end point. The HCE's prioritization of clinical outcomes and ability to combine dichotomous outcomes with GFR slope make it an attractive alternative to the established kidney end point.\nBACKGROUND: The established composite kidney end point in clinical trials combines clinical events with sustained large changes in GFR. However, the statistical method does not weigh the relative clinical importance of the end point components. A HCE accounts for the clinical importance of the end point components and enables combining dichotomous outcomes with continuous measures.\nMETHODS: We developed and validated a new HCE for kidney disease progression, performing post hoc analyses of seven major Phase 3 placebo-controlled trials that assessed the effects of canagliflozin, dapagliflozin, finerenone, atrasentan, losartan, irbesartan, and aliskiren in patients with CKD. We calculated the win odds (WOs) for treatment effects on a kidney HCE, defined as a hierarchical composite of all-cause mortality; kidney failure; sustained 57%, 50%, and 40% GFR declines from baseline; and GFR slope. The WO describes the odds of a more favorable outcome for receiving the active compared with the control. We compared the WO with the hazard ratio (HR) of the primary kidney outcome of the original trials.\nRESULTS: In all trials, treatment effects calculated with the WO reflected a similar direction and magnitude of the treatment effect compared with the HR. Clinical trials incorporating the HCE would achieve increased statistical power compared with the established composite end point at equivalent sample sizes.\nCONCLUSIONS: In seven major kidney clinical trials, the WO and HR provided similar direction of treatment effect estimates with smaller HRs associated with larger WOs. The prioritization of clinical outcomes and inclusion of broader composite end points makes the HCE an attractive alternative to the established kidney end point.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands."
+        },
+        {
+          "name": "Schloemer Patrick",
+          "affiliation": "Pharmaceuticals, Research and Development, Bayer AG, Berlin, Germany."
+        },
+        {
+          "name": "Little Dustin J",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gaithersburg, Maryland."
+        },
+        {
+          "name": "Brinker Meike",
+          "affiliation": "Pharmaceuticals, Research and Development, Bayer AG, Wuppertal, Germany."
+        },
+        {
+          "name": "Tasto Christoph",
+          "affiliation": "Pharmaceuticals, Research and Development, Bayer AG, Wuppertal, Germany."
+        },
+        {
+          "name": "Karpefors Martin",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "The George Institute for Global Health, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Bakris George",
+          "affiliation": "Department of Medicine, University of Chicago Medicine, Chicago, Illinois."
+        },
+        {
+          "name": "Perkovic Vlado",
+          "affiliation": "The George Institute for Global Health, Sydney, New South Wales, Australia."
+        },
+        {
+          "name": "Nkulikiyinka Richard",
+          "affiliation": "Pharmaceuticals, Research and Development, Bayer AG, Berlin, Germany."
+        },
+        {
+          "name": "Rossert Jerome",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), Biopharmaceuticals R&D, AstraZeneca, Gaithersburg, Maryland."
+        },
+        {
+          "name": "Gasparyan Samvel B",
+          "affiliation": "Late Stage Development, Cardiovascular, Renal and Metabolism (CVRM), BioPharmaceuticals R&D, AstraZeneca, Gothenburg, Sweden."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Renal Insufficiency, Chronic",
+        "Glomerular Filtration Rate",
+        "Kidney",
+        "Disease Progression",
+        "Dieldrin"
+      ]
+    },
+    {
+      "pmid": "37103935",
+      "pmcid": "PMC2749005",
+      "title": "Effectiveness and Safety of Dapagliflozin for Black vs White Patients With Chronic Kidney Disease in North and South America: A Secondary Analysis of a Randomized Clinical Trial.",
+      "text": "Effectiveness and Safety of Dapagliflozin for Black vs White Patients With Chronic Kidney Disease in North and South America: A Secondary Analysis of a Randomized Clinical Trial.\n\n",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, United Kingdom."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, the Netherlands."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "BioPharmaceuticals R&D, AstraZeneca, Gotherburg, Sweden."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Department of Medicine, Stanford University School of Medicine, Stanford, California."
+        }
+      ],
+      "mesh_terms": [
+        "Humans",
+        "White",
+        "Glucosides",
+        "Hypoglycemic Agents",
+        "Renal Insufficiency, Chronic",
+        "Benzhydryl Compounds"
+      ]
+    },
+    {
+      "pmid": "34183431",
+      "pmcid": "PMC6616433",
+      "title": "Efficacy and Safety of Dapagliflozin by Baseline Glycemic Status: A Prespecified Analysis From the DAPA-CKD Trial.",
+      "text": "Efficacy and Safety of Dapagliflozin by Baseline Glycemic Status: A Prespecified Analysis From the DAPA-CKD Trial.\n\nOBJECTIVE: The Dapagliflozin and Prevention of Adverse outcomes in Chronic Kidney Disease (DAPA-CKD) study demonstrated risk reduction for kidney and cardiovascular outcomes with dapagliflozin versus placebo in participants with chronic kidney disease (CKD) with and without diabetes. We compared outcomes according to baseline glycemic status.\nRESEARCH DESIGN AND METHODS: We enrolled participants with CKD, estimated glomerular filtration rate (eGFR) 25-75 mL/min/1.73 m\nRESULTS: Of 4,304 participants, 738 had normoglycemia, 660 had prediabetes, and 2,906 had type 2 diabetes. The effect of dapagliflozin on the primary outcome was consistent (\nCONCLUSIONS: Dapagliflozin safely reduced kidney and cardiovascular events independent of baseline glycemic status.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Persson Frederik",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark frederik.persson@regionh.dk."
+        },
+        {
+          "name": "Rossing Peter",
+          "affiliation": "Steno Diabetes Center Copenhagen, Gentofte, Denmark."
+        },
+        {
+          "name": "Vart Priya",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "Chertow Glenn M",
+          "affiliation": "Departments of Medicine and Epidemiology and Population Health, Stanford University School of Medicine, Stanford, CA."
+        },
+        {
+          "name": "Hou Fan Fan",
+          "affiliation": "Division of Nephrology, Nanfang Hospital, Southern Medical University, National Clinical Research Center for Kidney Disease, Guangzhou, China."
+        },
+        {
+          "name": "Jongs Niels",
+          "affiliation": "Department of Clinical Pharmacy and Pharmacology, University of Groningen, University Medical Center Groningen, Groningen, Netherlands."
+        },
+        {
+          "name": "McMurray John J V",
+          "affiliation": "Institute of Cardiovascular and Medical Sciences, University of Glasgow, Glasgow, U.K."
+        },
+        {
+          "name": "Correa-Rotter Ricardo",
+          "affiliation": "National Medical Science and Nutrition Institute Salvador Zubir\u00e1n, Mexico City, Mexico."
+        },
+        {
+          "name": "Bajaj Harpreet S",
+          "affiliation": "LMC Diabetes and Endocrinology, Brampton, Ontario, Canada."
+        },
+        {
+          "name": "Stefansson Bergur V",
+          "affiliation": "Late-stage Development, Cardiovascular, Renal and Metabolism, Biopharmaceuticals Research and Development, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Toto Robert D",
+          "affiliation": "Department of Internal Medicine, University of Texas Southwestern Medical Center, Dallas, TX."
+        },
+        {
+          "name": "Langkilde Anna Maria",
+          "affiliation": "Late-stage Development, Cardiovascular, Renal and Metabolism, Biopharmaceuticals Research and Development, AstraZeneca, Gothenburg, Sweden."
+        },
+        {
+          "name": "Wheeler David C",
+          "affiliation": "Department of Renal Medicine, University College London, London, U.K."
+        },
+        {
+          "name": "Heerspink Hiddo J L",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Benzhydryl Compounds",
+        "Cardiovascular Diseases",
+        "Diabetes Mellitus, Type 2",
+        "Glomerular Filtration Rate",
+        "Glucosides",
+        "Humans",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    },
+    {
+      "pmid": "32559465",
+      "pmcid": null,
+      "title": "Reductions in albuminuria with SGLT2 inhibitors: a marker for improved renal outcomes in patients without diabetes?",
+      "text": "Reductions in albuminuria with SGLT2 inhibitors: a marker for improved renal outcomes in patients without diabetes?\n\n",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Sternlicht Hillel K",
+          "affiliation": "Department of Medicine, Wayne State University Medical Center, Detroit, MI, USA."
+        },
+        {
+          "name": "Bakris George L",
+          "affiliation": "Department of Medicine, University of Chicago Medicine, Chicago, IL 60637, USA. Electronic address: gbakris@uchicago.edu."
+        }
+      ],
+      "mesh_terms": [
+        "Albuminuria",
+        "Benzhydryl Compounds",
+        "Cross-Over Studies",
+        "Diabetes Mellitus",
+        "Double-Blind Method",
+        "Glucosides",
+        "Humans",
+        "Kidney",
+        "Renal Insufficiency, Chronic",
+        "Sodium-Glucose Transporter 2",
+        "Sodium-Glucose Transporter 2 Inhibitors"
+      ]
+    }
+  ],
+  "metadata": {
+    "sponsor": "AstraZeneca",
+    "phase": "PHASE3",
+    "status": "COMPLETED",
+    "conditions": [
+      "Chronic Kidney Disease"
+    ],
+    "enrollment": 4304,
+    "num_publications": 32,
+    "num_with_full_text": 0
+  }
+}

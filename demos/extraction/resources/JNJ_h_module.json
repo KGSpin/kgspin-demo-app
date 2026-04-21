@@ -1,0 +1,140 @@
+{
+  "main_entity": "Johnson & Johnson",
+  "main_entity_type": "ORGANIZATION",
+  "entities": [
+    {
+      "text": "Johnson & Johnson",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "J&J"}, {"identifier": "JNJ"}, {"identifier": "the Company"}, {"identifier": "the company"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Joaquin Duato",
+      "entity_type": "PERSON",
+      "domain_type": "EXECUTIVE",
+      "aliases": [{"identifier": "Duato"}, {"identifier": "Mr. Duato"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Joseph Wolk",
+      "entity_type": "PERSON",
+      "domain_type": "EXECUTIVE",
+      "aliases": [{"identifier": "Wolk"}, {"identifier": "Mr. Wolk"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Innovative Medicine",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "BUSINESS_UNIT",
+      "aliases": [{"identifier": "Pharmaceutical"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "MedTech",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "BUSINESS_UNIT",
+      "aliases": [{"identifier": "Medical Devices"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Janssen",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "SUBSIDIARY",
+      "aliases": [{"identifier": "Janssen Pharmaceuticals"}, {"identifier": "Janssen Biotech"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Kenvue",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "Kenvue Inc."}],
+      "confidence": 1.0
+    },
+    {
+      "text": "FDA",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "REGULATOR",
+      "aliases": [{"identifier": "Food and Drug Administration"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Abiomed",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "Abiomed, Inc."}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Shockwave Medical",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "Shockwave"}],
+      "confidence": 1.0
+    },
+    {
+      "text": "Pfizer",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "Pfizer Inc."}],
+      "confidence": 0.9
+    },
+    {
+      "text": "Abbott Laboratories",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "Abbott"}],
+      "confidence": 0.9
+    },
+    {
+      "text": "UnitedHealth Group",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "UnitedHealth"}, {"identifier": "Optum"}],
+      "confidence": 0.9
+    },
+    {
+      "text": "Goldman Sachs",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "Goldman Sachs Group"}],
+      "confidence": 0.9
+    },
+    {
+      "text": "JPMorgan Chase",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "JPMorgan"}, {"identifier": "JPMorgan Chase & Co."}],
+      "confidence": 0.9
+    },
+    {
+      "text": "Medtronic",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [],
+      "confidence": 0.9
+    },
+    {
+      "text": "Bristol-Myers Squibb",
+      "entity_type": "ORGANIZATION",
+      "domain_type": "COMPANY",
+      "aliases": [{"identifier": "BMS"}],
+      "confidence": 0.9
+    }
+  ],
+  "coreference_map": {
+    "we": "Johnson & Johnson",
+    "We": "Johnson & Johnson",
+    "our": "Johnson & Johnson",
+    "Our": "Johnson & Johnson",
+    "the Company": "Johnson & Johnson",
+    "the company": "Johnson & Johnson",
+    "the Corporation": "Johnson & Johnson",
+    "J&J": "Johnson & Johnson",
+    "JNJ": "Johnson & Johnson"
+  },
+  "document_type": "10-K",
+  "domain": "healthcare",
+  "h_module_version": "v2.0.0",
+  "model_used": "manual-healthcare"
+}

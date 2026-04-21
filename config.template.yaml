@@ -1,0 +1,51 @@
+# config.template.yaml — kgspin-demo
+#
+# On first run, this file is copied to ./config.yaml.
+# Edit ./config.yaml (gitignored) with real values for your deployment.
+# Never commit config.yaml.
+#
+# Override the config path at runtime with KGSPIN_DEMO_CONFIG=<path>.
+# ADR-001 (cross-repo): agent-workflow-template/docs/architecture/decisions/ADR-001.
+
+storage:
+  # Absolute path to the corpus root where landers write raw artifacts.
+  # Empty string ⇒ fall back to ~/.kgspin/corpus (legacy default).
+  # Set an absolute path for shared / non-home deployments.
+  corpus_root: ""
+
+  # Directory where compiled extraction bundles live (consumed by the
+  # FastAPI server and the pipeline_common helpers). Relative paths
+  # resolve against the process CWD at entry-point startup.
+  bundles_dir: ".bundles"
+
+security:
+  # CORS allowlist for the FastAPI server at /extract/*. ``["*"]`` is
+  # the dev default; lock this down to the exact origins that should
+  # call the API in any public / partner deployment.
+  cors_origins:
+    - "*"
+
+features:
+  # Pin the default extraction bundle (e.g. "financial-v4.1.0-structural").
+  # Empty string ⇒ auto-latest discovery via pipeline_common.list_bundles.
+  default_bundle: ""
+
+llm:
+  # ADR-002 Phase 4: LLM alias selection for every LLM-invoking call site.
+  #
+  # ``default_alias`` is resolved via kgspin-admin's HTTP registry (see
+  # KGSPIN_ADMIN_URL env var). Leave ``null`` to fall back to the in-repo
+  # legacy ``GeminiBackend()`` path — each fallback emits a
+  # DeprecationWarning, so set an alias before shipping past alpha.
+  #
+  # Per-flow overrides let one endpoint use a different alias without
+  # touching the others. All fields are optional; ``null`` means "use
+  # default_alias for this flow".
+  default_alias: null
+
+  compare_qa_llm: null
+  wtm_llm: null
+  impact_llm: null
+  auto_flag_llm: null
+  auto_discover_tp_llm: null
+  quality_analysis_llm: null

@@ -1,0 +1,589 @@
+{
+  "nct_id": "NCT00174785",
+  "trial_title": "A Placebo-controlled,Double-blind,Parallel Arm Trial to Assess the Efficacy of Dronedarone 400mg Bid for the Prevention of Cardiovascular Hospitalization or Death From Any Cause in Patients With Atrial Fibrillation/Atrial Flutter (AF/AFL)",
+  "gold_triples": [
+    {
+      "subject_text": "Sanofi",
+      "subject_type": "ORGANIZATION",
+      "predicate": "sponsors",
+      "object_text": "NCT00174785",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "sponsor",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "dronedarone (SR33589)",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT00174785",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "dronedarone (SR33589)",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Atrial Fibrillation",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "dronedarone (SR33589)",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Atrial Flutter",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "placebo",
+      "subject_type": "DRUG",
+      "predicate": "investigated_in",
+      "object_text": "NCT00174785",
+      "object_type": "CLINICAL_TRIAL",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "placebo",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Atrial Fibrillation",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "placebo",
+      "subject_type": "DRUG",
+      "predicate": "treats",
+      "object_text": "Atrial Flutter",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "interventions+conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT00174785",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "studies",
+      "object_text": "Atrial Fibrillation",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT00174785",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "studies",
+      "object_text": "Atrial Flutter",
+      "object_type": "CONDITION",
+      "source": "ClinicalTrials.gov",
+      "source_field": "conditions",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT00174785",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_phase",
+      "object_text": "PHASE3",
+      "object_type": "PHASE",
+      "source": "ClinicalTrials.gov",
+      "source_field": "phase",
+      "confidence": 1.0
+    },
+    {
+      "subject_text": "NCT00174785",
+      "subject_type": "CLINICAL_TRIAL",
+      "predicate": "has_status",
+      "object_text": "COMPLETED",
+      "object_type": "STATUS",
+      "source": "ClinicalTrials.gov",
+      "source_field": "status",
+      "confidence": 1.0
+    }
+  ],
+  "input_documents": [
+    {
+      "pmid": "40295782",
+      "pmcid": "PMC9238499",
+      "title": "Dronedarone provides effective early rhythm control: post-hoc analysis of the ATHENA trial using EAST-AFNET 4 criteria.",
+      "text": "Dronedarone provides effective early rhythm control: post-hoc analysis of the ATHENA trial using EAST-AFNET 4 criteria.\n\nAIMS: This post-hoc analysis of the ATHENA trial assessed whether dronedarone (400\u2005mg twice daily) improved cardiovascular outcomes compared with placebo in patients with early atrial fibrillation/atrial flutter (AF) and cardiovascular comorbidities, based on EAST-AFNET 4 inclusion criteria and outcomes.\nMETHODS AND RESULTS: The co-primary outcomes were (i) a composite of cardiovascular death, stroke, or hospitalisation due to worsening of heart failure (HF) or acute coronary syndrome (ACS) and (ii) nights spent in hospital per year. Sinus rhythm (SR) at 12 months was a secondary outcome. The primary safety outcome was a composite of death, stroke, or pre-specified serious adverse events of special interest (AESIs) related to rhythm control therapy. 1810 patients with early AF were identified. Patients receiving dronedarone had fewer deaths from cardiovascular causes, strokes, or hospitalisations due to worsening of HF or ACS compared with patients receiving placebo [dronedarone (n = 924), 87 patients with \u22651 event; placebo (n = 886), 117 patients with \u22651 event; hazard ratio 0.71; 95% confidence interval 0.54-0.94; P = 0.014]. Number of nights spent in hospital did not differ between treatment groups. More patients receiving dronedarone (69.2%) were in SR at 12 months compared with placebo (60.8%). Primary safety events comprising death, stroke, or pre-specified serious AESIs related to rhythm control therapy were not different (dronedarone vs. placebo: 60 vs. 71 patients with \u22651 event).\nCONCLUSION: These data support the use of dronedarone for early rhythm control therapy in selected patients with early AF.\nTRIAL REGISTRATION: ATHENA: ClinicalTrials.gov identifier NCT00174785. EAST-AFNET 4: ClinicalTrials.gov identifier NCT01288352.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Kirchhof Paulus",
+          "affiliation": "Department of Cardiology, University Heart and Vascular Center Hamburg, University Medical Center Hamburg-Eppendorf, Hamburg, Germany."
+        },
+        {
+          "name": "Camm A John",
+          "affiliation": "Institute of Molecular and Clinical Sciences, St. George's University of London, London, UK."
+        },
+        {
+          "name": "Crijns Harry J G M",
+          "affiliation": "Maastricht University Medical Centre and Cardiovascular Research Institute, Maastricht, The Netherlands."
+        },
+        {
+          "name": "Piccini Jonathan P",
+          "affiliation": "Duke University Medical Center and the Duke Clinical Research Institute, Durham, NC, USA."
+        },
+        {
+          "name": "Torp-Pedersen Christian",
+          "affiliation": "Department of Public Health, University of Copenhagen, Copenhagen, Denmark."
+        },
+        {
+          "name": "McKindley David S",
+          "affiliation": "Sanofi, Bridgewater, NJ, USA."
+        },
+        {
+          "name": "Wieloch Mattias",
+          "affiliation": "Sanofi, Paris, France."
+        },
+        {
+          "name": "Hohnloser Stefan H",
+          "affiliation": "Department of Cardiology, J.W. Goethe University, Theodor-W.-Adorno-Platz 1, 60629 Frankfurt am Main, Germany."
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Female",
+        "Humans",
+        "Male",
+        "Middle Aged",
+        "Acute Coronary Syndrome",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Atrial Flutter",
+        "Comorbidity",
+        "Double-Blind Method",
+        "Dronedarone",
+        "Heart Failure",
+        "Heart Rate",
+        "Hospitalization",
+        "Risk Factors",
+        "Stroke",
+        "Time Factors",
+        "Treatment Outcome"
+      ]
+    },
+    {
+      "pmid": "35717354",
+      "pmcid": null,
+      "title": "Impact of dronedarone on patients with atrial fibrillation and diabetes: A sub-analysis of the ATHENA and EURIDIS/ADONIS studies.",
+      "text": "Impact of dronedarone on patients with atrial fibrillation and diabetes: A sub-analysis of the ATHENA and EURIDIS/ADONIS studies.\n\nAIM: This post hoc analysis evaluated efficacy and safety of dronedarone in atrial fibrillation (AF) and atrial flutter (AFL) patients with/without diabetes.\nMETHODS: Patients were categorized according to baseline diabetes status. Time-to-event analyses were performed using Kaplan-Meier method. Hazard-ratios were assessed using Cox models.\nRESULTS: 945/4628 (dronedarone\u00a0=\u00a0482; placebo\u00a0=\u00a0463) patients in ATHENA and 215/1237 (dronedarone\u00a0=\u00a0148; placebo\u00a0=\u00a067) patients in EURIDIS/ADONIS studies had diabetes. In ATHENA, there were higher rates of CV hospitalization/death in patients with diabetes (39.5%) than without diabetes (34.7%). Incidence of first CV hospitalization/death was lower in patients with diabetes treated with dronedarone (35.1%) than placebo (44.1%), and time to this event was longer in those treated with dronedarone than placebo (log-rank p\u00a0=\u00a00.005). Median AF/AFL recurrence time was longer in patients treated with dronedarone than placebo in patients with diabetes (ATHENA: 722 vs 527\u00a0days, log-rank p\u00a0=\u00a00.004; EURIDIS/ADONIS: 100 vs 23\u00a0days, log-rank p\u00a0=\u00a00.15) or without diabetes (ATHENA: 741 vs 492\u00a0days, log-rank p\u00a0<\u00a00.0001; EURIDIS/ADONIS: 120 vs 59\u00a0days, log-rank p\u00a0=\u00a00.0002). Occurrence of any treatment-related adverse events with dronedarone was similar for patients with/without diabetes and was comparable to placebo.\nCONCLUSIONS: Dronedarone reduced incidence of CV hospitalization/death, AF/AFL recurrence and increased time to these events in AF/AFL patients with/without diabetes.\nTRIAL REGISTRATION: Not applicable, as it was a post hoc analysis. This article is based on previously conducted studies (ATHENA: NCT00174785, EURIDIS: NCT00259428, and ADONIS: NCT00259376).",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Handelsman Yehuda",
+          "affiliation": "Metabolic Institute of America, Tarzana, CA, United States of America. Electronic address: yhandelsman@gmail.com."
+        },
+        {
+          "name": "Bunch T Jared",
+          "affiliation": "School of Medicine, University of Utah, Salt Lake City, UT, United States of America. Electronic address: jared.bunch@hsc.utah.edu."
+        },
+        {
+          "name": "Rodbard Helena W",
+          "affiliation": "Endocrine and Metabolic Consultants, Rockville, MD, United States of America. Electronic address: hrodbard@comcast.net."
+        },
+        {
+          "name": "Steinberg Benjamin A",
+          "affiliation": "School of Medicine, University of Utah, Salt Lake City, UT, United States of America. Electronic address: Benjamin.steinberg@hsc.utah.edu."
+        },
+        {
+          "name": "Thind Munveer",
+          "affiliation": "Lankenau Heart Institute, Lankenau Medical Center, Wynnewood, PA, United States of America. Electronic address: thindm@me.com."
+        },
+        {
+          "name": "Bigot Gregory",
+          "affiliation": "IVIDATA, Paris, France. Electronic address: Gregory.Bigot-ext@sanofi.com."
+        },
+        {
+          "name": "Konigsberg Lana",
+          "affiliation": "Sanofi, Bridgewater, NJ, United States of America. Electronic address: Lana.Konigsberg@sanofi.com."
+        },
+        {
+          "name": "Wieloch Mattias",
+          "affiliation": "Sanofi, Paris, France; Department of Clinical Sciences Malm\u00f6, Lund University, Malm\u00f6, Sweden. Electronic address: Mattias.Wieloch@sanofi.com."
+        },
+        {
+          "name": "Kowey Peter R",
+          "affiliation": "Lankenau Heart Institute, Lankenau Medical Center, Wynnewood, PA, United States of America. Electronic address: KoweyP@mlhs.org."
+        }
+      ],
+      "mesh_terms": [
+        "Adonis",
+        "Amiodarone",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Diabetes Mellitus",
+        "Dronedarone",
+        "Humans"
+      ]
+    },
+    {
+      "pmid": "34958366",
+      "pmcid": "PMC7670541",
+      "title": "Dronedarone vs. placebo in patients with atrial fibrillation or atrial flutter across a range of renal function: a post hoc analysis of the ATHENA trial.",
+      "text": "Dronedarone vs. placebo in patients with atrial fibrillation or atrial flutter across a range of renal function: a post hoc analysis of the ATHENA trial.\n\nAIMS: Use of antiarrhythmic drugs (AADs) in patients with chronic kidney disease (CKD) is challenging owing to issues with renal clearance, drug accumulation, and increased proarrhythmic risks. Because CKD is a common comorbidity in patients with atrial fibrillation/atrial flutter (AF/AFL), it is important to establish the efficacy and safety of AAD treatment in patients with CKD.\nMETHODS AND RESULTS: Dronedarone efficacy and safety in individuals with AF/AFL and varying renal functionality [estimated glomerular filtration rate (eGFR): \u226560, \u226545 and <60, and <45\u00a0mL/min] was investigated in a post hoc analysis of ATHENA (NCT00174785), a randomized, double-blind trial of dronedarone vs. placebo in patients with paroxysmal or persistent AF/AFL plus additional cardiovascular (CV) risk factors. Log-rank testing and Cox regression were used to compare the incidence of endpoints between treatments. Overall, 4588 participants were enrolled from the trial. There was no interaction between treatment group and baseline eGFR assessed as a continuous variable (P = 0.743) for the first CV hospitalization or death from any cause (primary outcome). This outcome was lower with dronedarone vs. placebo across a wide range of renal function. First CV hospitalization and first AF/AFL recurrence were both lower in the two least renally impaired subgroups with dronedarone vs. placebo. Treatment emergent adverse events leading to treatment discontinuation were more frequent with dronedarone vs. placebo and occurred more often in patients with severe renal impairment.\nCONCLUSION: Dronedarone is an effective AAD in patients with AF/AFL and CV risk factors across a wide range of renal function.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Vamos Mate",
+          "affiliation": "Cardiac Electrophysiology Division, Department of Internal Medicine, University of Szeged, Szeged, Hungary."
+        },
+        {
+          "name": "Oldgren Jonas",
+          "affiliation": "Uppsala Clinical Research Center and Department of Medical Sciences, Uppsala University, Uppsala, Sweden."
+        },
+        {
+          "name": "Nam Gi-Byoung",
+          "affiliation": "Asan Medical Center, University of Ulsan College of Medicine, Seoul, South Korea."
+        },
+        {
+          "name": "Lip Gregory Y H",
+          "affiliation": "Liverpool Centre for Cardiovascular Science, University of Liverpool and Liverpool Heart & Chest Hospital, Liverpool, UK."
+        },
+        {
+          "name": "Calkins Hugh",
+          "affiliation": "Division of Cardiology, Department of Medicine, Johns Hopkins University, Baltimore, MD, USA."
+        },
+        {
+          "name": "Zhu Jun",
+          "affiliation": "Fuwai Hospital, CAMS & PUMC, Beijing, China."
+        },
+        {
+          "name": "Ueng Kwo-Chang",
+          "affiliation": "Division of Cardiology, Department of Internal Medicine, Chung-Shan Medical University Hospital, Taichung City, Taiwan."
+        },
+        {
+          "name": "Ludwigs Ulf",
+          "affiliation": "Sanofi, Stockholm, Sweden."
+        },
+        {
+          "name": "Wieloch Mattias",
+          "affiliation": "Sanofi, Paris, France."
+        },
+        {
+          "name": "Stewart John",
+          "affiliation": "Sanofi, Laval, Quebec, Canada."
+        },
+        {
+          "name": "Hohnloser Stefan H",
+          "affiliation": "Department of Cardiology, J.W. Goethe University, Frankfurt, Germany."
+        }
+      ],
+      "mesh_terms": [
+        "Amiodarone",
+        "Atrial Fibrillation",
+        "Atrial Flutter",
+        "Double-Blind Method",
+        "Dronedarone",
+        "Humans",
+        "Kidney",
+        "Renal Insufficiency, Chronic"
+      ]
+    },
+    {
+      "pmid": "19213680",
+      "pmcid": null,
+      "title": "Effect of dronedarone on cardiovascular events in atrial fibrillation.",
+      "text": "Effect of dronedarone on cardiovascular events in atrial fibrillation.\n\nBACKGROUND: Dronedarone is a new antiarrhythmic drug that is being developed for the treatment of patients with atrial fibrillation.\nMETHODS: We conducted a multicenter trial to evaluate the use of dronedarone in 4628 patients with atrial fibrillation who had additional risk factors for death. Patients were randomly assigned to receive dronedarone, 400 mg twice a day, or placebo. The primary outcome was the first hospitalization due to cardiovascular events or death. Secondary outcomes were death from any cause, death from cardiovascular causes, and hospitalization due to cardiovascular events.\nRESULTS: The mean follow-up period was 21+/-5 months, with the study drug discontinued prematurely in 696 of the 2301 patients (30.2%) receiving dronedarone and in 716 of the 2327 patients (30.8%) receiving placebo, mostly because of adverse events. The primary outcome occurred in 734 patients (31.9%) in the dronedarone group and in 917 patients (39.4%) in the placebo group, with a hazard ratio for dronedarone of 0.76 (95% confidence interval [CI], 0.69 to 0.84; P<0.001). There were 116 deaths (5.0%) in the dronedarone group and 139 (6.0%) in the placebo group (hazard ratio, 0.84; 95% CI, 0.66 to 1.08; P=0.18). There were 63 deaths from cardiovascular causes (2.7%) in the dronedarone group and 90 (3.9%) in the placebo group (hazard ratio, 0.71; 95% CI, 0.51 to 0.98; P=0.03), largely due to a reduction in the rate of death from arrhythmia with dronedarone. The dronedarone group had higher rates of bradycardia, QT-interval prolongation, nausea, diarrhea, rash, and an increased serum creatinine level than the placebo group. Rates of thyroid- and pulmonary-related adverse events were not significantly different between the two groups.\nCONCLUSIONS: Dronedarone reduced the incidence of hospitalization due to cardiovascular events or death in patients with atrial fibrillation. (ClinicalTrials.gov number, NCT00174785.)",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Hohnloser Stefan H",
+          "affiliation": "Department of Cardiology, J.W. Goethe University, Frankfurt, Germany. hohnloser@em.uni-frankfurt.de"
+        },
+        {
+          "name": "Crijns Harry J G M",
+          "affiliation": ""
+        },
+        {
+          "name": "van Eickels Martin",
+          "affiliation": ""
+        },
+        {
+          "name": "Gaudin Christophe",
+          "affiliation": ""
+        },
+        {
+          "name": "Page Richard L",
+          "affiliation": ""
+        },
+        {
+          "name": "Torp-Pedersen Christian",
+          "affiliation": ""
+        },
+        {
+          "name": "Connolly Stuart J",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Amiodarone",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Bradycardia",
+        "Cardiovascular Diseases",
+        "Creatinine",
+        "Double-Blind Method",
+        "Dronedarone",
+        "Female",
+        "Follow-Up Studies",
+        "Hospitalization",
+        "Humans",
+        "Kaplan-Meier Estimate",
+        "Male",
+        "Middle Aged",
+        "Risk Factors",
+        "Secondary Prevention",
+        "Treatment Outcome"
+      ]
+    },
+    {
+      "pmid": "22770643",
+      "pmcid": null,
+      "title": "Cost-effectiveness of dronedarone in atrial fibrillation: results for Canada, Italy, Sweden, and Switzerland.",
+      "text": "Cost-effectiveness of dronedarone in atrial fibrillation: results for Canada, Italy, Sweden, and Switzerland.\n\nBACKGROUND: Dronedarone is a therapy for the treatment of patients with paroxysmal and persistent atrial fibrillation or atrial flutter. According to results in the ATHENA trial, dronedarone on top of standard of care (SOC) decreases the risk of cardiovascular hospitalizations or death by 24% compared with SOC alone.\nOBJECTIVES: A patient-level health economic model was developed to evaluate the cost-effectiveness of dronedarone on top of SOC versus SOC alone.\nMETHODS: The risk of experiencing stroke, congestive heart failure, acute coronary syndromes, treatment discontinuation, and death was modeled by separate health states, whereas adverse events were included as 1-time cost and utility decrements. State transition probabilities were primarily deduced from the patient-level data from ATHENA using survival analysis. Four sets of analyses were performed to reflect costs and treatment effects in Canada, Italy, Sweden, and Switzerland. Cost-effectiveness analysis was also conducted in a newly defined patient population identified by the European Medicines Agency (EMA) to avoid the use of dronedarone in permanent AF patients resembling those in the PALLAS study.\nRESULTS: The predicted survival time was, for the Canadian cohort, extended from 10.11 to 10.24 years when dronedarone was added to SOC. Similar results were found for the other countries, resulting in incremental cost-effectiveness ratios (ICERs) of \u20ac5828, \u20ac5873, \u20ac14,970, and \u20ac8554 per QALYs for Canada, Italy, Sweden, and, Switzerland, respectively. These results are all well below current established cost-effectiveness thresholds. In the EMA-restricted population, all patients were predicted to live longer, and the ICER increased but remained within established thresholds, with an average cost per QALY gained of \u20ac15,900.\nCONCLUSIONS: Dronedarone on top of SOC appears to be a cost-effective treatment for atrial fibrillation compared with SOC alone. Despite the differences in the local settings considered, the results were consistent among all the countries included in the study. ClinicalTrials.gov identifier: NCT00174785.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "\u00c5kerborg \u00d6rjan",
+          "affiliation": "OptumInsight, Stockholm, Sweden. orjan.akerborg@optum.com"
+        },
+        {
+          "name": "Nilsson Jonas",
+          "affiliation": ""
+        },
+        {
+          "name": "Bascle Stephanie",
+          "affiliation": ""
+        },
+        {
+          "name": "Lindgren Peter",
+          "affiliation": ""
+        },
+        {
+          "name": "Reynolds Matthew",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Amiodarone",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Canada",
+        "Computer Simulation",
+        "Cost Savings",
+        "Cost-Benefit Analysis",
+        "Diagnostic Tests, Routine",
+        "Dronedarone",
+        "Drug Costs",
+        "Europe",
+        "Female",
+        "Hospital Costs",
+        "Hospitalization",
+        "Humans",
+        "Male",
+        "Models, Economic",
+        "Office Visits",
+        "Quality-Adjusted Life Years",
+        "Stroke",
+        "Survival Analysis",
+        "Time Factors",
+        "Treatment Outcome"
+      ]
+    },
+    {
+      "pmid": "20436046",
+      "pmcid": "PMC2198776",
+      "title": "Dronedarone in patients with congestive heart failure: insights from ATHENA.",
+      "text": "Dronedarone in patients with congestive heart failure: insights from ATHENA.\n\nAIMS: Dronedarone is a new multichannel blocking antiarrhythmic drug for treatment of atrial fibrillation (AF). In patients with recently decompensated congestive heart failure (CHF) and depressed LV function, the drug was associated with excess mortality compared with a placebo group. The present study aimed to analyse in detail the effects of dronedarone on mortality and morbidity in AF patients CHF.\nMETHODS AND RESULTS: We performed a post hoc analysis of ATHENA, a large placebo-controlled outcome trial in 4628 patients with paroxysmal or persistent AF, to evaluate the relationship between clinical outcomes and dronedarone therapy in patients with stable CHF. The primary outcome was time to first cardiovascular (CV) hospitalization or death. There were 209 patients with NYHA class II/III CHF and a left ventricular ejection fraction < or =0.40 at baseline (114 placebo, 95 dronedarone patients). A primary outcome event occurred in 59/114 placebo patients compared with 42/95 dronedarone patients [hazard ratio (HR) 0.78, 95% CI = 0.52-1.16]. Twenty of 114 placebo patients and 12/95 dronedarone patients died during the study (HR 0.71, 95% CI = 0.34-1.44). Fifty-four placebo and 42 dronedarone patients were hospitalized for an intermittent episode of NYHA class IV CHF (HR = 0.78, 95% CI = 0.52-1.17).\nCONCLUSION: In this post-hoc analysis of ATHENA patients with AF and stable CHF, dronedarone did not increase mortality and showed a reduction of CV hospitalization or death similar to the overall population. However, in the light of the ANtiarrhythmic trial with DROnedarone in Moderate to severe CHF Evaluating morbidity DecreAse study, dronedarone should be contraindicated in patients with NYHA class IV or unstable NYHA classes II and III CHF.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Hohnloser Stefan H",
+          "affiliation": "Division of Clinical Electrophysiology, Department of Cardiology, J. W. Goethe University, Theodor-Stern-Kai 7, D 60590 Frankfurt, Germany. Hohnloser@em.uni-frankfurt.de"
+        },
+        {
+          "name": "Crijns Harry J G M",
+          "affiliation": ""
+        },
+        {
+          "name": "van Eickels Martin",
+          "affiliation": ""
+        },
+        {
+          "name": "Gaudin Christophe",
+          "affiliation": ""
+        },
+        {
+          "name": "Page Richard L",
+          "affiliation": ""
+        },
+        {
+          "name": "Torp-Pedersen Christian",
+          "affiliation": ""
+        },
+        {
+          "name": "Connolly Stuart J",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Amiodarone",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Creatinine",
+        "Dronedarone",
+        "Female",
+        "Heart Failure",
+        "Hospitalization",
+        "Humans",
+        "Kaplan-Meier Estimate",
+        "Male",
+        "Treatment Outcome",
+        "Ventricular Dysfunction, Left"
+      ]
+    },
+    {
+      "pmid": "21576129",
+      "pmcid": "PMC3743254",
+      "title": "Impact of dronedarone on hospitalization burden in patients with atrial fibrillation: results from the ATHENA study.",
+      "text": "Impact of dronedarone on hospitalization burden in patients with atrial fibrillation: results from the ATHENA study.\n\nAIMS: Cardiovascular (CV) hospitalization is a predictor of CV mortality and has a negative impact on patients' quality of life. The primary endpoint of A placebo-controlled, double-blind, parallel-arm Trial to assess the efficacy of dronedarone 400 mg bid for the prevention of cardiovascular Hospitalization or death from any cause in patiENTs with Atrial fibrillation/atrial flutter (ATHENA), a composite of first CV hospitalization or death from any cause, was significantly reduced by dronedarone. This post hoc analysis evaluated the secondary endpoint of CV hospitalization and the clinical benefit of dronedarone on the number and duration of CV hospitalizations in patients with atrial fibrillation (AF).\nMETHODS AND RESULTS: ATHENA was a double-blind, parallel group study in 4628 patients with a history of paroxysmal/persistent AF and additional risk factors, treated with placebo or dronedarone. Dronedarone treatment significantly reduced the risk of first CV hospitalization (P < 0.0001 vs. placebo), while the risk of first non-CV hospitalization was similar in both groups (P = 0.77). About half of the CV hospitalizations were AF-related, with a median duration of hospital stay of four nights. The risk of any hospitalization for AF [hazard ratio (95% confidence interval) 0.626 (0.546-0.719)] and duration of hospital stay were significantly reduced by dronedarone (P < 0.0001 vs. placebo). Dronedarone treatment reduced total hospitalizations for acute coronary syndrome (P = 0.0105) and the time between the first AF/atrial flutter recurrence and CV hospitalization/death (P = 0.0048). Hospitalization burden was significantly reduced across all levels of care (P < 0.05). Cumulative incidence data indicated that the effects of dronedarone persisted for at least 24 months.\nCONCLUSION: Dronedarone reduced the risk for CV hospitalization and the total hospitalization burden in this patient group. The trial is registered under ClinicalTrials.gov #NCT 00174785.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Torp-Pedersen Christian",
+          "affiliation": "Department of Cardiology, Gentofte Hospital, University of Copenhagen, 2009 Hellerup, Denmark. ctp@heart.dk"
+        },
+        {
+          "name": "Crijns Harry J G M",
+          "affiliation": ""
+        },
+        {
+          "name": "Gaudin Christophe",
+          "affiliation": ""
+        },
+        {
+          "name": "Page Richard L",
+          "affiliation": ""
+        },
+        {
+          "name": "Connolly Stuart J",
+          "affiliation": ""
+        },
+        {
+          "name": "Hohnloser Stefan H",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Aged",
+        "Amiodarone",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Critical Care",
+        "Dronedarone",
+        "Female",
+        "Follow-Up Studies",
+        "Hospitalization",
+        "Humans",
+        "Incidence",
+        "Kaplan-Meier Estimate",
+        "Length of Stay",
+        "Male",
+        "Secondary Prevention"
+      ]
+    },
+    {
+      "pmid": "21296333",
+      "pmcid": null,
+      "title": "Rhythm- and rate-controlling effects of dronedarone in patients with atrial fibrillation (from the ATHENA trial).",
+      "text": "Rhythm- and rate-controlling effects of dronedarone in patients with atrial fibrillation (from the ATHENA trial).\n\nDronedarone is a multi-channel-blocking drug for the treatment of patients with atrial fibrillation (AF) or atrial flutter (AFL) with rate- and rhythm-controlling properties. A Placebo-Controlled, Double-Blind, Parallel Arm Trial to Assess the Efficacy of Dronedarone 400 mg b.i.d. for the Prevention of Cardiovascular Hospitalization or Death from Any Cause in Patients With Atrial Fibrillation/Atrial Flutter (ATHENA) demonstrated that dronedarone reduced the risk for first cardiovascular hospitalization or death from any cause. The aim of this post hoc analysis was to evaluate the rhythm- and rate-controlling properties of dronedarone in the ATHENA trial. Patients were randomized to dronedarone 400 mg twice daily (n = 2,301) or placebo (n = 2,327). Electrocardiographic tracings were classified for AF or AFL or sinus rhythm. Patients with AF or AFL on every postbaseline electrocardiogram were classified as having permanent AF or AFL. All electrical cardioversions were documented. The use of rate-controlling medications was equally distributed in the 2 treatment groups. The median time to first AF or AFL recurrence of patients in sinus rhythm at baseline was 498 days in placebo patients and 737 days in dronedarone patients (hazard ratio 0.749, 95% confidence interval 0.681 to 0.824, p <0.001). In the dronedarone group, 339 patients (15%) had \u22651 electrical cardioversion, compared to 481 (21%) in the placebo group (hazard ratio 0.684, 95% confidence interval 0.596 to 0.786, p <0.001). The likelihood of permanent AF or AFL was lower with dronedarone (178 patients [7.6%]) compared to placebo (295 patients [12.8%]) (p <0.001). At the time of first AF or AFL recurrence, the mean heart rates were 85.3 and 95.5 beats/min in the dronedarone and placebo groups, respectively (p <0.001). In conclusion, dronedarone demonstrated both rhythm- and rate-controlling properties in ATHENA. These effects are likely to contribute to the reduction of important clinical outcomes observed in this trial.",
+      "has_full_text": false,
+      "authors": [
+        {
+          "name": "Page Richard L",
+          "affiliation": "Department of Medicine, University of Wisconsin School of Medicine and Public Health, Madison, Wisconsin, USA. rpage@medicine.wisc.edu"
+        },
+        {
+          "name": "Connolly Stuart J",
+          "affiliation": ""
+        },
+        {
+          "name": "Crijns Harry J G M",
+          "affiliation": ""
+        },
+        {
+          "name": "van Eickels Martin",
+          "affiliation": ""
+        },
+        {
+          "name": "Gaudin Christophe",
+          "affiliation": ""
+        },
+        {
+          "name": "Torp-Pedersen Christian",
+          "affiliation": ""
+        },
+        {
+          "name": "Hohnloser Stefan H",
+          "affiliation": ""
+        }
+      ],
+      "mesh_terms": [
+        "Adult",
+        "Amiodarone",
+        "Anti-Arrhythmia Agents",
+        "Atrial Fibrillation",
+        "Atrial Flutter",
+        "Cause of Death",
+        "Combined Modality Therapy",
+        "Double-Blind Method",
+        "Dronedarone",
+        "Electric Countershock",
+        "Electrocardiography",
+        "Female",
+        "Follow-Up Studies",
+        "Heart Rate",
+        "Hospitalization",
+        "Humans",
+        "Kaplan-Meier Estimate",
+        "Male",
+        "Middle Aged",
+        "Proportional Hazards Models",
+        "Risk",
+        "Secondary Prevention",
+        "Signal Processing, Computer-Assisted",
+        "Stroke",
+        "Utilization Review"
+      ]
+    }
+  ],
+  "metadata": {
+    "sponsor": "Sanofi",
+    "phase": "PHASE3",
+    "status": "COMPLETED",
+    "conditions": [
+      "Atrial Fibrillation",
+      "Atrial Flutter"
+    ],
+    "enrollment": 4628,
+    "num_publications": 8,
+    "num_with_full_text": 0
+  }
+}

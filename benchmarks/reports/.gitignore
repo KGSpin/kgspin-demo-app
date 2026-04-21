@@ -1,0 +1,5 @@
+# Harness run artifacts — reproducible from committed graphs + questions.
+# The dev-report + thin-slice-smoke.md in docs/sprints/ capture the
+# human-readable summary; raw JSON stays out of git.
+*
+!.gitignore

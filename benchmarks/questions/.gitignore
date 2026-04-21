@@ -1,0 +1,6 @@
+# Held-out Arm-B prompt-design blinders: the deterministic SHA-1-bucketed
+# 20% of financebench-subset.jsonl is split into *.heldout.jsonl and
+# NEVER committed. Arm B prompt engineering must not touch these questions.
+#
+# Reproduce the split: benchmarks/harness/split.py (deterministic).
+*.heldout.jsonl

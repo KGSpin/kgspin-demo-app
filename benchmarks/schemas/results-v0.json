@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kgspin.dev/benchmarks/schemas/results-v0.json",
+  "title": "KGSpin Benchmark Results — v0",
+  "description": "Shape of `benchmarks/reports/<timestamp>/results.json` emitted by harness/run.py.",
+  "type": "object",
+  "required": ["schema_version", "run_id", "arm", "retrieval", "questions_source", "per_question", "aggregates"],
+  "properties": {
+    "schema_version": {"const": "results-v0"},
+    "run_id": {"type": "string"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "arm": {"enum": ["a", "b"]},
+    "retrieval": {"enum": ["fan_out_from_corpus", "fan_out_from_graph", "semantic_composed"]},
+    "questions_source": {"type": "string"},
+    "llm": {
+      "type": "object",
+      "properties": {
+        "alias": {"type": ["string", "null"]},
+        "provider": {"type": ["string", "null"]},
+        "model": {"type": ["string", "null"]}
+      }
+    },
+    "per_question": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question_id", "question", "predicted_answer", "gold_answer"],
+        "properties": {
+          "question_id": {"type": "string"},
+          "question": {"type": "string"},
+          "predicted_answer": {"type": "string"},
+          "gold_answer": {"type": ["string", "null"]},
+          "retrieved_context": {"type": "array", "items": {"type": "string"}},
+          "metrics": {"type": "object", "additionalProperties": {"type": "number"}}
+        }
+      }
+    },
+    "aggregates": {
+      "type": "object",
+      "description": "Mean metric values across per_question entries.",
+      "additionalProperties": {"type": "number"}
+    }
+  }
+}

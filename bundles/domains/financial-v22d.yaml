@@ -1,0 +1,878 @@
+domain_schema_version: 5.6.0
+version: v22d
+domain: financial
+name: financial-v22d
+description: 'v22b: v22a + external COMPANY master-data adapter (Sprint 151 Variant
+  C). Master data JSON outside the compiled bundle, queried on demand via JsonFileAdapter.
+  EDGAR-derived COMPANY list (7879 unique public companies from KGen fallback). entities.json
+  NOT embedded in bundle — see metadata.json master_data block.'
+provenance_id: 3d9b5c1a72ef4082
+entity_confidence_floor: 0.5
+min_entity_length: 3
+table_to_sentences: true
+self_reference_tokens:
+- the Company
+- the Registrant
+- we
+- our
+- the Firm
+- Our business
+types:
+  ORG:
+    semantic_definition: Companies, agencies, institutions, and other organizations.
+    subtypes:
+      COMPANY:
+        semantic_definition: A named business entity, including publicly traded corporations,
+          private companies, and their significant operating subsidiaries or divisions.
+        spacy_ner_map:
+          ORG: 0.3
+        positive_examples:
+        - Apple Inc. is a well-known technology company.
+        - The Registrant filed its annual report on Form 10-K.
+        - Each of the terms the 'Company' and 'Apple' refers to Apple Inc.
+        - A publicly traded corporation must file with the SEC.
+        - The firm designs, manufactures, and markets smartphones.
+        - Global Tech Solutions is a leading software company.
+        negative_examples:
+        - The company's common stock is traded on Nasdaq.
+        - The company's CEO announced new initiatives.
+        - The company's product line includes the iPhone.
+        keywords:
+        - company
+        - corporation
+        - firm
+        - registrant
+        - enterprise
+        - inc
+        - Inc.
+        - group
+        - competitor
+        - incorporation
+        - Corp.
+        - brand
+        - organization
+        - business
+        - medical
+        - biopharmaceutical
+        - biotechnology
+        - Ltd
+        - companies
+        - incorporated
+        - pharmaceuticals
+        - biotech
+        - A/S
+        - manufacturer
+        - provider
+        - subsidiary
+        - pharma
+        - entity
+        - parent
+        require_proper_modifier: true
+        stoplist:
+        - management
+        - talc
+      GOVERNMENT_AGENCY:
+        semantic_definition: A named governmental body with regulatory, enforcement,
+          or supervisory authority over industries or entities.
+        spacy_ner_map:
+          ORG: 0.3
+        positive_examples:
+        - The Securities and Exchange Commission oversees public companies.
+        - The SEC requires companies to file annual reports.
+        - A government agency enforces financial regulations.
+        - The Environmental Protection Agency sets pollution standards.
+        negative_examples:
+        - The government passed a new law.
+        - The state capitol building is in Washington, D.C.
+        - A non-profit organization advocates for policy changes.
+        keywords:
+        - commission
+        - agency
+        - authority
+        - department
+        - service
+        - government
+        - centers
+        - court
+        - appeals
+      FINANCIAL_EXCHANGE:
+        semantic_definition: A named organization that provides a marketplace for
+          the trading of securities, commodities, or other financial instruments.
+        spacy_ner_map:
+          ORG: 0.3
+        positive_examples:
+        - The Nasdaq Stock Market LLC is a major stock exchange.
+        - Securities are registered on The Nasdaq Stock Market LLC.
+        - The New York Stock Exchange is located in Wall Street.
+        - Investors trade stocks on a financial exchange.
+        negative_examples:
+        - The stock market experienced a downturn.
+        - The company's stock price increased today.
+        - A trading platform facilitates online investments.
+        keywords:
+        - exchange
+        - market
+        - bourse
+      NAMED_INSTITUTION:
+        semantic_definition: A named non-business organization, such as a research
+          institute, foundation, or auditing firm.
+        spacy_ner_map:
+          ORG: 0.3
+        positive_examples:
+        - The Bill & Melinda Gates Foundation supports global health initiatives.
+        - A research institute published a new study on climate change.
+        - The auditing firm reviewed the company's financial statements.
+        - The Smithsonian Institution is a group of museums and research centers.
+        - The company contributed to a local university foundation.
+        negative_examples:
+        - The institution of marriage is ancient.
+        - The company's internal institution for training is robust.
+        - A government department manages public services.
+        keywords:
+        - foundation
+        - institute
+        - firm
+        - university
+        - center
+    spacy_ner_map:
+      ORG: 0.6
+  PERSON:
+    semantic_definition: People, including fictional characters.
+    subtypes:
+      CORPORATE_LEADER:
+        semantic_definition: An individual holding an executive, officer, or board
+          member position within a company.
+        spacy_ner_map:
+          PERSON: 0.3
+        positive_examples:
+        - Executive officers and directors are listed in the proxy statement.
+        - Tim Cook serves as the Chief Executive Officer of Apple Inc.
+        - The Chief Financial Officer presented the quarterly earnings.
+        - A board member attended the annual shareholder meeting.
+        - The President of the division announced a new strategy.
+        - Mary Barra is the CEO of General Motors.
+        negative_examples:
+        - The software engineer developed the new feature.
+        - An employee received an award for outstanding performance.
+        - The customer service representative helped resolve an issue.
+        - A shareholder voted on company proposals.
+        keywords:
+        - CEO
+        - CFO
+        - director
+        - president
+        - executive
+        - officer
+        - chief
+        - chair
+        - head
+        - management
+        - COO
+        - counsel
+        - leader
+        - board
+        - member
+        - chairman
+        - controller
+        require_proper_modifier: true
+    spacy_ner_map:
+      PERSON: 0.6
+  PRODUCT:
+    semantic_definition: Objects, vehicles, foods, named products and services.
+    subtypes:
+      COMMERCIAL_OFFERING:
+        semantic_definition: A named product or service offered commercially by a
+          company, including hardware, software applications, operating systems, drugs,
+          medical devices, and financial services.
+        spacy_ner_map:
+          PRODUCT: 0.3
+        positive_examples:
+        - The iPhone is Apple Inc.'s line of smartphones.
+        - Apple offers the MacBook Air as part of its Mac line.
+        - The Apple Watch Ultra 2 is a popular smartwatch.
+        - Apple Vision Pro is the company's first spatial computer.
+        - AppleCare provides fee-based service and support products.
+        - Apple Music is a subscription-based music service.
+        - The company offers Common Stock and Notes due 2025.
+        - Apple Pay is a cashless payment service.
+        negative_examples:
+        - The company's marketing campaign promoted new products.
+        - The operating system powers the device.
+        - The service department handles customer inquiries.
+        - The company's shares are traded on the market.
+        keywords:
+        - product
+        - service
+        - offering
+        - software
+        - device
+        - stock
+        - notes
+        - computers
+        - line
+        - computer
+        - app
+        - card
+        - system
+        - platform
+        - drug
+        - brand
+        - lenses
+        - treatment
+        - medicines
+        - mesh
+        - therapy
+        - technology
+        - medicine
+        - cell
+        - inhibitor
+        - receptor
+        - devices
+        - antigen
+        stoplist:
+        - performance
+        - Shockwave
+        - Proteologix
+        - Kenvue
+        - Ethicon
+        - Janssen
+        - stock
+        - product
+        - meshes
+        - cancer
+        - colitis
+        - biotech
+        - myeloma
+        - psoriasis
+        - arthritis
+        - Johnson
+        require_proper_modifier: true
+    spacy_ner_map:
+      PRODUCT: 0.6
+  LAW:
+    semantic_definition: Named documents made into laws — acts, regulations, standards.
+    subtypes:
+      ACT_OR_REGULATION:
+        semantic_definition: A named legal document, act, or regulation that imposes
+          obligations or rules.
+        spacy_ner_map:
+          LAW: 0.3
+        positive_examples:
+        - The Securities Exchange Act of 1934 governs securities trading.
+        - The Sarbanes-Oxley Act imposes corporate governance rules.
+        - The Private Securities Reform Act of 1995 protects investors.
+        - Companies must comply with the Dodd-Frank Act.
+        - Rule 405 of the Securities Act defines a well-known seasoned issuer.
+        negative_examples:
+        - The company's policy outlines employee conduct.
+        - The legal department reviewed the contract.
+        - A new bill was introduced in Congress.
+        keywords:
+        - act
+        - regulation
+        - rule
+        - statute
+        - law
+        - principles
+        - accounting
+        - code
+        - program
+        - amendment
+        stoplist:
+        - order
+        - STELARA
+        - zip
+        - code
+        - state
+        require_proper_modifier: true
+    spacy_ner_map:
+      LAW: 0.6
+  GPE:
+    semantic_definition: Countries, cities, states — geopolitical entities with governance.
+    subtypes:
+      GEOPOLITICAL_ENTITY:
+        semantic_definition: A named country, state, province, city, or other geopolitical
+          unit with governance.
+        spacy_ner_map:
+          GPE: 0.3
+        positive_examples:
+        - Apple Inc. is incorporated in California.
+        - The company's principal offices are in Cupertino, California.
+        - The United States is a major market for Apple.
+        - Greater China includes China mainland, Hong Kong and Taiwan.
+        - Europe includes European countries, India, the Middle East and Africa.
+        - Japan is one of the company's reportable segments.
+        - The Americas includes both North and South America.
+        negative_examples:
+        - The company's global sales increased.
+        - The regional office is located in a major city.
+        - The continent of Asia has diverse markets.
+        keywords:
+        - country
+        - state
+        - city
+        - region
+        - nation
+        - province
+        - continent
+        - jurisdiction
+        - address
+        - offices
+        - U.S.
+        - county
+        require_proper_modifier: true
+        stoplist:
+        - irish
+        - Janssen
+        - attorneys
+        blocklist:
+        - attorneys general
+    spacy_ner_map:
+      GPE: 0.6
+relationship_patterns:
+- name: holds_position_at
+  semantic_definition: When a Corporate_Leader holds a specific executive, officer,
+    or board member position at a Company.
+  source_entity_types:
+  - CORPORATE_LEADER
+  target_entity_types:
+  - COMPANY
+  anchor_keywords:
+    keywords:
+    - holds
+    - position
+    - became
+    - appointed
+    - joined
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - The Chief Executive Officer leads Apple Inc. in its strategic direction.
+  - An executive officer holds a key leadership position at Apple Inc.
+  - Tim Cook serves as CEO of Apple Inc.
+  - The director was appointed to the board of a major technology company.
+  - Deirdre O’Brien serves as Senior Vice President of Apple Inc.
+  - Jeff Williams serves as Chief Operating Officer of Apple Inc.
+  - Luca Maestri serves as Senior Vice President, Chief Financial Officer of Apple
+    Inc.
+  - Timothy D. Cook is Chief Executive Officer and Director of Apple Inc.
+  - Arthur D. Levinson is Director and Chair of the Board of Apple Inc.
+  - Jeff Williams is the Chief Operating Officer of Apple Inc.
+  - Timothy D. Cook is Chief Executive Officer of Apple Inc.
+  - Jeff Williams, Chief Operating Officer of Apple Inc., entered into a trading plan.
+  negative_examples:
+  - The employee works for Apple Inc. in software development.
+  - The consultant provided advice to the company's management team.
+  - A shareholder owns a portion of Apple Inc.
+  equivalents:
+  - serves as
+  - is the Chief Operating Officer of
+  - is
+  - is the Chief Executive Officer of
+  - is a Director
+  - was appointed
+  - was named
+  - is a member of
+  - became
+  - joined as
+  extraction_hints:
+    object_coreference_to_main: true
+- name: is_subsidiary_of
+  semantic_definition: When a Company is a subsidiary or unit of another Company.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - COMPANY
+  anchor_keywords:
+    keywords:
+    - subsidiary
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - A wholly owned subsidiary operates under the umbrella of Apple Inc.
+  - Apple Inc. includes its wholly owned subsidiaries in its financial reporting.
+  - The smaller company became a subsidiary of the larger corporation.
+  - Acme Corp. is a subsidiary of Global Holdings Inc.
+  - Janssen Biotech, Inc. is a subsidiary of Johnson & Johnson.
+  - Ethicon, Inc. and Johnson & Johnson are facing claims.
+  - Janssen Pharmaceuticals, Inc. is a subsidiary of Johnson & Johnson.
+  - Claims have been made against Ethicon, Inc. and Johnson & Johnson.
+  - Ethicon, Inc. and Johnson & Johnson are facing claims related to Ethicon's devices.
+  - Ethicon, Inc. is a subsidiary of Johnson & Johnson.
+  negative_examples:
+  - Apple Inc. is a competitor to Samsung Electronics.
+  - The company partnered with a local distributor.
+  - A supplier provides components to Apple Inc.
+  equivalents:
+  - is owned by
+  - is a division of
+  - owns
+  extraction_hints:
+    object_coreference_to_main: true
+- name: acquired
+  semantic_definition: When a Company gains ownership or control of another Company
+    through an acquisition.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - COMPANY
+  anchor_keywords:
+    keywords:
+    - acquired
+    - acquires
+    - acquiring
+    - acquisition
+    - merger
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - Tech Giant Inc. acquired a promising startup last quarter.
+  - Apple Inc. has acquired several smaller technology firms over the years.
+  - Company A gained ownership of Company B through a recent acquisition.
+  - The corporation acquired a new division to expand its market share.
+  negative_examples:
+  - Company X invested in Company Y's new venture.
+  - The company formed a joint venture with a rival firm.
+  - Company Z merged with Company W to create a new entity.
+  equivalents:
+  - completed the acquisition
+  - completed the acquisition of
+  - merged with
+  extraction_hints:
+    subject_coreference: true
+- name: divested
+  semantic_definition: When a Company sells off or spins off another Company or a
+    significant business unit.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - COMPANY
+  anchor_keywords:
+    keywords:
+    - divested
+    - disposition of
+    - no longer owns
+    - completed
+    - completed the disposition of
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - The conglomerate divested its non-core business unit.
+  - Company A divested its struggling software division.
+  - Global Corp. sold off its subsidiary in the energy sector.
+  - The company decided to divest its shares in the smaller firm.
+  - Johnson & Johnson completed the disposition of ownership of Kenvue Inc.
+  negative_examples:
+  - The company invested heavily in its new product line.
+  - Company X spun off a new product, not a whole unit.
+  - The firm closed down an unprofitable branch office.
+  extraction_hints:
+    subject_coreference: true
+  equivalents:
+  - separated from
+  - spun off
+  - relinquished ownership of
+  - transferred ownership of
+- name: offers
+  semantic_definition: When a Company provides, sells, markets, or develops a commercial
+    product or service.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - COMMERCIAL_OFFERING
+  anchor_keywords:
+    keywords:
+    - offers
+    - include
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - Apple Inc. offers the iPhone line of smartphones.
+  - The Company sells a variety of related services like AppleCare.
+  - Apple Inc. provides the macOS operating system for its computers.
+  - The company offers Apple Music, a subscription-based music service.
+  - Apple Inc. develops the Apple Vision Pro spatial computer.
+  - Apple Vision Pro is Apple Inc.'s first spatial computer.
+  - Apple Inc. operates the App Store that allows customers to discover and download
+    applications.
+  - Apple Inc. offers Apple Intelligence™.
+  - Apple Inc. offers Apple Vision Pro, its first spatial computer.
+  - Apple Inc. offers Apple Intelligence™, a personal intelligence system.
+  - Apple Inc. offers Apple Intelligence, a personal intelligence system.
+  - Apple Inc. offers Apple Vision Pro.
+  - DARZALEX is Johnson & Johnson's largest product.
+  - Johnson & Johnson offers STELARA, its second largest product.
+  - Johnson & Johnson offers ACUVUE brand contact lenses.
+  - Johnson & Johnson offers TREMFYA, a treatment for plaque psoriasis.
+  - Johnson & Johnson offers CARVYKTI, a chimeric antigen receptor (CAR)-T-cell therapy.
+  - Johnson & Johnson offers DARZALEX, its largest product.
+  - Johnson & Johnson offers TREMFYA, a treatment for psoriasis.
+  - STELARA is a product of Johnson & Johnson.
+  - Johnson & Johnson offers CARVYKTI, a therapy for the treatment of multiple myeloma.
+  - CARVYKTI is a chimeric antigen receptor (CAR)-T-cell therapy for the treatment
+    of patients with multiple myeloma.
+  negative_examples:
+  - Apple Inc. uses components from various suppliers.
+  - The company's stock is traded on The Nasdaq Stock Market LLC.
+  - Apple Inc. is subject to the Securities Exchange Act of 1934.
+  equivalents:
+  - is a line of
+  - operates
+  - provides
+  - is a product of
+  - is the Company's
+  - is the Company's first
+  - is the Company's product
+  - is a treatment for
+  - is a
+  - a treatment for
+  - medicines for
+  - a therapy
+  - sells
+  - is indicated for
+  - a therapy for the treatment of
+  extraction_hints:
+    subject_coreference: true
+- name: competes_with
+  semantic_definition: When two Companies are rivals in the same market or industry.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - COMPANY
+  anchor_keywords:
+    keywords:
+    - competes
+    - competing
+    - competition
+    - competitor
+    - with
+    - compared to
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - Apple Inc. competes with other smartphone manufacturers.
+  - The company faces aggressive price competition in the market.
+  - Apple Inc. competes with rivals in the personal computer industry.
+  - Tech companies often compete fiercely for market share.
+  - Apple Inc. competes with Nintendo, PlayStation, and Xbox.
+  - Apple Inc. products are compared to competitors' platforms, such as Nintendo.
+  - Apple Inc. develops products compared to competitors' platforms, such as Nintendo.
+  - Apple Inc. competes with platforms such as Nintendo.
+  negative_examples:
+  - Apple Inc. collaborates with developers for its App Store.
+  - The company partners with cellular network carriers.
+  - Apple Inc. is a customer of many component suppliers.
+  extraction_hints:
+    subject_coreference: true
+  equivalents:
+  - rivals
+  - is an alternative to
+  - is a competitor to
+  - is competing with
+- name: is_subject_to
+  semantic_definition: When a Company is required to comply with a specific named
+    law or regulation.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - ACT_OR_REGULATION
+  anchor_keywords:
+    keywords:
+    - subject
+    - comply
+    - in conformity with
+    - affected by
+    - meets the requirements
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - Apple Inc. is subject to the Securities Exchange Act of 1934.
+  - The Registrant must comply with the Sarbanes-Oxley Act.
+  - All publicly traded companies are subject to financial regulations.
+  - The company is subject to the Private Securities Reform Act of 1995.
+  - Apple Inc. is subject to Form 10-K.
+  - Apple Inc. prepares financial statements in conformity with U.S. generally accepted
+    accounting principles.
+  - Apple Inc. files Form 10-K.
+  - Apple Inc. Form 10-K for the fiscal year ended
+  - Johnson & Johnson is affected by the Inflation Reduction Act.
+  negative_examples:
+  - The company follows its internal code of conduct.
+  - The new product adheres to industry best practices.
+  - Apple Inc. publishes its own environmental guidelines.
+  equivalents:
+  - files
+  - pursuant to
+  - within the meaning of
+  - adheres to
+  - follows
+  - submits
+  - is for
+  - is governed by
+  - is regulated by
+  - under
+  extraction_hints:
+    subject_coreference: true
+- name: operates_in
+  semantic_definition: When a Company conducts business, has operations, or is based
+    in a specific Geopolitical_Entity.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - GEOPOLITICAL_ENTITY
+  anchor_keywords:
+    keywords:
+    - operated
+    - operates
+    - operating
+    - operations
+    - consist of
+    - incorporated
+    - headquartered
+    - incorporated in the State of
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - Apple Inc. operates in the United States.
+  - The company manages its business in Greater China.
+  - Apple Inc. has operations in Cupertino, California.
+  - The company's reportable segments include Europe and Japan.
+  - Apple Inc. conducts business across the Americas.
+  - Apple Inc. is incorporated in California.
+  - Apple Inc. has its principal executive offices in Cupertino.
+  - Apple Inc.'s reportable segments consist of Greater China.
+  - Apple Inc. has its principal executive offices in Cupertino, California.
+  - Apple Inc.'s reportable segments consist of the Americas.
+  - Apple Inc.'s reportable segments consist of Europe.
+  - Johnson & Johnson has sales by U.S. companies.
+  - Johnson & Johnson had approximately 23% of its sales in Europe.
+  - Johnson & Johnson was incorporated in New Jersey.
+  - Johnson & Johnson operates in New Jersey.
+  - Johnson & Johnson was incorporated in the State of New Jersey.
+  negative_examples:
+  - Apple Inc. sells products to customers globally.
+  - The company's headquarters is located in California.
+  - Apple Inc. ships products from its distribution centers.
+  equivalents:
+  - incorporated in
+  - principal executive offices
+  - includes
+  - organized in
+  - located at
+  - covers
+  - has operations in
+  - headquartered in
+  - is a U.S. company
+  - sales occurred in
+  - established in
+  - formed in
+  - registered in
+  - domiciled in
+  extraction_hints:
+    subject_coreference: true
+- name: contributes_to
+  semantic_definition: When a Company makes a financial or asset contribution to a
+    Named_Institution, such as a foundation.
+  source_entity_types:
+  - COMPANY
+  target_entity_types:
+  - NAMED_INSTITUTION
+  anchor_keywords:
+    keywords:
+    - contributes
+    subject_patterns:
+    - dep: nsubj_via_head_verb
+    - dep: appos
+      position: left
+    object_patterns:
+    - dep: prep
+      prep_token: of
+    - dep: appos
+      position: right
+    confidence: 0.3
+  positive_examples:
+  - The technology company contributes to a local research institute.
+  - Apple Inc. makes contributions to various charitable foundations.
+  - The corporation contributes financially to a university endowment.
+  - Company X contributes to the advancement of medical research.
+  negative_examples:
+  - The company invests in its own internal R&D department.
+  - Company Y provides grants to its employees for education.
+  - The firm donates products to schools in need.
+entity_stoplist: []
+class_anchors: {}
+discovery_head:
+  enabled: true
+preprocessors:
+- name: ixbrl_strip
+  phase: pre
+  file_types:
+  - .html
+  - .htm
+- name: xbrl_taxonomy_strip
+  phase: pre
+  file_types:
+  - .html
+  - .htm
+- name: html_to_text
+  phase: pre
+  file_types:
+  - .html
+  - .htm
+- name: html_entity_decode
+  phase: post
+  file_types:
+  - .html
+  - .htm
+master_data:
+  adapters:
+    COMPANY:
+      storage: json_file
+      path: data/master_data/financial/companies.json
+      capabilities:
+      - exact_match
+      - alias_match
+      - case_insensitive
+
+# ---------------------------------------------------------------------------
+# ADR-029 (Sprint 12) — Unified Pipeline Orchestration
+#
+# This block is the worked example for the new schema: every field
+# below is documented inline so a non-engineer domain operator can copy
+# this YAML into a new vertical (legal-v01.yaml, medical-v01.yaml, etc.)
+# and tune the pipeline by editing values rather than PR'ing kgspin-core.
+#
+# All fields are OPTIONAL. If the entire `orchestration:` block is
+# absent, the strategy modules fall back to their pre-Sprint-12
+# hardcoded defaults. The values below match the pre-Sprint-12
+# defaults verbatim, so the JNJ baseline stays byte-identical when this
+# block is added (regression-tested in tests/test_compile_parity.py).
+# ---------------------------------------------------------------------------
+orchestration:
+
+  # `strategy:` — overrides the bundle's top-level `execution_strategy`.
+  # Use this when a single domain bundle needs to ship with multiple
+  # pipeline overlays (e.g. one .bundles dir compiled for fan_out, one
+  # for agentic_analyst). Leave blank to inherit `execution_strategy`.
+  strategy: ""
+
+  # `model_mapping:` — tells the LLM-backed strategies which model to
+  # use for which phase. Currently only the top-level `primary` is
+  # consumed; `reasoner` is reserved for ADR-027 (SLM hybrid). Add
+  # vendor-specific keys for vertical-specific model selection.
+  #
+  # Read by: agentic_flash, agentic_analyst, discovery_agentic
+  model_mapping:
+    primary: gemini-2.5-flash       # cheap, fast, 1M-token context
+    # reasoner: gemini-1.5-pro      # uncomment when ADR-027 lands
+
+  # `chunking:` — macro-chunk parameters for the LLM-backed strategies.
+  # The aligned_extractor (agentic_analyst) and gemini_full_shot
+  # (agentic_flash) both call `_macro_chunk(text, max_chars, overlap)`
+  # to split JNJ-scale documents into LLM-sized payloads.
+  #
+  # `max_chars`: the max characters per chunk. JNJ 10-K is ~440K chars
+  #   stripped; max_chars=80000 yields ~6-7 chunks for agentic_flash
+  #   (comfortable margin under Gemini's ~65K output token ceiling).
+  #   Bump to 160000 if you have a long-context model, drop to 20000
+  #   if you're paying per chunk.
+  # `overlap`: the fraction of the previous chunk to repeat at the
+  #   start of the next chunk. 0.10 = 10% overlap. Higher overlap
+  #   improves boundary-entity recall but costs more tokens.
+  # `method`: chunker variant. Only `macro_chunk` is implemented in
+  #   Sprint 12. Sprint 13 may add `sliding_window` or `section_aware`.
+  #
+  # Read by: agentic_flash, agentic_analyst
+  chunking:
+    method: macro_chunk
+    max_chars: 80000
+    overlap: 0.10
+
+  # `prompts:` — LLM prompt templates with `{placeholder}` interpolation.
+  # When a template is set here it OVERRIDES the strategy module's
+  # hardcoded prompt. When absent the strategy uses its built-in default.
+  #
+  # Required placeholders by strategy (validated at compile time —
+  # missing placeholders raise ValueError):
+  #   agentic_flash.system_template:
+  #     {entity_block}, {rel_block}, {main_entity}, {valid_predicates}
+  #   agentic_analyst.system_template:
+  #     {entity_block}, {rel_block}, {main_entity}, {valid_predicates}
+  #   agentic_analyst.chunk_template:
+  #     {text}, {entity_map}
+  #
+  # The example below is left empty (commented out) so the v22d bundle
+  # uses its built-in defaults. Uncomment + customize to override.
+  prompts: {}
+  #   system_template: |
+  #     You are a {main_entity} domain analyst. Extract entities and
+  #     relationships from the provided text. Use only these entity
+  #     types: {entity_block}. Use only these relationship types:
+  #     {rel_block}. Valid predicates: {valid_predicates}.
+  #   chunk_template: |
+  #     Current entity map: {entity_map}
+  #     Text: {text}
