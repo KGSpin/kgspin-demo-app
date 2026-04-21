@@ -6,11 +6,11 @@
 
 | Layer | Repo | Purpose |
 |-------|------|---------|
-| 1 — Blueprint | `kgspin-archetypes` | Upstream-curated pipelines, bundles, LLM alias catalog |
+| 1 — Blueprint | `kgspin-blueprint` | Upstream-curated pipelines, bundles, LLM alias catalog |
 | 2 — Config | `kgspin-demo-config` | Per-instance overrides + fetcher registrations + admin config |
 | **3 — App (this repo)** | `kgspin-demo-app` | Long-running services + UI + benchmarks |
 
-See `kgspin-archetypes` ADR-003 for the full pattern.
+See `kgspin-blueprint` ADR-003 for the full pattern.
 
 ## Who this is for
 
@@ -109,7 +109,7 @@ uv run pytest
 
 ## Related
 
-- Upstream blueprint: `kgspin-archetypes`
+- Upstream blueprint: `kgspin-blueprint`
 - Instance config: `kgspin-demo-config`
 - Admin registry: `kgspin-admin`
 - Core libs: `kgspin-core`, `kgspin-interface`

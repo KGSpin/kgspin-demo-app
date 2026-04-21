@@ -164,7 +164,7 @@ def list_bundle_options(domain: str = "financial") -> dict:
     _log = _logging.getLogger(__name__)
 
     # --- Sprint 10 Task 5: prefer registry-registered compiled bundles ---
-    # [CTO-AMEND-1] Canonical names from kgspin-archetypes are
+    # [CTO-AMEND-1] Canonical names from kgspin-blueprint are
     # ``financial-v2`` and ``clinical-v2``. Until archetypes Sprint 02
     # publishes compiled bundles, the registry lookup returns zero and
     # we fall through silently to the on-disk scan below.

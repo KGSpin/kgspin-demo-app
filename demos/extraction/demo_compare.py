@@ -430,7 +430,7 @@ _CPU_COST_PER_HOUR = 0.05
 # per-request with a circuit-breaker that falls back to last-known-good
 # on admin flaps. The transitional seed YAML at
 # docs/sprints/sprint-12/seed-fallback/ui_slots.yaml hydrates the dropdown
-# while kgspin-archetypes registers the real pipeline_configs; once they
+# while kgspin-blueprint registers the real pipeline_configs; once they
 # land in admin the fallback path stops being exercised.
 from pathlib import Path as _Path  # noqa: E402
 _SEED_FALLBACK_UI_SLOTS = (
@@ -1405,7 +1405,7 @@ async def list_ui_slots():
     ``admin_registry_reader`` service; falls back to the Sprint-12
     transitional seed YAML at
     ``docs/sprints/sprint-12/seed-fallback/ui_slots.yaml`` when admin
-    returns empty (until kgspin-archetypes ships the real pipeline
+    returns empty (until kgspin-blueprint ships the real pipeline
     registration).
 
     Empty-state copy (when admin is empty AND no fallback present)
@@ -1968,7 +1968,7 @@ async def bundle_options(domain: str = "financial"):
     Sprint 12 Task 4: the response now includes ``admin_bundles`` — a
     list of ``{name, version, domain, description}`` entries read
     from ``GET /resources?kind=bundle_compiled``, filtered by
-    ``domain``. When kgspin-archetypes registers the real bundles in
+    ``domain``. When kgspin-blueprint registers the real bundles in
     admin, the frontend's dropdown starts pulling from there; legacy
     disk-walked ``bundles`` / ``domains`` / ``pipelines`` remain for
     backwards compat this sprint and can be removed Sprint 13+ after
