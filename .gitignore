@@ -141,3 +141,4 @@ temp/
 
 # Internal planning docs — never ship in open-source repo
 docs/initiatives/
+.data/
