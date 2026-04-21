@@ -57,8 +57,6 @@ DOMAIN_YAMLS_DIR = PROJECT_ROOT / "bundles" / "domains"
 # registry for bundle_compiled + bundle_source_yaml. A misconfigured
 # admin raises, never silently degrades to disk.
 
-# W1-D (ADR-003 §5): pipeline configs are resolved via admin's PipelineResolver.
-# The on-disk PIPELINE_CONFIGS_DIR is gone — see resolve_pipeline_config below.
 DEFAULT_ADMIN_URL = "http://127.0.0.1:8750"
 
 # Bundle pinning: set KGEN_DEFAULT_BUNDLE env var to override auto-latest.
@@ -252,28 +250,8 @@ def resolve_domain_yaml_path(domain_id: str) -> Path:
     )
 
 
-_pipeline_resolver = None
-
-
 def _admin_url() -> str:
     return os.environ.get("KGSPIN_ADMIN_URL", DEFAULT_ADMIN_URL).rstrip("/")
-
-
-def _get_pipeline_resolver():
-    """Lazy singleton — defer the kgspin-core import so the demo module
-    loads even if W1-B's PipelineResolver hasn't shipped yet. The error
-    surfaces at first call site rather than at import time.
-    """
-    global _pipeline_resolver
-    if _pipeline_resolver is None:
-        from kgspin_core.execution.pipeline_resolver import PipelineResolver
-        _pipeline_resolver = PipelineResolver(admin_url=_admin_url())
-    return _pipeline_resolver
-
-
-def resolve_pipeline_config(pipeline_id: str) -> dict:
-    """Resolve pipeline config via admin registry (ADR-003 §5)."""
-    return _get_pipeline_resolver().resolve(pipeline_id)
 
 
 def list_available_pipelines() -> list[str]:

@@ -55,7 +55,6 @@ from pipeline_common import (
     DOMAIN_BUNDLES_DIR,
     resolve_domain_bundle_path,
     resolve_domain_yaml_path,
-    resolve_pipeline_config,
     BUNDLE_PATH,
     PATTERNS_PATH,
 )
@@ -63,8 +62,8 @@ from pipeline_common import (
 # All available tickers with local EDGAR data
 ALL_TICKERS = list(KNOWN_TICKERS.keys())
 
-# Pipeline definitions
-KGSPIN_PIPELINES = ["emergent", "structural", "base"]
+# Pipeline definitions — Wave 3 canonical names (hyphen form for admin).
+KGSPIN_PIPELINES = ["fan-out", "discovery-rapid", "discovery-deep"]
 LLM_PIPELINES = ["full_shot", "multi_stage"]
 ALL_PIPELINES = KGSPIN_PIPELINES + LLM_PIPELINES
 
@@ -97,22 +96,29 @@ def run_kgspin(
     ticker, company_name, pipeline_id, domain_id,
     corpus_kb, sec_doc, info,
 ):
-    """Run a KGSpin extraction (emergent/structural/base) and save to run log."""
+    """Run a zero-LLM KGSpin pipeline (fan-out / discovery-rapid /
+    discovery-deep) and save to run log. ``pipeline_id`` is the
+    hyphenated admin pipeline config name.
+    """
     from demo_compare import (
         _parse_and_chunk, _run_kgenskills, _split_bundle_id,
+        _pipeline_ref_from_pipeline_id, _get_registry_client,
         KGenRunLog, DEMO_CACHE_VERSION,
     )
 
-    # Parse & chunk with split bundle
+    # Parse & chunk — bundle is resolved from domain only; pipeline YAML
+    # travels via pipeline_config_ref below.
     bundle, full_text, truncated_text, actual_kb, all_chunks = _parse_and_chunk(
         sec_doc.raw_html, ticker, corpus_kb=corpus_kb,
-        bundle_name=domain_id, pipeline_id=pipeline_id,
+        bundle_name=domain_id,
     )
 
     # Extract
     t0 = time.time()
     kgs_kg = _run_kgenskills(
         truncated_text, company_name, ticker, bundle,
+        _pipeline_ref_from_pipeline_id(pipeline_id),
+        _get_registry_client(),
         raw_html=sec_doc.raw_html,
     )
     elapsed = time.time() - t0
@@ -160,10 +166,10 @@ def run_llm_full_shot(
         _prompt_version_hash,
     )
 
-    # Parse & chunk (use emergent bundle for text preprocessing)
+    # Parse & chunk — bundle only; pipeline YAML travels via the wrapper.
     bundle, full_text, truncated_text, actual_kb, all_chunks = _parse_and_chunk(
         sec_doc.raw_html, ticker, corpus_kb=corpus_kb,
-        bundle_name=domain_id, pipeline_id="emergent",
+        bundle_name=domain_id,
     )
 
     # Resolve domain-specific paths for the LLM prompt
@@ -245,10 +251,10 @@ def run_llm_multi_stage(
         _prompt_version_hash,
     )
 
-    # Parse & chunk (use emergent bundle for text preprocessing)
+    # Parse & chunk — bundle only; pipeline YAML travels via the wrapper.
     bundle, full_text, truncated_text, actual_kb, all_chunks = _parse_and_chunk(
         sec_doc.raw_html, ticker, corpus_kb=corpus_kb,
-        bundle_name=domain_id, pipeline_id="emergent",
+        bundle_name=domain_id,
     )
 
     # Resolve domain-specific paths for the LLM prompt

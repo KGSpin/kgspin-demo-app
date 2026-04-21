@@ -59,6 +59,7 @@ def main():
     print(f"[3/4] Parsing ({corpus_kb}KB), chunking, and extracting...")
     from demo_compare import (
         _parse_and_chunk, _run_kgenskills,
+        _pipeline_ref_from_strategy, _get_registry_client,
         KGenRunLog, DEMO_CACHE_VERSION,
     )
 
@@ -74,6 +75,8 @@ def main():
     t0 = time.time()
     kgs_kg = _run_kgenskills(
         truncated_text, company_name, ticker, bundle,
+        _pipeline_ref_from_strategy("fan_out"),
+        _get_registry_client(),
         on_chunk_complete=on_chunk, raw_html=doc.raw_html,
     )
     elapsed = time.time() - t0

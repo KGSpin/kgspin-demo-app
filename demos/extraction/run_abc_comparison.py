@@ -99,6 +99,7 @@ def main():
     # (reuses exact same logic as the web UI)
     from demo_compare import (
         _run_kgenskills, _run_agentic_analyst, compute_diagnostic_scores,
+        _pipeline_ref_from_strategy, _get_registry_client,
         ModularRunLog, GeminiRunLog,
     )
 
@@ -112,6 +113,8 @@ def main():
 
     kgs_kg = _run_kgenskills(
         selected_text, company_name, ticker, bundle,
+        _pipeline_ref_from_strategy("fan_out"),
+        _get_registry_client(),
         on_chunk_complete=on_kgs_chunk, raw_html=raw_html,
     )
     kgs_elapsed = time.time() - t0

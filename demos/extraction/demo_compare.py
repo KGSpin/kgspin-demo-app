@@ -73,7 +73,6 @@ from pipeline_common import (  # noqa: E402
     resolve_bundle_path,
     resolve_domain_bundle_path,
     resolve_domain_yaml_path,
-    resolve_pipeline_config,
     resolve_ticker,
     html_to_text,
     strip_ixbrl,
@@ -460,21 +459,24 @@ _CACHED_BUNDLE = None  # kept for purge_cache compatibility
 _CACHED_GLINER_BACKEND = None
 
 
-def _get_bundle(bundle_name: str | None = None, pipeline_id: str | None = None):
-    """Load and cache a bundle by name. Defaults to BUNDLE_PATH.
+def _get_bundle(bundle_name: str | None = None):
+    """Load and cache a domain bundle by name. Defaults to BUNDLE_PATH.
 
-    Split-bundle path (domain + pipeline overlay) is the sole runtime
-    load strategy when a ``bundle_name`` is supplied — admin's
-    ``bundle_compiled`` registry resolves the directory; ``pipeline_id``
-    drives the overlay. The legacy monolithic ``ExtractionBundle.load``
-    branch remains as a fallback for the default (no-bundle-name) case,
-    which still honors module-level ``BUNDLE_PATH``.
+    Wave 3: returns the unoverlaid ``ExtractionBundle.load(domain_path)``.
+    The pipeline config travels separately via ``pipeline_config_ref`` on
+    ``run_pipeline`` and is resolved by core against admin at dispatch.
     """
     global _CACHED_BUNDLE
 
     if bundle_name:
-        pid = pipeline_id or "fan-out"
-        return _get_split_bundle(bundle_name, pid)
+        if bundle_name in _bundle_cache:
+            return _bundle_cache[bundle_name]
+        with _init_lock:
+            if bundle_name not in _bundle_cache:
+                from kgspin_core.execution.extractor import ExtractionBundle
+                domain_path = resolve_domain_bundle_path(bundle_name)
+                _bundle_cache[bundle_name] = ExtractionBundle.load(domain_path)
+            return _bundle_cache[bundle_name]
 
     bundle_path = BUNDLE_PATH
     if bundle_path is None:
@@ -483,37 +485,17 @@ def _get_bundle(bundle_name: str | None = None, pipeline_id: str | None = None):
             "bundle_compiled registered. Run `kgspin-admin sync "
             "archetypes <blueprint>` to register bundles."
         )
-    bundle_name = BUNDLE_PATH.name
+    default_name = BUNDLE_PATH.name
 
-    if bundle_name in _bundle_cache:
-        return _bundle_cache[bundle_name]
-
-    with _init_lock:
-        if bundle_name not in _bundle_cache:
-            from kgspin_core.execution.extractor import ExtractionBundle
-            _bundle_cache[bundle_name] = ExtractionBundle.load(bundle_path)
-        _CACHED_BUNDLE = _bundle_cache[bundle_name]
-        return _bundle_cache[bundle_name]
-
-
-def _get_split_bundle(domain_id: str, pipeline_id: str):
-    """Sprint 118: Load and cache a split bundle (domain + pipeline overlay).
-
-    Cache key: '{domain_id}+{pipeline_id}' to distinguish combinations.
-    """
-    cache_key = f"{domain_id}+{pipeline_id}"
-    if cache_key in _bundle_cache:
-        return _bundle_cache[cache_key]
+    if default_name in _bundle_cache:
+        return _bundle_cache[default_name]
 
     with _init_lock:
-        if cache_key not in _bundle_cache:
+        if default_name not in _bundle_cache:
             from kgspin_core.execution.extractor import ExtractionBundle
-            domain_path = resolve_domain_bundle_path(domain_id)
-            pipeline_config = resolve_pipeline_config(pipeline_id)
-            _bundle_cache[cache_key] = ExtractionBundle.load_split(
-                domain_path, pipeline_config,
-            )
-        return _bundle_cache[cache_key]
+            _bundle_cache[default_name] = ExtractionBundle.load(bundle_path)
+        _CACHED_BUNDLE = _bundle_cache[default_name]
+        return _bundle_cache[default_name]
 
 
 def _bundle_id(bundle_name: str | None = None) -> str:
@@ -2282,11 +2264,59 @@ async def compare_clinical(
     )
 
 
-_STRATEGY_TO_PIPELINE_ID_LEGACY = {
-    "fan_out": "fan-out",
-    "discovery_rapid": "discovery-rapid",
-    "discovery_deep": "discovery-deep",
-}
+# W3-D: canonical 5-pipeline whitelist. The ``strategy=`` query param and
+# ``pipeline_config_ref=`` arg must name one of these (underscore form).
+# Demo maps them to pipeline config names 1:1 by replacing ``_`` with ``-``.
+CANONICAL_PIPELINE_STRATEGIES = (
+    "fan_out",
+    "discovery_rapid",
+    "discovery_deep",
+    "agentic_flash",
+    "agentic_analyst",
+)
+
+
+class InvalidPipelineStrategyError(ValueError):
+    """Raised when an API request names a pipeline strategy outside the
+    canonical 5. Rendered by endpoint handlers as a 400 with a focused
+    message listing the allowed values."""
+
+
+def _canonical_pipeline_name(strategy: str) -> str:
+    """Return the hyphenated admin pipeline config name for ``strategy``.
+
+    ``strategy`` must be a member of :data:`CANONICAL_PIPELINE_STRATEGIES`
+    (underscore form, matches the ``extractor:`` discriminator on the
+    pipeline YAMLs). Raises :class:`InvalidPipelineStrategyError` on
+    anything else.
+    """
+    if strategy not in CANONICAL_PIPELINE_STRATEGIES:
+        raise InvalidPipelineStrategyError(
+            f"strategy={strategy!r} is not one of the canonical pipelines: "
+            f"{', '.join(CANONICAL_PIPELINE_STRATEGIES)}. "
+            f"Hyphen form is used on the wire to admin "
+            f"(e.g. strategy=agentic_flash → pipeline name 'agentic-flash')."
+        )
+    return strategy.replace("_", "-")
+
+
+def _pipeline_ref_from_strategy(strategy: str):
+    """Return a ``PipelineConfigRef(name=..., version='v1')`` for the
+    canonical strategy. Raises :class:`InvalidPipelineStrategyError` on
+    unknown values."""
+    from kgspin_core.execution.pipeline_resolver_ref import PipelineConfigRef
+    return PipelineConfigRef(name=_canonical_pipeline_name(strategy), version="v1")
+
+
+def _pipeline_ref_from_pipeline_id(pipeline_id: str | None):
+    """Build a ``PipelineConfigRef`` from an already-hyphenated pipeline
+    config name (e.g. ``"fan-out"``). Defaults to ``"fan-out"`` when the
+    caller doesn't specify one — this is the baseline zero-LLM pipeline
+    the Compare tab always runs alongside the LLM slots.
+    """
+    from kgspin_core.execution.pipeline_resolver_ref import PipelineConfigRef
+    return PipelineConfigRef(name=pipeline_id or "fan-out", version="v1")
+
 
 _DEFAULT_CONFIDENCE_FLOOR = 0.55
 
@@ -2349,48 +2379,45 @@ def _admin_prompt_or_none(name: str, *, version: str | None = None) -> str | Non
     return None
 
 
-def _resolve_pipeline_config_ref(pipeline_config_ref: str) -> str | None:
-    """Sprint 12 Task 5: resolve an admin resource id → strategy name.
+def _strategy_from_compare_args(strategy: str, pipeline_config_ref: str) -> str:
+    """Resolve the canonical pipeline strategy from the endpoint args.
 
-    Returns the ``PipelineConfig.name`` (e.g. ``"agentic_flash"``) on
-    success, or ``None`` if the ref is empty / admin can't resolve it.
-    Caller combines this with the legacy ``strategy`` query param —
-    ``pipeline_config_ref`` takes precedence when both are supplied.
+    Precedence: ``pipeline_config_ref`` > ``strategy``. Both carry the
+    same canonical underscore form (``fan_out``, ``discovery_rapid``,
+    ``discovery_deep``, ``agentic_flash``, ``agentic_analyst``) — the
+    ``pipeline_config_ref`` arg no longer routes through admin for a
+    resolved strategy name; callers hand us the canonical token directly
+    and core looks up the YAML via ``PipelineConfigRef``.
 
-    Contract note (VP Eng Mock vs. Core gate): demo currently consumes
-    the resolved string via the legacy ``_STRATEGY_TO_PIPELINE_ID_LEGACY``
-    mapping. When core Sprint 18 T2 lands, demo will pass the full
-    resource id (or ``PipelineConfig`` object) straight through to
-    core's dispatcher — one-line pydantic field change expected, no
-    rewire of the surrounding endpoint surface.
+    Raises :class:`InvalidPipelineStrategyError` if neither arg resolves
+    to a canonical strategy. Empty inputs yield the same error — the
+    endpoint decides whether to pass a default (e.g. ``fan_out``) before
+    calling this.
     """
-    ref = (pipeline_config_ref or "").strip()
-    if not ref:
-        return None
-    try:
-        client = _get_registry_client()
-        resource = client.get(ref)
-    except Exception as e:  # noqa: BLE001
-        logger.warning(
-            "[PIPELINE_CONFIG_REF] admin lookup failed for %r: %s: %s",
-            ref, type(e).__name__, str(e)[:100],
+    candidate = (pipeline_config_ref or "").strip() or (strategy or "").strip()
+    if not candidate:
+        raise InvalidPipelineStrategyError(
+            "No pipeline strategy supplied. Pass strategy=<canonical> or "
+            "pipeline_config_ref=<canonical>, where <canonical> is one of: "
+            f"{', '.join(CANONICAL_PIPELINE_STRATEGIES)}."
         )
-        return None
-    if resource is None:
-        logger.info("[PIPELINE_CONFIG_REF] admin returned None for %r", ref)
-        return None
-    return ((resource.metadata or {}).get("name")) or None
+    # Reject anything outside the 5; _canonical_pipeline_name does the work.
+    _canonical_pipeline_name(candidate)
+    return candidate
 
 
 def _pipeline_id_from_compare_args(strategy: str, pipeline_config_ref: str) -> str | None:
-    """Pick the pipeline_id from either a ref or a legacy strategy arg.
+    """Return the admin pipeline config name (hyphenated) for the request,
+    or ``None`` when no strategy was supplied.
 
-    Precedence: ``pipeline_config_ref`` > ``strategy`` > ``None``.
-    The legacy-to-pipeline-id map stays demo-side until core Sprint 18
-    T2 lands the canonical ref-based dispatcher.
+    Strict: any non-empty argument that isn't in the canonical 5 raises
+    :class:`InvalidPipelineStrategyError`. Used by endpoints that treat
+    ``strategy`` as optional (compare, refresh-discovery, slot-cache-check).
     """
-    resolved_strategy = _resolve_pipeline_config_ref(pipeline_config_ref) or strategy
-    return _STRATEGY_TO_PIPELINE_ID_LEGACY.get(resolved_strategy) if resolved_strategy else None
+    candidate = (pipeline_config_ref or "").strip() or (strategy or "").strip()
+    if not candidate:
+        return None
+    return _canonical_pipeline_name(candidate)
 
 
 @app.get("/api/compare/{ticker}")
@@ -2412,9 +2439,12 @@ async def compare(ticker: str, request: Request, force_refresh: int = 0, corpus_
     if model not in VALID_GEMINI_MODELS:
         model = DEFAULT_GEMINI_MODEL
     bundle_name = bundle if bundle else None
-    # Sprint 12 Task 5: prefer pipeline_config_ref (admin resource id);
-    # fall back to legacy strategy string.
-    pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
+    # W3-D: canonical-5 whitelist on strategy / pipeline_config_ref;
+    # empty is allowed (endpoint default). Anything else → 400.
+    try:
+        pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
+    except InvalidPipelineStrategyError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
     # Sprint 12 Task 8: confidence_floor precedence — query arg >
     # admin pipeline param > hardcoded fallback (0.55). Query arg of
     # -1.0 means "not supplied by caller" (0.55 is a valid operator
@@ -2422,7 +2452,7 @@ async def compare(ticker: str, request: Request, force_refresh: int = 0, corpus_
     # the resolved pipeline name; graceful-degrade to 0.55 on miss.
     confidence_floor = _resolve_confidence_floor(
         query_value=confidence_floor,
-        pipeline_name=_resolve_pipeline_config_ref(pipeline_config_ref) or strategy,
+        pipeline_name=pipeline_id,
     )
     return StreamingResponse(
         run_comparison(ticker.upper(), request, force_refresh=bool(force_refresh), corpus_kb=corpus_kb, chunk_size=chunk_size, model=model, bundle_name=bundle_name, pipeline_id=pipeline_id, llm_alias=alias),
@@ -2505,16 +2535,17 @@ async def refresh_agentic_analyst(ticker: str, request: Request, corpus_kb: int 
 
 @app.get("/api/refresh-discovery/{ticker}")
 async def refresh_discovery(ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, bundle: str = "", strategy: str = "", pipeline_config_ref: str = ""):
-    """Re-run a zero-token KGSpin strategy (fan_out / discovery_rapid / discovery_deep).
-
-    Sprint 12 Task 5: accepts ``pipeline_config_ref`` (admin resource
-    id) alongside the legacy ``strategy`` arg. Precedence: ref >
-    strategy > None.
+    """Re-run a zero-token KGSpin pipeline (fan_out / discovery_rapid /
+    discovery_deep). Accepts ``strategy=`` or ``pipeline_config_ref=``
+    (both canonical form); anything outside the canonical 5 → 400.
     """
     if corpus_kb not in VALID_CORPUS_KB:
         corpus_kb = DEFAULT_CORPUS_KB
     bundle_name = bundle if bundle else None
-    pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
+    try:
+        pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
+    except InvalidPipelineStrategyError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
     return StreamingResponse(
         _run_kgen_refresh(ticker.upper(), request, corpus_kb, bundle_name=bundle_name, pipeline_id=pipeline_id),
         media_type="text/event-stream",
@@ -3507,8 +3538,11 @@ async def slot_cache_check(ticker: str, pipeline: str = "", bundle: str = "", st
     if not cache_pipeline:
         return JSONResponse({"cached": False})
 
-    # Sprint 12 Task 5: pipeline_config_ref > strategy > None.
-    pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
+    # W3-D: canonical 5-pipeline whitelist; anything else → 400.
+    try:
+        pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
+    except InvalidPipelineStrategyError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
 
     # Build the cache config key
     # Sprint 121: Require pipeline_id to consider this a "split" bundle — matches
@@ -5870,7 +5904,7 @@ async def run_comparison(
     t0 = time.time()
 
     bundle, full_text, demo_text, actual_kb, all_chunks = await asyncio.to_thread(
-        _parse_and_chunk, sec_html, ticker, corpus_kb, bundle_name, pipeline_id
+        _parse_and_chunk, sec_html, ticker, corpus_kb, bundle_name
     )
 
     duration = int((time.time() - t0) * 1000)
@@ -6063,6 +6097,8 @@ async def run_comparison(
         kgs_task = asyncio.create_task(
             asyncio.to_thread(
                 _run_kgenskills, demo_text, info["name"], ticker, bundle,
+                _pipeline_ref_from_pipeline_id(pipeline_id),
+                _get_registry_client(),
                 on_kgs_chunk_done, sec_html, on_l_module_start,
                 on_table_extraction_start, on_table_extraction_done,
                 on_post_chunk_progress, _doc_metadata,
@@ -6758,10 +6794,9 @@ async def _run_kgen_refresh(
         cached = _kg_cache.get(ticker)
 
     # INIT-001 Sprint 02: log + surface any failure during early bundle
-    # resolution. Structural/other pipeline_ids can fail here if the split
-    # bundle overlay is broken, before _run_kgenskills is ever scheduled.
+    # resolution, before _run_kgenskills is ever scheduled.
     try:
-        bundle = _get_bundle(bundle_name, pipeline_id=pipeline_id)
+        bundle = _get_bundle(bundle_name)
     except Exception as e:
         logger.exception(
             "kgspin bundle resolution failed (bundle=%s pipeline=%s)",
@@ -6811,7 +6846,7 @@ async def _run_kgen_refresh(
             yield sse_event("done", {"total_duration_ms": 0})
             return
         _bundle_tmp, _full, demo_text, actual_kb, _ = await asyncio.to_thread(
-            _parse_and_chunk, sec_doc.raw_html, ticker, corpus_kb, bundle_name, pipeline_id
+            _parse_and_chunk, sec_doc.raw_html, ticker, corpus_kb, bundle_name
         )
         new_entry = {"text": demo_text, "raw_html": sec_doc.raw_html, "info": info,
                   "corpus_kb": corpus_kb, "actual_kb": actual_kb, "cfg_hash": "", "chunk_size": DEFAULT_CHUNK_SIZE}
@@ -6845,7 +6880,7 @@ async def _run_kgen_refresh(
     })
     await asyncio.sleep(0)
 
-    bundle = _get_bundle(bundle_name, pipeline_id=pipeline_id)
+    bundle = _get_bundle(bundle_name)
     t0 = time.time()
     kgen_num_chunks = 0  # captured from progress callbacks for optimal latency
 
@@ -6880,6 +6915,8 @@ async def _run_kgen_refresh(
     kgs_task = asyncio.create_task(
         asyncio.to_thread(
             _run_kgenskills, demo_text, info["name"], ticker, bundle,
+            _pipeline_ref_from_pipeline_id(pipeline_id),
+            _get_registry_client(),
             on_kgs_chunk_done, raw_html, on_l_module_start,
             on_table_extraction_start, on_table_extraction_done,
             on_post_chunk_progress, _refresh_doc_metadata,
@@ -7334,7 +7371,7 @@ async def run_single_refresh(
 
 
 def _parse_and_chunk(html_content: str, ticker: str, corpus_kb: int = DEFAULT_CORPUS_KB,
-                     bundle_name: str | None = None, pipeline_id: str | None = None):
+                     bundle_name: str | None = None):
     """Parse HTML to text, truncate to corpus_kb at paragraph boundary, then chunk.
 
     Sprint 33.3: Byte-based corpus sizing. All pipelines receive the same
@@ -7348,7 +7385,7 @@ def _parse_and_chunk(html_content: str, ticker: str, corpus_kb: int = DEFAULT_CO
 
     from kgspin_core.execution.preprocessors import resolve_preprocessors
 
-    bundle = _get_bundle(bundle_name, pipeline_id=pipeline_id)
+    bundle = _get_bundle(bundle_name)
     # Sprint 39: Run bundle's pre-phase preprocessors (ixbrl_strip + xbrl_taxonomy_strip)
     # instead of hardcoded strip_ixbrl() — domain-scoped cleaning per ADR-010
     pre_procs = resolve_preprocessors(
@@ -7634,6 +7671,8 @@ async def _run_clinical_comparison(
                 company_name="",
                 ticker=nct_id,
                 bundle=bundle,
+                pipeline_config_ref=_pipeline_ref_from_strategy("fan_out"),
+                registry_client=_get_registry_client(),
                 on_chunk_complete=kgen_chunk_cb,
             )
 
@@ -7828,6 +7867,8 @@ async def _run_clinical_comparison(
 
 def _run_kgenskills(
     text: str, company_name: str, ticker: str, bundle,
+    pipeline_config_ref,
+    registry_client,
     on_chunk_complete=None, raw_html=None,
     on_l_module_start=None,
     on_table_extraction_start=None,
@@ -7835,18 +7876,13 @@ def _run_kgenskills(
     on_post_chunk_progress=None,
     document_metadata: dict = None,
 ) -> dict:
-    """Run KGSpin extraction via unified run_pipeline().
+    """Run a zero-token KGSpin pipeline via unified run_pipeline().
 
-    Sprint 42.5: Thin wrapper around KnowledgeGraphExtractor.run_pipeline().
-    The extractor reads bundle.execution_strategy internally to dispatch
-    to one of the deterministic KGSpin pipelines (emergent / structural /
-    default) or the LLM-backed pipelines (llm_full_shot / llm_multi_stage).
-
-    The deterministic paths (KGSpin Base / Emergent / Structural) all use
-    GLiNER as their NER backend and consume zero LLM tokens. They are the
-    "compare baseline" against the LLM slots — the whole point of the
-    demo is to show the deterministic pipelines produce knowledge graphs
-    without paying for inference.
+    Wave 3: one dispatch path. Caller passes a
+    :class:`PipelineConfigRef` naming one of the 3 zero-LLM canonical
+    pipelines (``fan-out``, ``discovery-rapid``, ``discovery-deep``);
+    core resolves the YAML via admin and invokes the matching
+    ``Extractor`` subclass.
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
 
@@ -7860,6 +7896,8 @@ def _run_kgenskills(
         text=text,
         main_entity=company_name,
         source_document=f"{ticker}_10K",
+        pipeline_config_ref=pipeline_config_ref,
+        registry_client=registry_client,
         backend=backend,
         raw_html=raw_html,
         log_callback=log_cb,
@@ -7890,30 +7928,21 @@ def _run_agentic_flash(
     llm_provider: str | None = None,
     llm_model: str | None = None,
 ) -> tuple:
-    """Run LLM Full Shot extraction — entire corpus in one prompt.
+    """Run the ``agentic-flash`` pipeline — single-prompt LLM extraction.
 
-    Stage 0.5.4 (ADR-002): accepts either ``llm_alias`` (preferred), a
-    direct ``(llm_provider, llm_model)`` pair, or the legacy ``model``
-    string (Gemini-only, DeprecationWarning). Falls through to
-    ``AppSettings.llm.default_alias`` when no selector is supplied.
-
-    Returns (kg_dict, tokens, elapsed, error_count, truncated) for backwards
-    compatibility with the calling SSE event builder.
+    Wave 3: dispatches through ``run_pipeline(pipeline_config_ref=...,
+    registry_client=...)``; core loads the YAML from admin and invokes
+    the ``AgenticFlashExtractor`` subclass. Returns
+    (kg_dict, tokens, elapsed, error_count, truncated) to match the SSE
+    event builder contract.
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
-    from kgspin_core.execution.pipeline_engine import PipelineConfigRef
     from kgspin_demo_app.llm_backend import resolve_llm_backend
-    from kgspin_demo_app.registry_http import HttpResourceRegistryClient
 
-    # Agentic strategies are YAML-dispatched via admin (ADR-031 / Sprint 18).
-    # Load the base discovery-deep bundle for type info, then hand
-    # pipeline_config_ref=agentic-flash to run_pipeline — core resolves
-    # the overlay from admin's pipeline_config registry at dispatch.
     bundle = _get_bundle(
         bundle_name=Path(bundle_path).name if bundle_path else None,
-        pipeline_id="discovery-deep",
     )
-    registry_client = HttpResourceRegistryClient()
+    registry_client = _get_registry_client()
 
     backend = resolve_llm_backend(
         llm_alias=llm_alias,
@@ -7935,7 +7964,7 @@ def _run_agentic_flash(
             source_document=source_id,
             backend=backend,
             log_callback=log_cb,
-            pipeline_config_ref=PipelineConfigRef(name="agentic-flash", version="v1"),
+            pipeline_config_ref=_pipeline_ref_from_strategy("agentic_flash"),
             registry_client=registry_client,
         )
         elapsed = time.time() - t0
@@ -7963,26 +7992,19 @@ def _run_agentic_analyst(
     llm_provider: str | None = None,
     llm_model: str | None = None,
 ) -> tuple:
-    """Run LLM Multi-Stage extraction — macro-chunked with schema awareness.
+    """Run the ``agentic-analyst`` pipeline — chunked schema-aware LLM
+    extraction. Same dispatch shape as :func:`_run_agentic_flash`.
 
-    Stage 0.5.4 (ADR-002): accepts ``llm_alias`` / direct provider+model /
-    legacy ``model``. See :func:`_run_agentic_flash` for the precedence
-    contract; both wrappers delegate to
-    :func:`kgspin_demo_app.llm_backend.resolve_llm_backend`.
-
-    Returns (kg, h_tokens, l_tokens, elapsed, error_count) to match the existing
-    caller interface. h_tokens is reported as the total; l_tokens stays 0.
+    Returns (kg, h_tokens, l_tokens, elapsed, error_count); h/l_tokens
+    stay 0 until ExtractionResult surfaces LLM token counts.
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
-    from kgspin_core.execution.pipeline_engine import PipelineConfigRef
     from kgspin_demo_app.llm_backend import resolve_llm_backend
-    from kgspin_demo_app.registry_http import HttpResourceRegistryClient
 
     bundle = _get_bundle(
         bundle_name=Path(bundle_path).name if bundle_path else None,
-        pipeline_id="discovery-deep",
     )
-    registry_client = HttpResourceRegistryClient()
+    registry_client = _get_registry_client()
 
     backend = resolve_llm_backend(
         llm_alias=llm_alias,
@@ -8005,15 +8027,12 @@ def _run_agentic_analyst(
             backend=backend,
             on_chunk_complete=on_chunk_complete,
             log_callback=log_cb,
-            pipeline_config_ref=PipelineConfigRef(name="agentic-analyst", version="v1"),
+            pipeline_config_ref=_pipeline_ref_from_strategy("agentic_analyst"),
             registry_client=registry_client,
         )
         elapsed = time.time() - t0
         logger.info(f"[AGENTIC_ANALYST] complete elapsed={elapsed:.2f}s")
         kg = result.to_dict()
-        # INIT-001 Sprint 03 known limitation: ExtractionResult doesn't surface
-        # LLM token counts. Dev-report tech-debt entry for a core-team
-        # enhancement to expose tokens via result.provenance.
         return kg, 0, 0, elapsed, 0
     except Exception:
         logger.exception("Agentic Analyst run_pipeline failed")
@@ -8032,20 +8051,19 @@ def _run_clinical_gemini_full_shot(
     llm_provider: str | None = None,
     llm_model: str | None = None,
 ) -> tuple:
-    """Run LLM Full Shot extraction with clinical bundle + patterns.
+    """Run ``agentic-flash`` against the clinical bundle (single-prompt LLM).
 
-    Stage 0.5.4 (ADR-002): same selector precedence as
-    :func:`_run_agentic_flash`.
+    Wave 3: same dispatch path as :func:`_run_agentic_flash`; the
+    clinical bundle carries the clinical entity types. No bundle mutation.
     """
-    from dataclasses import replace
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
     from kgspin_demo_app.llm_backend import resolve_llm_backend
 
-    base_bundle = _get_bundle(
+    bundle = _get_bundle(
         bundle_name=Path(bundle_path).name if bundle_path else None,
-        pipeline_id="discovery-deep",
     )
-    bundle = replace(base_bundle, execution_strategy="agentic_flash")
+    registry_client = _get_registry_client()
+
     backend = resolve_llm_backend(
         llm_alias=llm_alias,
         llm_provider=llm_provider,
@@ -8061,6 +8079,8 @@ def _run_clinical_gemini_full_shot(
             main_entity=trial_name,
             source_document=source_id,
             backend=backend,
+            pipeline_config_ref=_pipeline_ref_from_strategy("agentic_flash"),
+            registry_client=registry_client,
         )
         elapsed = time.time() - t0
         return result.to_dict(), 0, elapsed, 0, False
@@ -8082,20 +8102,18 @@ def _run_clinical_modular(
     llm_provider: str | None = None,
     llm_model: str | None = None,
 ) -> tuple:
-    """Run LLM Multi-Stage extraction with clinical bundle + patterns.
+    """Run ``agentic-analyst`` against the clinical bundle (multi-stage LLM).
 
-    Stage 0.5.4 (ADR-002): same selector precedence as
-    :func:`_run_agentic_analyst`.
+    Wave 3: same dispatch path as :func:`_run_agentic_analyst`.
     """
-    from dataclasses import replace
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
     from kgspin_demo_app.llm_backend import resolve_llm_backend
 
-    base_bundle = _get_bundle(
+    bundle = _get_bundle(
         bundle_name=Path(bundle_path).name if bundle_path else None,
-        pipeline_id="discovery-deep",
     )
-    bundle = replace(base_bundle, execution_strategy="agentic_analyst")
+    registry_client = _get_registry_client()
+
     backend = resolve_llm_backend(
         llm_alias=llm_alias,
         llm_provider=llm_provider,
@@ -8111,6 +8129,8 @@ def _run_clinical_modular(
             main_entity=trial_name,
             source_document=source_id,
             backend=backend,
+            pipeline_config_ref=_pipeline_ref_from_strategy("agentic_analyst"),
+            registry_client=registry_client,
         )
         elapsed = time.time() - t0
         return result.to_dict(), 0, elapsed, 0
@@ -8699,6 +8719,8 @@ async def run_intelligence(
             t0 = time.time()
             sec_task = asyncio.create_task(asyncio.to_thread(
                 _run_kgenskills, trunc_text, info["name"], ticker, bundle,
+                _pipeline_ref_from_strategy("fan_out"),
+                _get_registry_client(),
                 on_kgs_progress, sec_doc.raw_html, on_l_module_start,
                 document_metadata=_sec_doc_metadata,
             ))
