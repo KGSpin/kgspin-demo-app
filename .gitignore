@@ -136,5 +136,8 @@ temp/
 .tmp/
 .cto-path
 
+# Runtime bundle cache (symlinked into the blueprint's compiled/ tree)
+.bundles/
+
 # Internal planning docs — never ship in open-source repo
 docs/initiatives/

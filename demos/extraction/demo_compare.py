@@ -2256,7 +2256,7 @@ async def compare_clinical(
         )
     except LLMParamsError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
-    bundle_name = bundle if bundle else "clinical-mvp-v1"
+    bundle_name = bundle if bundle else "clinical-v2"
     gem_model = model if model in VALID_GEMINI_MODELS else DEFAULT_GEMINI_MODEL
     cs = chunk_size if chunk_size in VALID_CHUNK_SIZES else DEFAULT_CHUNK_SIZE
     refresh_set = set(force_refresh.split(",")) if force_refresh else set()
@@ -3531,7 +3531,7 @@ async def slot_cache_check(ticker: str, pipeline: str = "", bundle: str = "", st
     if ticker.startswith("NCT"):
         _patterns = Path(__file__).resolve().parent.parent.parent / "bundles" / "legacy" / "clinical.yaml"
         if not bundle:
-            bundle_name = "clinical-v1.0.0"
+            bundle_name = "clinical-v2"
             bundle_path = resolve_bundle_path(bundle_name)
 
     corpus_kb = DEFAULT_CORPUS_KB
@@ -7392,7 +7392,7 @@ def _parse_and_chunk(html_content: str, ticker: str, corpus_kb: int = DEFAULT_CO
 
 
 async def _run_clinical_comparison(
-    nct_id: str, request: Request, bundle_name: str = "clinical-mvp-v1",
+    nct_id: str, request: Request, bundle_name: str = "clinical-v2",
     model: str = DEFAULT_GEMINI_MODEL, chunk_size: int = DEFAULT_CHUNK_SIZE,
     force_refresh: set | None = None,
     corpus_source: str = "live",
