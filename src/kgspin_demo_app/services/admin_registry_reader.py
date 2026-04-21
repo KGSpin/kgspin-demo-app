@@ -25,7 +25,7 @@ Design notes:
   raw ``Resource`` objects. Translation happens once per refresh so
   downstream consumers don't re-translate.
 - Fallback to a seed YAML file is the VP-Prod-authorized transitional
-  path for Sprint 12 while kgspin-archetypes registers the seed
+  path for Sprint 12 while kgspin-blueprint registers the seed
   pipeline_configs. See
   ``docs/handovers/2026-04-20-archetypes-team-seed-content.md``.
 """
