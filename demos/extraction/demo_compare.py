@@ -7900,17 +7900,20 @@ def _run_agentic_flash(
     Returns (kg_dict, tokens, elapsed, error_count, truncated) for backwards
     compatibility with the calling SSE event builder.
     """
-    from dataclasses import replace
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
+    from kgspin_core.execution.pipeline_engine import PipelineConfigRef
     from kgspin_demo_app.llm_backend import resolve_llm_backend
+    from kgspin_demo_app.registry_http import HttpResourceRegistryClient
 
-    # Load the selected domain bundle and override execution_strategy for the
-    # LLM Full Shot dispatch branch in run_pipeline.
-    base_bundle = _get_bundle(
+    # Agentic strategies are YAML-dispatched via admin (ADR-031 / Sprint 18).
+    # Load the base discovery-deep bundle for type info, then hand
+    # pipeline_config_ref=agentic-flash to run_pipeline — core resolves
+    # the overlay from admin's pipeline_config registry at dispatch.
+    bundle = _get_bundle(
         bundle_name=Path(bundle_path).name if bundle_path else None,
-        pipeline_id="discovery-deep",  # llm_full_shot reuses the base pipeline's type info
+        pipeline_id="discovery-deep",
     )
-    bundle = replace(base_bundle, execution_strategy="agentic_flash")
+    registry_client = HttpResourceRegistryClient()
 
     backend = resolve_llm_backend(
         llm_alias=llm_alias,
@@ -7932,6 +7935,8 @@ def _run_agentic_flash(
             source_document=source_id,
             backend=backend,
             log_callback=log_cb,
+            pipeline_config_ref=PipelineConfigRef(name="agentic-flash", version="v1"),
+            registry_client=registry_client,
         )
         elapsed = time.time() - t0
         logger.info(f"[AGENTIC_FLASH] complete elapsed={elapsed:.2f}s")
@@ -7968,15 +7973,16 @@ def _run_agentic_analyst(
     Returns (kg, h_tokens, l_tokens, elapsed, error_count) to match the existing
     caller interface. h_tokens is reported as the total; l_tokens stays 0.
     """
-    from dataclasses import replace
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
+    from kgspin_core.execution.pipeline_engine import PipelineConfigRef
     from kgspin_demo_app.llm_backend import resolve_llm_backend
+    from kgspin_demo_app.registry_http import HttpResourceRegistryClient
 
-    base_bundle = _get_bundle(
+    bundle = _get_bundle(
         bundle_name=Path(bundle_path).name if bundle_path else None,
         pipeline_id="discovery-deep",
     )
-    bundle = replace(base_bundle, execution_strategy="agentic_analyst")
+    registry_client = HttpResourceRegistryClient()
 
     backend = resolve_llm_backend(
         llm_alias=llm_alias,
@@ -7999,6 +8005,8 @@ def _run_agentic_analyst(
             backend=backend,
             on_chunk_complete=on_chunk_complete,
             log_callback=log_cb,
+            pipeline_config_ref=PipelineConfigRef(name="agentic-analyst", version="v1"),
+            registry_client=registry_client,
         )
         elapsed = time.time() - t0
         logger.info(f"[AGENTIC_ANALYST] complete elapsed={elapsed:.2f}s")
