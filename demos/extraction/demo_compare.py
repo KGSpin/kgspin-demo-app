@@ -384,6 +384,29 @@ def _try_corpus_fetch(ticker: str):
 # Keep the old name as an alias so any stale callers don't break.
 _try_mock_fetch = _try_corpus_fetch
 
+
+def _classify_llm_error(exc: Exception) -> tuple[str, str]:
+    """Return ``(reason, error_type)`` for a backend exception.
+
+    ``reason`` is a short machine-readable tag the UI checks to pick an
+    icon / copy ("context_exceeded" triggers the red "Failed to generate"
+    overlay with an explanatory note about model limits). ``error_type``
+    is a broader category for the analysis agent's judgement: callers
+    can tell "context limits" apart from "quota" apart from "network".
+    """
+    msg = str(exc).lower()
+    if "input token count exceeds" in msg or "context length" in msg:
+        return "context_exceeded", "context_exceeded"
+    if "quota" in msg or "resource_exhausted" in msg or "429" in msg:
+        return "quota_exceeded", "quota_exceeded"
+    if "max_tokens" in msg or "max_output_tokens" in msg:
+        return "output_truncated", "output_truncated"
+    if "safety" in msg or "block" in msg:
+        return "safety_block", "safety_block"
+    if "timeout" in msg or "deadline" in msg or "network" in msg:
+        return "backend_unreachable", "network_error"
+    return "extraction_failed", "unknown_error"
+
 # Sprint 33.3: Cache invalidation — bump when UI/schema changes break compatibility.
 # Changing this constant auto-invalidates all existing cached run logs.
 DEMO_CACHE_VERSION = "4.0.0"  # 4.0.0: Sprint 118 pipeline/domain split
@@ -814,17 +837,24 @@ class GeminiRunLog:
         cache_version: str = "",
         bundle_version: str = "",
     ) -> Optional[Path]:
-        """Log a completed run to disk. Returns file path, or None if the
-        run was empty (guard against cache pollution from errored runs).
+        """Log a completed (or explicitly-failed) run to disk.
+
+        Returns the file path, or None if the run was empty AND carried
+        no explicit failure marker — that combination is the cache-
+        pollution signature we guard against.
         """
-        # Cache-pollution guard: a run that produced zero entities AND zero
-        # relationships is almost certainly an errored / partial run — the
-        # backend raised mid-stream and the outer handler swallowed the
-        # error. Persisting an empty payload leaves a stale entry that
-        # renders as blank on replay (Sprint W3 follow-up bug #2). Skip.
         entity_count = len(kg.get("entities", []) or [])
         relationship_count = len(kg.get("relationships", []) or [])
-        if entity_count == 0 and relationship_count == 0:
+        run_status = kg.get("status") or ""
+
+        # Cache-pollution guard: zero ents, zero rels, AND no failure
+        # marker → almost certainly a silently-swallowed error. Skip so
+        # the UI's replay path doesn't render a blank slot.
+        if (
+            entity_count == 0
+            and relationship_count == 0
+            and run_status != "failed"
+        ):
             logger.warning(
                 "Refusing to log empty run (ticker=%s cfg=%s model=%s "
                 "elapsed=%.1fs tokens=%d) — likely an errored extraction. "
@@ -5574,6 +5604,31 @@ Entities with types NOT in the valid list above are NOISE — they were not requ
         schema_section = ""
         valid_type_names = set()
 
+    # Wave 3 follow-up: pipelines can now cache an explicit "failed" state
+    # when an LLM call raises (e.g. Flash on a document > context window).
+    # Surface that to the analysis prompt so the LLM reasons about the
+    # failure rather than treating 0 ents / 0 rels as a silent null.
+    failure_notes: list[str] = []
+    for label, kg in (("LLM Full Shot", gem_kg), ("LLM Multi-Stage", mod_kg)):
+        if not kg:
+            continue
+        if kg.get("status") == "failed":
+            err = kg.get("error", {}) or {}
+            reason = err.get("reason", "extraction_failed")
+            msg = err.get("message", "no message")
+            failure_notes.append(
+                f"- {label}: FAILED ({reason}) — {msg}"
+            )
+    failure_section = ""
+    if failure_notes:
+        failure_section = (
+            "\n## PIPELINE FAILURES (factor into your judgement — do NOT score a "
+            "failed pipeline as if it returned zero findings; acknowledge the "
+            "failure mode and what it implies about the approach)\n"
+            + "\n".join(failure_notes)
+            + "\n"
+        )
+
     # Sprint 90: Pre-compute schema compliance (deterministic, not LLM-guessed)
     kgs_compliance = compute_schema_compliance(kgs_kg, valid_type_names)
     gem_compliance = compute_schema_compliance(gem_kg, valid_type_names) if gem_kg else None
@@ -5703,6 +5758,7 @@ Relationships ({len(mod_rels)} total):
 
 {schema_section}
 {compliance_section}
+{failure_section}
 {counts_table}
 
 ## KGSpin (Compiled Semantics - 0 LLM tokens)
@@ -6418,14 +6474,42 @@ async def run_comparison(
             try:
                 gem_kg, gem_tokens, gem_elapsed, gem_errors, gem_truncated = gemini_task.result()
             except Exception as e:
-                # INIT-001 Sprint 03 / BUG-010 response: every slot entry
-                # point logs the full traceback; same discipline as the
-                # KGSpin slot wrapper above.
+                # Wave 3 follow-up: cache an explicit failure for this
+                # slot so the UI's replay path + analysis agent both see
+                # a structured "failed" state instead of an empty slot.
                 logger.exception("LLM Full Shot compare slot failed")
+                _flash_reason, _flash_error_type = _classify_llm_error(e)
+                _flash_elapsed = time.time() - gem_t0
+                failure_kg = {
+                    "entities": [], "relationships": [], "derived_facts": [],
+                    "status": "failed",
+                    "error": {
+                        "type": _flash_error_type, "message": str(e),
+                        "exception_class": type(e).__name__,
+                        "reason": _flash_reason,
+                    },
+                    "provenance": {
+                        "model": model,
+                        "corpus_kb": round(actual_kb, 1),
+                        "tokens_used": 0, "llm_calls": 0,
+                        "status": "failed",
+                    },
+                }
+                try:
+                    _run_log.log_run(
+                        ticker, _cfg_hash, failure_kg,
+                        0, _flash_elapsed, model,
+                        cache_version=DEMO_CACHE_VERSION,
+                    )
+                except Exception as log_exc:
+                    logger.warning(f"Failed to cache Flash failure: {log_exc}")
                 yield sse_event("error", {
                     "step": "gemini", "pipeline": "gemini",
                     "message": f"LLM Full Shot failed: {e}",
-                    "recoverable": True,
+                    "reason": _flash_reason,
+                    "error_type": _flash_error_type,
+                    "exception_class": type(e).__name__,
+                    "recoverable": False,
                 })
                 await asyncio.sleep(0)
                 continue
@@ -6508,12 +6592,40 @@ async def run_comparison(
             try:
                 mod_kg, h_tokens, l_tokens, mod_elapsed, mod_errors = modular_task.result()
             except Exception as e:
-                # INIT-001 Sprint 03 / BUG-010 response: every slot entry point logs.
+                # Analyst mirror of the Flash failure-cache pattern above.
                 logger.exception("LLM Multi-Stage compare slot failed")
+                _analyst_reason, _analyst_error_type = _classify_llm_error(e)
+                _analyst_elapsed = time.time() - mod_t0
+                failure_kg = {
+                    "entities": [], "relationships": [], "derived_facts": [],
+                    "status": "failed",
+                    "error": {
+                        "type": _analyst_error_type, "message": str(e),
+                        "exception_class": type(e).__name__,
+                        "reason": _analyst_reason,
+                    },
+                    "provenance": {
+                        "model": model,
+                        "corpus_kb": round(actual_kb, 1),
+                        "tokens_used": 0, "llm_calls": 0,
+                        "status": "failed",
+                    },
+                }
+                try:
+                    _modular_run_log.log_run(
+                        ticker, _cfg_hash, failure_kg,
+                        0, _analyst_elapsed, model,
+                        cache_version=DEMO_CACHE_VERSION,
+                    )
+                except Exception as log_exc:
+                    logger.warning(f"Failed to cache Analyst failure: {log_exc}")
                 yield sse_event("error", {
                     "step": "modular", "pipeline": "modular",
                     "message": f"LLM Multi-Stage failed: {e}",
-                    "recoverable": True,
+                    "reason": _analyst_reason,
+                    "error_type": _analyst_error_type,
+                    "exception_class": type(e).__name__,
+                    "recoverable": False,
                 })
                 await asyncio.sleep(0)
                 continue
@@ -7189,14 +7301,48 @@ async def run_single_refresh(
         try:
             gem_kg, gem_tokens, gem_elapsed, gem_errors, gem_truncated = gemini_task.result()
         except Exception as e:
-            # INIT-001 Sprint 02 / BUG-010 response: every slot entry point
-            # logs the full traceback so upstream bugs can be diagnosed on the
-            # first occurrence instead of requiring a re-run with added logging.
+            # Flash is designed to be a failure-mode demonstration when the
+            # document exceeds the model's context window (that's the whole
+            # point of the "just throw it at the LLM" baseline). Cache the
+            # failure with a structured marker so the replay path + analysis
+            # agent know the run didn't silently skip — it actively failed.
             logger.exception("LLM Full Shot refresh failed")
+            _failure_reason, _error_type = _classify_llm_error(e)
+            _gem_elapsed = time.time() - t0
+            failure_kg = {
+                "entities": [],
+                "relationships": [],
+                "derived_facts": [],
+                "status": "failed",
+                "error": {
+                    "type": _error_type,
+                    "message": str(e),
+                    "exception_class": type(e).__name__,
+                    "reason": _failure_reason,
+                },
+                "provenance": {
+                    "model": model,
+                    "corpus_kb": round(actual_kb, 1),
+                    "tokens_used": 0,
+                    "llm_calls": 0,
+                    "status": "failed",
+                },
+            }
+            try:
+                _run_log.log_run(
+                    ticker, _cfg_hash, failure_kg,
+                    0, _gem_elapsed, model,
+                    cache_version=DEMO_CACHE_VERSION,
+                )
+            except Exception as log_exc:
+                logger.warning(f"Failed to cache Gemini failure: {log_exc}")
             yield sse_event("error", {
                 "step": "gemini", "pipeline": "gemini",
                 "message": f"LLM Full Shot failed: {e}",
-                "recoverable": True,
+                "reason": _failure_reason,
+                "error_type": _error_type,
+                "exception_class": type(e).__name__,
+                "recoverable": False,
             })
             yield sse_event("done", {"total_duration_ms": int((time.time() - t0) * 1000)})
             return
@@ -7312,12 +7458,47 @@ async def run_single_refresh(
         try:
             mod_kg, h_tokens, l_tokens, mod_elapsed, mod_errors = modular_task.result()
         except Exception as e:
-            # INIT-001 Sprint 02 / BUG-010 response: log full traceback.
+            # Analyst mirror of the Flash failure-caching pattern above:
+            # persist a structured failure so the replay path + analysis
+            # agent see an explicit "failed" state instead of a silent
+            # skip. Same classification helper, same SSE shape.
             logger.exception("LLM Multi-Stage refresh failed")
+            _analyst_reason, _analyst_error_type = _classify_llm_error(e)
+            _mod_elapsed = time.time() - t0
+            failure_kg = {
+                "entities": [],
+                "relationships": [],
+                "derived_facts": [],
+                "status": "failed",
+                "error": {
+                    "type": _analyst_error_type,
+                    "message": str(e),
+                    "exception_class": type(e).__name__,
+                    "reason": _analyst_reason,
+                },
+                "provenance": {
+                    "model": model,
+                    "corpus_kb": round(actual_kb, 1),
+                    "tokens_used": 0,
+                    "llm_calls": 0,
+                    "status": "failed",
+                },
+            }
+            try:
+                _modular_run_log.log_run(
+                    ticker, _cfg_hash, failure_kg,
+                    0, _mod_elapsed, model,
+                    cache_version=DEMO_CACHE_VERSION,
+                )
+            except Exception as log_exc:
+                logger.warning(f"Failed to cache Analyst failure: {log_exc}")
             yield sse_event("error", {
                 "step": "modular", "pipeline": "modular",
                 "message": f"LLM Multi-Stage failed: {e}",
-                "recoverable": True,
+                "reason": _analyst_reason,
+                "error_type": _analyst_error_type,
+                "exception_class": type(e).__name__,
+                "recoverable": False,
             })
             yield sse_event("done", {"total_duration_ms": int((time.time() - t0) * 1000)})
             return

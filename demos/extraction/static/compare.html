@@ -5616,6 +5616,55 @@ function completeStep(tab, step, label, durationMs, tokens) {
 // ============================================================
 // Graph Rendering (shared)
 // ============================================================
+
+// LLM failure reason → (title, help copy) shared by live SSE + cached
+// replay paths. Keys must match the `reason` strings
+// demo_compare.py:_classify_llm_error emits on agentic pipeline errors.
+const LLM_FAILURE_COPY = {
+    'context_exceeded': {
+        title: 'Failed to generate',
+        help: 'This document is larger than the model\'s context window. That\'s the point of this pipeline — a single-shot LLM call can\'t always fit the whole input. The deterministic pipelines on this page handle arbitrarily large documents because they work chunk-local without a global token budget.',
+    },
+    'quota_exceeded': {
+        title: 'Failed to generate',
+        help: 'The LLM provider rate-limited or ran out of quota. Wait a minute and retry, or switch to a different model tier in the dropdown.',
+    },
+    'output_truncated': {
+        title: 'Failed to generate',
+        help: 'The model hit its output token cap mid-response. The JSON was truncated and could not be parsed — typical on dense documents where the extraction output exceeds the model\'s output budget.',
+    },
+    'safety_block': {
+        title: 'Failed to generate',
+        help: 'The model\'s safety filters blocked the response. Try a different document or a different model.',
+    },
+    'backend_unreachable': {
+        title: 'Failed to generate',
+        help: 'The LLM provider timed out or was unreachable. Check network + try again.',
+    },
+    'extraction_failed': {
+        title: 'Failed to generate',
+        help: '',
+    },
+};
+
+function renderSlotFailure(slotIdx, reason, message, errorType) {
+    // Render the red "Failed to generate" overlay inside a slot's graph
+    // container. Used by both the live SSE error handler and the
+    // cached-replay path so failed runs look identical either way.
+    const container = document.getElementById(`slot-${slotIdx}-graph`);
+    if (!container) return;
+    const copy = LLM_FAILURE_COPY[reason] || LLM_FAILURE_COPY.extraction_failed;
+    const helpHtml = copy.help ? `<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">${copy.help}</div>` : '';
+    const errorTypeHtml = errorType ? `<div style="margin-top:6px; color:#888; font-size:10px; font-family:monospace;">error_type: ${errorType}</div>` : '';
+    container.innerHTML = `
+        <div class="placeholder" style="color:#E74C3C; padding:24px; text-align:left;">
+            <div style="font-weight:700; margin-bottom:10px; font-size:16px;">${copy.title}</div>
+            <div style="color:#c9d1d9; font-size:12px; font-family:monospace; background:#0a0a1a; padding:8px; border-radius:4px; border-left:3px solid #E74C3C;">${(message || 'Unknown error').replace(/</g, '&lt;')}</div>
+            ${helpHtml}
+            ${errorTypeHtml}
+        </div>`;
+}
+
 function renderGraph(pipeline, visData, stats) {
     const containerId = `${pipeline}-graph`;
     const container = document.getElementById(containerId);
@@ -7693,13 +7742,27 @@ async function tryLoadCachedSlot(slotIdx) {
         const res = await fetch(`/api/slot-cache-check/${ticker}?${params}`);
         const data = await res.json();
 
-        if (data.cached && data.vis) {
+        if (data.cached) {
             slot.visData = data.vis;
             slot.stats = data.stats || {};
             slot.kg = data.kg || null;
             slot.totalRuns = data.total_runs || 1;
             slot.currentRunIndex = 0;
-            renderGraph(`slot-${slotIdx}`, data.vis, data.stats || {});
+            // Cached-failure replay — render the same red "Failed to
+            // generate" panel the live SSE path does, pulling the reason
+            // + message from the stored kg.error payload.
+            if (slot.kg && slot.kg.status === 'failed') {
+                const err = slot.kg.error || {};
+                renderSlotFailure(slotIdx, err.reason || 'extraction_failed',
+                                  err.message || 'Extraction failed',
+                                  err.type || '');
+                updateAnalyzeButton();
+                updateSlotHistory(slotIdx);
+                return;
+            }
+            if (data.vis) {
+                renderGraph(`slot-${slotIdx}`, data.vis, data.stats || {});
+            }
             updateAnalyzeButton();
             updateSlotHistory(slotIdx);
             return;
@@ -7874,19 +7937,44 @@ function runSlot(slotIdx) {
             if (d.reason) {
                 const container = document.getElementById(`slot-${slotIdx}-graph`);
                 if (container) {
+                    // Map reason → user-facing title + help copy.
+                    // Wave 3 follow-up: LLM extraction failures get their
+                    // own prominent "Failed to generate" headline so the
+                    // demo point lands (Flash failing on a document over
+                    // the model's context window is a feature, not a bug).
+                    let title = 'Corpus fetch failed';
                     let helpLink = '';
                     if (d.reason === 'EDGAR_IDENTITY missing') {
                         helpLink = '<div style="margin-top:10px;"><a href="/static/pipelines-help.html#edgar-identity" target="_blank" style="color:#5B9FE6;">How to set EDGAR_IDENTITY &raquo;</a></div>';
                     } else if (d.reason === 'NCT not found') {
                         helpLink = '<div style="margin-top:10px; color:#8b949e; font-size:11px;">Try a different NCT ID from ClinicalTrials.gov.</div>';
+                    } else if (d.reason === 'context_exceeded') {
+                        title = 'Failed to generate';
+                        helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">This document is larger than the model\'s context window. That\'s the point of this pipeline — a single-shot LLM call can\'t always fit the whole input. The deterministic pipelines on this page handle arbitrarily large documents because they work chunk-local without a global token budget.</div>';
+                    } else if (d.reason === 'quota_exceeded') {
+                        title = 'Failed to generate';
+                        helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">The LLM provider rate-limited or ran out of quota. Wait a minute and retry, or switch to a different model tier in the dropdown.</div>';
+                    } else if (d.reason === 'output_truncated') {
+                        title = 'Failed to generate';
+                        helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">The model hit its output token cap mid-response. The JSON was truncated and could not be parsed — typical on dense documents where the extraction output exceeds the model\'s output budget.</div>';
+                    } else if (d.reason === 'safety_block') {
+                        title = 'Failed to generate';
+                        helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">The model\'s safety filters blocked the response. Try a different document or a different model.</div>';
+                    } else if (d.reason === 'backend_unreachable') {
+                        title = 'Failed to generate';
+                        helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">The LLM provider timed out or was unreachable. Check network + try again.</div>';
+                    } else if (d.reason === 'extraction_failed') {
+                        title = 'Failed to generate';
                     }
                     const attempted = (d.attempted || []).join(', ');
                     const attemptedStr = attempted ? `<div style="margin-top:6px; color:#6e7681; font-size:10px;">Providers attempted: ${attempted}</div>` : '';
+                    const errorType = d.error_type ? `<div style="margin-top:6px; color:#888; font-size:10px; font-family:monospace;">error_type: ${d.error_type}</div>` : '';
                     container.innerHTML = `
                         <div class="placeholder" style="color:#E74C3C; padding:24px; text-align:left;">
-                            <div style="font-weight:600; margin-bottom:8px;">Corpus fetch failed</div>
-                            <div style="color:#c9d1d9; font-size:12px;">${(d.message || 'Unknown error').replace(/</g, '&lt;')}</div>
+                            <div style="font-weight:700; margin-bottom:10px; font-size:16px;">${title}</div>
+                            <div style="color:#c9d1d9; font-size:12px; font-family:monospace; background:#0a0a1a; padding:8px; border-radius:4px; border-left:3px solid #E74C3C;">${(d.message || 'Unknown error').replace(/</g, '&lt;')}</div>
                             ${helpLink}
+                            ${errorType}
                             ${attemptedStr}
                         </div>`;
                 }
