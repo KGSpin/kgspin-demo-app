@@ -3,45 +3,51 @@
 Confirms the CLI's fetch-then-register sequence works without a live
 admin. Uses one SecLander run; the three other landers share the same
 post-fetch register path so this test transitively covers them.
+
+2026-04-22: rewritten to mock edgartools (SecLander 3.0.0 fetches via
+``edgar.Company`` + ``filing.html()`` rather than raw HTTP).
 """
 
 from __future__ import annotations
 
+import sys
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from kgspin_interface.registry_client import ResourceKind
 from kgspin_interface.resources import CorpusDocumentMetadata
 
 
-SAMPLE_ATOM = """<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <entry>
-    <title>10-K — Test Co</title>
-    <link href="https://www.sec.gov/test-index.htm" />
-    <category term="000099999-25-000001" />
-    <updated>2025-02-13T00:00:00Z</updated>
-  </entry>
-</feed>
-"""
-SAMPLE_FILING = b"<html>10-K body</html>"
+SAMPLE_FILING_HTML = "<html>10-K body</html>"
 
 
-class _Resp:
-    def __init__(self, *, text=None, content=b"", status=200, headers=None):
-        self.text = text or ""
-        self._content = content if content else (text.encode() if text else b"")
-        self.status_code = status
-        self.headers = headers or {}
+def _fake_edgartools_for_tst() -> MagicMock:
+    """Mock ``edgar`` module returning a single TST 10-K filing."""
+    filing = MagicMock()
+    filing.html.return_value = SAMPLE_FILING_HTML
+    filing.accession_number = "000099999-25-000001"
+    filing.filing_date = "2025-02-13"
+    filing.filing_url = "https://www.sec.gov/test-index.htm"
+    filing.cik = "0000099999"
+    filing.company = "TEST CO"
+    filing.period_of_report = "2024-12-31"
 
-    def iter_content(self, chunk_size=64 * 1024):
-        if self._content:
-            yield self._content
+    filings = MagicMock()
+    filings.__len__.return_value = 1
+    filings.__getitem__.return_value = filing
 
-    def raise_for_status(self):
-        if self.status_code >= 400:
-            import requests
-            raise requests.HTTPError(f"{self.status_code}", response=self)
+    company = MagicMock()
+    company.not_found = False
+    company.name = "TEST CO"
+    company.cik = "0000099999"
+    company.sic = "1234"
+    company.get_filings.return_value = filings
+
+    mod = MagicMock()
+    mod.set_identity = MagicMock()
+    mod.Company = MagicMock(return_value=company)
+    return mod
 
 
 def test_sec_lander_to_fake_registry_end_to_end(tmp_path: Path, monkeypatch) -> None:
@@ -49,14 +55,7 @@ def test_sec_lander_to_fake_registry_end_to_end(tmp_path: Path, monkeypatch) -> 
     from tests.fakes.registry_client import FakeRegistryClient
 
     monkeypatch.setenv("SEC_USER_AGENT", "Integration Test test@example.com")
-
-    atom_resp = _Resp(text=SAMPLE_ATOM)
-    filing_resp = _Resp(content=SAMPLE_FILING, headers={"ETag": "abc"})
-    def fake_get(url, **kw):
-        if "browse-edgar" in url:
-            return atom_resp
-        return filing_resp
-    monkeypatch.setattr(sec_mod, "_get_with_retry", fake_get)
+    monkeypatch.setitem(sys.modules, "edgar", _fake_edgartools_for_tst())
 
     # Step 1: fetch via the lander (typed dual-method path)
     lander = sec_mod.SecLander()
@@ -99,7 +98,7 @@ def test_sec_lander_to_fake_registry_end_to_end(tmp_path: Path, monkeypatch) -> 
     assert rec.id == record.id
     assert rec.kind == ResourceKind.CORPUS_DOCUMENT
     # pointer.value points at the file on disk
-    assert Path(rec.pointer.value).read_bytes() == SAMPLE_FILING
+    assert Path(rec.pointer.value).read_text(encoding="utf-8") == SAMPLE_FILING_HTML
     # provenance records the actor
     assert rec.provenance.registered_by == "fetcher:sec_edgar"
 

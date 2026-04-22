@@ -1,19 +1,20 @@
-"""Sprint 09 Task 3 — tests for ``SecLander(DocumentFetcher)``.
+"""SecLander tests — edgartools-backed (LANDER_VERSION 3.0.0, 2026-04-22).
 
-Covers the VP Eng test-eval criteria:
+Covers the VP Eng test-eval criteria for the DocumentFetcher contract:
 1. ``fetch()`` returns a ``FetchResult`` with FilePointer + metadata + hash
-2. metadata includes cik / accession / filing_type / etag / bytes_written / source_url
+2. metadata includes accession / filing_date / cik (real) / company_name_as_filed
+   / period_of_report / filing_type / source_url / bytes_written / company (nested)
 3. hash is computed from the bytes written to disk (verify by re-hashing)
-4. FetcherNotFoundError on empty Atom feed
-5. FetcherError on 5xx after retries
+4. FetcherNotFoundError on empty filings list
+5. FetcherError on edgartools downstream failures
 6. ticker + form identifier validation
 """
 
 from __future__ import annotations
 
 import hashlib
-import os
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from kgspin_interface import (
@@ -26,23 +27,7 @@ from kgspin_interface import (
 from kgspin_interface.resources import FilePointer
 
 
-SAMPLE_ATOM_FEED_OK = """<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <entry>
-    <title>10-K — Test Company (0000123456)</title>
-    <link href="https://www.sec.gov/Archives/edgar/data/123/000012345-25-000001-index.htm" />
-    <category term="000012345-25-000001" />
-    <updated>2025-02-13T00:00:00-05:00</updated>
-  </entry>
-</feed>
-"""
-
-SAMPLE_ATOM_FEED_EMPTY = """<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-</feed>
-"""
-
-SAMPLE_FILING_HTML = b"<html><body>10-K test filing body</body></html>"
+SAMPLE_FILING_HTML = "<html><body>10-K test filing body — J&J, Stelara, Abiomed</body></html>"
 
 
 @pytest.fixture
@@ -52,47 +37,99 @@ def sec_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> dict:
     return {"output_root": tmp_path / "corpus"}
 
 
+def _fake_edgartools_module(
+    *,
+    filings_count: int = 1,
+    html: str = SAMPLE_FILING_HTML,
+    not_found: bool = False,
+    filing_kwargs: dict | None = None,
+    company_kwargs: dict | None = None,
+) -> MagicMock:
+    """Build a mock of the ``edgar`` module surface SecLander uses.
+
+    ``filings_count`` drives how many filings the mock Company returns; 0
+    triggers FetcherNotFoundError. ``html`` is returned by
+    ``filing.html()``. ``not_found=True`` flips the Company's not_found
+    flag (some delisted tickers).
+    """
+    fk = filing_kwargs or {}
+    ck = company_kwargs or {}
+
+    filing = MagicMock()
+    filing.html.return_value = html
+    filing.accession_number = fk.get("accession_number", "0000200406-26-000016")
+    filing.filing_date = fk.get("filing_date", "2026-02-11")
+    filing.filing_url = fk.get("filing_url", "https://www.sec.gov/Archives/edgar/data/200406/000020040626000016/")
+    filing.cik = fk.get("cik", "0000200406")
+    filing.company = fk.get("company", "JOHNSON & JOHNSON")
+    filing.period_of_report = fk.get("period_of_report", "2025-12-28")
+
+    filings = MagicMock()
+    filings.__len__.return_value = filings_count
+    filings.__getitem__.return_value = filing
+
+    address = MagicMock()
+    address.street1 = "One Johnson & Johnson Plaza"
+    address.street2 = None
+    address.city = "New Brunswick"
+    address.state_or_country = "NJ"
+    address.zipcode = "08933"
+
+    company = MagicMock()
+    company.not_found = not_found
+    company.name = ck.get("name", "JOHNSON & JOHNSON")
+    company.display_name = ck.get("display_name", "Johnson & Johnson")
+    company.cik = ck.get("cik", "0000200406")
+    company.sic = ck.get("sic", "2834")
+    company.industry = ck.get("industry", "Pharmaceutical Preparations")
+    company.business_category = ck.get("business_category", "Life Sciences")
+    company.fiscal_year_end = ck.get("fiscal_year_end", "1228")
+    company.business_address = address
+    company.mailing_address = address
+    company.tickers = ck.get("tickers", ["JNJ"])
+    company.filer_category = ck.get("filer_category", "Large Accelerated Filer")
+    company.filer_type = ck.get("filer_type", "Operating Company")
+    company.is_foreign = ck.get("is_foreign", False)
+    company.is_fund = ck.get("is_fund", False)
+    company.get_filings.return_value = filings
+
+    edgar_mod = MagicMock()
+    edgar_mod.set_identity = MagicMock()
+    edgar_mod.Company = MagicMock(return_value=company)
+    return edgar_mod
+
+
+def _inject_fake_edgartools(monkeypatch: pytest.MonkeyPatch, fake_mod: MagicMock) -> None:
+    """Install ``fake_mod`` as ``import edgar`` (SecLander imports edgar lazily inside the fetch)."""
+    import sys
+    monkeypatch.setitem(sys.modules, "edgar", fake_mod)
+
+
 def test_sec_lander_is_a_document_fetcher() -> None:
     from kgspin_demo_app.landers.sec import SecLander
     lander = SecLander()
     assert isinstance(lander, DocumentFetcher)
     assert lander.name == "sec_edgar"
-    assert lander.version == "2.1.0"
+    assert lander.version == "3.0.0"
     assert lander.contract_version == DOCUMENT_FETCHER_CONTRACT_VERSION
 
 
-def test_fetch_happy_path_returns_fetch_result(sec_env: dict, httpx_mock) -> None:
-    """fetch() returns a properly-shaped FetchResult."""
-    from kgspin_demo_app.landers import sec as sec_mod
+def test_fetch_happy_path_returns_fetch_result(
+    sec_env: dict, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """fetch() returns a FetchResult with primary-HTML-only on disk + full metadata."""
+    from kgspin_demo_app.landers.sec import SecLander
 
-    # Two expected SEC calls: the Atom feed, then the filing itself.
-    # Use requests_mock-style fallthrough via monkeypatching the low-level
-    # helper so we don't need pytest_httpx for requests (only httpx).
-    # Simpler: patch _get_with_retry to return canned responses.
-    atom_resp = _mock_response(text=SAMPLE_ATOM_FEED_OK, status=200)
-    filing_resp = _mock_response(content_bytes=SAMPLE_FILING_HTML, status=200,
-                                 headers={"ETag": "W/\"abc123\""})
+    fake_edgar = _fake_edgartools_module()
+    _inject_fake_edgartools(monkeypatch, fake_edgar)
 
-    call_log: list[str] = []
-    def fake_get(url, **kwargs):
-        call_log.append(url)
-        if "browse-edgar" in url:
-            return atom_resp
-        return filing_resp
-
-    from kgspin_demo_app.landers import sec as sec_mod_local
-    orig = sec_mod_local._get_with_retry
-    sec_mod_local._get_with_retry = fake_get  # type: ignore[assignment]
-    try:
-        lander = sec_mod_local.SecLander()
-        result = lander.fetch(
-            ticker="TST",
-            form="10-K",
-            output_root=sec_env["output_root"],
-            date="2025-02-13",
-        )
-    finally:
-        sec_mod_local._get_with_retry = orig  # type: ignore[assignment]
+    lander = SecLander()
+    result = lander.fetch(
+        ticker="JNJ",
+        form="10-K",
+        output_root=sec_env["output_root"],
+        date="2026-04-22",
+    )
 
     # FetchResult shape
     assert isinstance(result, FetchResult)
@@ -100,46 +137,121 @@ def test_fetch_happy_path_returns_fetch_result(sec_env: dict, httpx_mock) -> Non
     assert result.pointer.type == "file"
     landed_path = Path(result.pointer.value)
     assert landed_path.is_file()
-    assert landed_path.read_bytes() == SAMPLE_FILING_HTML
+    assert landed_path.read_text(encoding="utf-8") == SAMPLE_FILING_HTML
 
     # Path is under the caller-supplied output_root
     assert sec_env["output_root"] in landed_path.parents
 
-    # metadata contains the required fields
-    assert result.metadata["cik"] == "TST"
-    assert result.metadata["accession"] == "000012345-25-000001"
+    # Filing-level metadata (accession, filing_date, real CIK, company name as filed)
+    assert result.metadata["accession"] == "0000200406-26-000016"
+    assert result.metadata["filing_date"] == "2026-02-11"
+    assert result.metadata["filing_url"].startswith("https://www.sec.gov/")
+    assert result.metadata["cik"] == "0000200406"  # real CIK, NOT the ticker
+    assert result.metadata["company_name_as_filed"] == "JOHNSON & JOHNSON"
+    assert result.metadata["period_of_report"] == "2025-12-28"
     assert result.metadata["filing_type"] == "10-K"
-    assert result.metadata["etag"] == 'W/"abc123"'
-    assert result.metadata["bytes_written"] == len(SAMPLE_FILING_HTML)
-    assert result.metadata["source_url"].endswith(".txt")
+    assert result.metadata["source_url"].startswith("https://www.sec.gov/")
+    assert result.metadata["bytes_written"] == len(SAMPLE_FILING_HTML.encode("utf-8"))
     assert result.metadata["lander_name"] == "sec_edgar"
-    assert result.metadata["lander_version"] == "2.1.0"
+    assert result.metadata["lander_version"] == "3.0.0"
     assert result.metadata["http_status"] == 200
 
-    # VP Eng test-eval: hash is computed from the bytes actually on disk —
-    # re-hash the file independently and compare.
+    # Company-level metadata — new in 3.0.0
+    company = result.metadata["company"]
+    assert company["canonical_name"] == "JOHNSON & JOHNSON"
+    assert company["cik"] == "0000200406"
+    assert company["sic"] == "2834"
+    assert company["industry"] == "Pharmaceutical Preparations"
+    assert company["business_category"] == "Life Sciences"
+    assert company["fiscal_year_end"] == "1228"
+    assert company["business_address"]["city"] == "New Brunswick"
+    assert company["business_address"]["state_or_country"] == "NJ"
+    assert company["business_address"]["zipcode"] == "08933"
+    assert company["tickers"] == ["JNJ"]
+    assert company["filer_category"] == "Large Accelerated Filer"
+
+    # VP Eng test-eval: hash is computed from the bytes actually on disk.
     expected_hash = hashlib.sha256(landed_path.read_bytes()).hexdigest()
     assert result.hash == expected_hash
 
 
-def test_fetch_empty_feed_raises_fetcher_not_found(sec_env: dict) -> None:
+def test_fetch_empty_filings_raises_fetcher_not_found(
+    sec_env: dict, monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """A ticker with no filings → FetcherNotFoundError, not FetcherError."""
-    from kgspin_demo_app.landers import sec as sec_mod
-    atom_resp = _mock_response(text=SAMPLE_ATOM_FEED_EMPTY, status=200)
+    from kgspin_demo_app.landers.sec import SecLander
 
-    orig = sec_mod._get_with_retry
-    sec_mod._get_with_retry = lambda url, **kw: atom_resp  # type: ignore[assignment]
-    try:
-        lander = sec_mod.SecLander()
-        with pytest.raises(FetcherNotFoundError) as excinfo:
-            lander.fetch(
-                ticker="ZZZ",
-                form="10-K",
-                output_root=sec_env["output_root"],
-            )
-        assert "ZZZ" in str(excinfo.value) or "10-K" in str(excinfo.value)
-    finally:
-        sec_mod._get_with_retry = orig  # type: ignore[assignment]
+    fake_edgar = _fake_edgartools_module(filings_count=0)
+    _inject_fake_edgartools(monkeypatch, fake_edgar)
+
+    lander = SecLander()
+    with pytest.raises(FetcherNotFoundError) as excinfo:
+        lander.fetch(
+            ticker="ZZZZZ",
+            form="10-K",
+            output_root=sec_env["output_root"],
+        )
+    assert "ZZZZZ" in str(excinfo.value) or "10-K" in str(excinfo.value)
+
+
+def test_fetch_not_found_company_raises_fetcher_not_found(
+    sec_env: dict, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A ticker that edgartools flags not_found → FetcherNotFoundError."""
+    from kgspin_demo_app.landers.sec import SecLander
+
+    fake_edgar = _fake_edgartools_module(not_found=True)
+    _inject_fake_edgartools(monkeypatch, fake_edgar)
+
+    lander = SecLander()
+    with pytest.raises(FetcherNotFoundError):
+        lander.fetch(
+            ticker="XXXXX",
+            form="10-K",
+            output_root=sec_env["output_root"],
+        )
+
+
+def test_fetch_html_empty_raises_fetcher_error(
+    sec_env: dict, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """edgartools ``filing.html()`` returning empty → FetcherError."""
+    from kgspin_demo_app.landers.sec import SecLander
+
+    fake_edgar = _fake_edgartools_module(html="")
+    _inject_fake_edgartools(monkeypatch, fake_edgar)
+
+    lander = SecLander()
+    with pytest.raises(FetcherError) as excinfo:
+        lander.fetch(
+            ticker="JNJ",
+            form="10-K",
+            output_root=sec_env["output_root"],
+        )
+    assert "empty" in str(excinfo.value).lower()
+
+
+def test_fetch_edgartools_downstream_error_wraps_as_fetcher_error(
+    sec_env: dict, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An exception from edgartools internals → FetcherError (not bare exception)."""
+    from kgspin_demo_app.landers.sec import SecLander
+
+    fake_edgar = _fake_edgartools_module()
+    # Make filing.html() blow up
+    company = fake_edgar.Company.return_value
+    filings = company.get_filings.return_value
+    filings.__getitem__.return_value.html.side_effect = RuntimeError("edgartools: network timeout")
+    _inject_fake_edgartools(monkeypatch, fake_edgar)
+
+    lander = SecLander()
+    with pytest.raises(FetcherError) as excinfo:
+        lander.fetch(
+            ticker="JNJ",
+            form="10-K",
+            output_root=sec_env["output_root"],
+        )
+    assert "filing.html()" in str(excinfo.value) or "network timeout" in str(excinfo.value)
 
 
 def test_fetch_invalid_ticker_raises_fetcher_error(sec_env: dict) -> None:
@@ -157,9 +269,6 @@ def test_fetch_invalid_ticker_raises_fetcher_error(sec_env: dict) -> None:
 def test_fetch_invalid_form_raises_fetcher_error(sec_env: dict) -> None:
     from kgspin_demo_app.landers.sec import SecLander
     lander = SecLander()
-    # Literal type at the typed path refuses "NOT-A-FORM" via pydantic at
-    # fetch_by_id (wire) boundary; at the direct typed-fetch path the
-    # runtime check surfaces it as FetcherError.
     with pytest.raises(FetcherError) as excinfo:
         lander.fetch(
             ticker="JNJ",
@@ -170,10 +279,9 @@ def test_fetch_invalid_form_raises_fetcher_error(sec_env: dict) -> None:
 
 
 def test_fetch_missing_user_agent_raises_fetcher_error(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
-    """Sprint 11 post-env-var consolidation: SEC auth comes from either
-    EDGAR_IDENTITY (primary, pre-existing convention) OR SEC_USER_AGENT
+    """SEC auth comes from EDGAR_IDENTITY (primary) OR SEC_USER_AGENT
     (fallback). Both must be missing for the FetcherError to surface.
     """
     from kgspin_demo_app.landers.sec import SecLander
@@ -188,66 +296,3 @@ def test_fetch_missing_user_agent_raises_fetcher_error(
         )
     err = str(excinfo.value).lower()
     assert "edgar_identity" in err or "sec_user_agent" in err
-
-
-def test_fetch_5xx_after_retries_raises_fetcher_error(
-    sec_env: dict, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """After tenacity exhausts retries on a 5xx, we surface FetcherError."""
-    import requests
-    from kgspin_demo_app.landers import sec as sec_mod
-
-    # Simulate the Atom feed returning 500 — after retry exhaustion
-    # tenacity lets the HTTPError escape; our fetch() wraps it.
-    def always_500(url, **kwargs):
-        resp = requests.Response()
-        resp.status_code = 500
-        req = requests.PreparedRequest()
-        req.method = "GET"
-        req.url = url
-        resp.request = req
-        raise requests.HTTPError("500 Server Error", response=resp)
-
-    orig = sec_mod._get_with_retry
-    sec_mod._get_with_retry = always_500  # type: ignore[assignment]
-    try:
-        lander = sec_mod.SecLander()
-        with pytest.raises(FetcherError) as excinfo:
-            lander.fetch(
-                ticker="JNJ",
-                form="10-K",
-                output_root=sec_env["output_root"],
-            )
-        assert "500" in str(excinfo.value) or "http" in str(excinfo.value).lower()
-    finally:
-        sec_mod._get_with_retry = orig  # type: ignore[assignment]
-
-
-# ---- helpers --------------------------------------------------------------
-
-
-def _mock_response(
-    *,
-    text: str | None = None,
-    content_bytes: bytes | None = None,
-    status: int = 200,
-    headers: dict | None = None,
-):
-    """Minimal duck-typed requests.Response replacement."""
-    class _Resp:
-        def __init__(self):
-            self.text = text or ""
-            self._content = content_bytes or (text.encode("utf-8") if text else b"")
-            self.status_code = status
-            self.headers = headers or {}
-
-        def iter_content(self, chunk_size=64 * 1024):
-            # Yield the whole body in one chunk — simpler than real streaming.
-            if self._content:
-                yield self._content
-
-        def raise_for_status(self):
-            if self.status_code >= 400:
-                import requests
-                raise requests.HTTPError(f"{self.status_code} error", response=self)
-    return _Resp()

@@ -22,9 +22,7 @@ import re
 import sys
 from pathlib import Path
 from typing import ClassVar, Literal, Optional
-from xml.etree import ElementTree
 
-import requests
 from kgspin_interface import (
     DOCUMENT_FETCHER_CONTRACT_VERSION,
     DocumentFetcher,
@@ -37,24 +35,16 @@ from kgspin_interface.resources import (
     CorpusDocumentMetadata,
     FilePointer,
 )
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from . import _shared
 from .metadata import build_source_extras, iso_utc_now
 
 
 LANDER_CLI_NAME = "kgspin-demo-lander-sec"
-LANDER_VERSION = "2.1.0"  # Wave A: FetchConfig dual-method adoption
+LANDER_VERSION = "3.0.0"  # 2026-04-22: edgartools restore — filing.html() primary doc only + full Company metadata (was 2.1.0 Wave A raw-HTTP submission-bundle)
 
 _TICKER_RE = re.compile(r"^[A-Z]{1,5}$")
 _VALID_FILING_TYPES = {"10-K", "10-Q", "8-K"}
-
-_SEC_BROWSE_URL = "https://www.sec.gov/cgi-bin/browse-edgar"
 
 
 class SecFetchConfig(FetchConfig):
@@ -71,66 +61,149 @@ class SecFetchConfig(FetchConfig):
     user_agent: str | None = None
 
 
-@retry(
-    retry=retry_if_exception_type(requests.HTTPError),
-    wait=wait_exponential(multiplier=1, min=2, max=10),
-    stop=stop_after_attempt(5),
-)
-def _get_with_retry(
-    url: str,
-    *,
-    user_agent: str,
-    params: Optional[dict] = None,
-    stream: bool = False,
-    timeout: int = 30,
-) -> requests.Response:
-    headers = {"User-Agent": user_agent}
-    resp = requests.get(url, params=params, headers=headers, timeout=timeout, stream=stream)
-    resp.raise_for_status()
-    return resp
+def _safe(obj, attr: str):
+    """Return getattr(obj, attr) or None — edgartools attrs are best-effort."""
+    try:
+        val = getattr(obj, attr, None)
+        if val is None:
+            return None
+        if isinstance(val, (str, int, float, bool, list, dict)):
+            return val
+        return str(val)
+    except Exception:
+        return None
 
 
-def _fetch_filing_atom(
+def _safe_address(addr) -> Optional[dict]:
+    """Flatten an edgartools Address object to {street1, street2, city, state_or_country, zipcode}."""
+    if addr is None:
+        return None
+    try:
+        return {
+            "street1": _safe(addr, "street1"),
+            "street2": _safe(addr, "street2"),
+            "city": _safe(addr, "city"),
+            "state_or_country": _safe(addr, "state_or_country") or _safe(addr, "state"),
+            "zipcode": _safe(addr, "zipcode") or _safe(addr, "zip"),
+        }
+    except Exception:
+        return None
+
+
+def _fetch_filing_via_edgartools(
     ticker: str,
-    filing_type: str,
+    form: str,
     user_agent: str,
-) -> tuple[str, str, Optional[str]]:
-    """Hit EDGAR's Atom feed; return (raw_url, accession, updated_iso)."""
-    params = {
-        "action": "getcompany",
-        "CIK": ticker,
-        "type": filing_type,
-        "dateb": "",
-        "owner": "include",
-        "count": 10,
-        "output": "atom",
-    }
-    resp = _get_with_retry(_SEC_BROWSE_URL, user_agent=user_agent, params=params)
+) -> tuple[str, dict, dict]:
+    """Fetch the most-recent filing via edgartools.
 
-    root = ElementTree.fromstring(resp.text)
-    ns = {"atom": "http://www.w3.org/2005/Atom"}
-    entry = root.find("atom:entry", ns)
-    if entry is None:
+    Returns ``(primary_html, filing_extras, company_extras)``:
+
+    - ``primary_html`` — the primary 10-K/10-Q/8-K document HTML only
+      (no exhibits, no XBRL, no graphics). Matches the old pre-Wave-A
+      extraction shape.
+    - ``filing_extras`` — accession_number, filing_date, filing_url,
+      cik (real number, not the ticker), company_name_as_filed,
+      period_of_report.
+    - ``company_extras`` — canonical name, cik, sic, industry,
+      business_category, fiscal_year_end, business/mailing addresses,
+      tickers list, filer classifications.
+
+    Raises :class:`FetcherError` / :class:`FetcherNotFoundError`
+    mirroring the old raw-HTTP path.
+    """
+    try:
+        import edgar as edgartools
+    except ImportError as e:
+        raise FetcherError(
+            "SecLander: edgartools is required. "
+            "Install with: pip install edgartools>=2.0"
+        ) from e
+
+    try:
+        edgartools.set_identity(user_agent)
+    except Exception as e:
+        raise FetcherError(
+            f"SecLander: edgartools.set_identity failed: {type(e).__name__}: {e}"
+        ) from e
+
+    try:
+        company = edgartools.Company(ticker)
+    except Exception as e:
+        raise FetcherError(
+            f"SecLander: edgartools.Company({ticker!r}) failed: "
+            f"{type(e).__name__}: {e}"
+        ) from e
+
+    # Edge case: some delisted/invalid tickers return a Company object with
+    # ``not_found`` set. Treat those as not-found, not error.
+    if getattr(company, "not_found", False):
         raise FetcherNotFoundError(
-            f"No {filing_type} filings found for ticker {ticker!r}"
+            f"No SEC-registered company for ticker {ticker!r}"
         )
 
-    link_elem = entry.find("atom:link", ns)
-    link = link_elem.attrib["href"] if link_elem is not None else ""
-    if not link:
-        raise FetcherError(f"EDGAR Atom entry for {ticker} has no href link")
+    try:
+        filings = company.get_filings(form=form)
+    except Exception as e:
+        raise FetcherError(
+            f"SecLander: company.get_filings(form={form!r}) failed: "
+            f"{type(e).__name__}: {e}"
+        ) from e
 
-    category = entry.find("atom:category", ns)
-    accession = category.attrib.get("term", "") if category is not None else ""
+    if filings is None or len(filings) == 0:
+        raise FetcherNotFoundError(
+            f"No {form} filings found for ticker {ticker!r}"
+        )
 
-    updated_elem = entry.find("atom:updated", ns)
-    updated = updated_elem.text if updated_elem is not None else None
+    filing = filings[0]  # most recent
 
-    if link.endswith("-index.htm"):
-        raw_url = link.replace("-index.htm", ".txt")
-    else:
-        raw_url = link
-    return raw_url, accession, updated
+    try:
+        html = filing.html()
+    except Exception as e:
+        raise FetcherError(
+            f"SecLander: filing.html() failed for {ticker} {form}: "
+            f"{type(e).__name__}: {e}"
+        ) from e
+
+    if not html:
+        raise FetcherError(
+            f"SecLander: filing.html() returned empty for {ticker} {form}"
+        )
+
+    filing_extras = {
+        "accession": _safe(filing, "accession_number"),
+        "filing_date": _safe(filing, "filing_date"),
+        "filing_url": _safe(filing, "filing_url") or _safe(filing, "url"),
+        "cik": _safe(filing, "cik") or _safe(company, "cik"),
+        "company_name_as_filed": _safe(filing, "company"),
+        "period_of_report": _safe(filing, "period_of_report"),
+    }
+
+    # business_address / mailing_address are edgartools *methods* (not
+    # properties) that return an ``Address`` object. Call, don't getattr.
+    def _call_address(name: str):
+        try:
+            meth = getattr(company, name, None)
+            return _safe_address(meth() if callable(meth) else meth)
+        except Exception:
+            return None
+
+    company_extras = {
+        "canonical_name": _safe(company, "name") or _safe(company, "display_name"),
+        "cik": _safe(company, "cik"),
+        "sic": _safe(company, "sic"),
+        "industry": _safe(company, "industry"),
+        "business_category": _safe(company, "business_category"),
+        "fiscal_year_end": _safe(company, "fiscal_year_end"),
+        "business_address": _call_address("business_address"),
+        "mailing_address": _call_address("mailing_address"),
+        "tickers": _safe(company, "tickers"),
+        "filer_category": _safe(company, "filer_category"),
+        "filer_type": _safe(company, "filer_type"),
+        "is_foreign": _safe(company, "is_foreign"),  # property, returns bool
+    }
+
+    return html, filing_extras, company_extras
 
 
 class SecLander(DocumentFetcher):
@@ -215,60 +288,39 @@ class SecLander(DocumentFetcher):
             filename="raw.html",
         )
 
-        # --- fetch ---
+        # --- fetch via edgartools ---
+        # Returns the primary 10-K document HTML only (no exhibits / XBRL /
+        # graphics) plus structured filing + company metadata. This replaces
+        # the Wave-A raw-HTTP path that fetched the full SGML submission
+        # bundle (24 MB for JNJ 2026-02-11 with 167 concatenated documents).
         fetch_timestamp_utc = iso_utc_now()
-        try:
-            raw_url, accession, updated = _fetch_filing_atom(
-                ticker, form, resolved_agent,
-            )
-        except FetcherNotFoundError:
-            raise  # surface as-is
-        except requests.HTTPError as e:
-            raise FetcherError(
-                f"SecLander: EDGAR Atom feed HTTP error for {ticker} {form}: "
-                f"{e.response.status_code if e.response else '??'}"
-            ) from e
+        html, filing_extras, company_extras = _fetch_filing_via_edgartools(
+            ticker, form, resolved_agent,
+        )
 
-        try:
-            resp = _get_with_retry(raw_url, user_agent=resolved_agent, stream=True)
-            etag = resp.headers.get("etag") or resp.headers.get("ETag")
-            http_status = resp.status_code
+        # Write the primary HTML to disk.
+        raw_path.write_text(html, encoding="utf-8")
+        bytes_written = raw_path.stat().st_size
 
-            bytes_written = _shared.stream_to_file(
-                resp.iter_content(chunk_size=_shared.STREAM_CHUNK_BYTES),
-                raw_path,
-                source_url=raw_url,
-            )
-        except _shared.DownloadTooLargeError as e:
-            raise FetcherError(f"SecLander: {e}") from e
-        except requests.HTTPError as e:
-            raise FetcherError(
-                f"SecLander: failed to download {raw_url}: "
-                f"HTTP {e.response.status_code if e.response else '??'}"
-            ) from e
-        except Exception as e:
-            raise FetcherError(f"SecLander: unexpected error: {type(e).__name__}: {e}") from e
-
-        # VP Eng test-eval: hash is computed from the bytes actually written
-        # to disk, not an in-memory buffer. sha256_file reads the file.
+        # VP Eng test-eval: hash is computed from the bytes actually on disk.
         sha = _shared.sha256_file(raw_path)
 
         # source_extras: per-source fields that don't fit the first-class
-        # CorpusDocumentMetadata slots (bytes_written, etag, source_url
-        # are already first-class).
+        # CorpusDocumentMetadata slots.
         extras = build_source_extras(
             lander_name=self.name,
             lander_version=self.version,
             fetch_timestamp_utc=fetch_timestamp_utc,
-            http_status=http_status,
+            http_status=200,  # edgartools abstracts HTTP; filing.html() either works or raises
             extra_fields={
-                "cik": ticker,  # EDGAR accepts ticker as CIK-alias
-                "accession": accession,
+                # Filing-level metadata (accession, filing_date, cik, etc.)
+                **filing_extras,
                 "filing_type": form,
-                "source_url": raw_url,
-                "etag": etag,
+                "source_url": filing_extras.get("filing_url"),
                 "bytes_written": bytes_written,
-                "sec_updated": updated,
+                # Company-level metadata — new in 3.0.0. Ground-truth
+                # canonical name, industry classification, addresses, etc.
+                "company": company_extras,
             },
         )
 

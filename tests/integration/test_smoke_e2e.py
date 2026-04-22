@@ -58,37 +58,31 @@ def test_sec_lander_cli_against_shim(
 
     monkeypatch.setenv("SEC_USER_AGENT", "Smoke Test smoke@example.com")
 
-    SAMPLE_ATOM = """<?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <entry>
-    <title>10-K smoke</title>
-    <link href="https://www.sec.gov/smoke-index.htm"/>
-    <category term="000000000-00-000000"/>
-    <updated>2026-04-17T00:00:00Z</updated>
-  </entry>
-</feed>
-"""
-    SAMPLE_FILING = b"<html>smoke 10-K</html>"
+    SAMPLE_FILING_HTML = "<html>smoke 10-K</html>"
 
-    class _R:
-        def __init__(self, *, text=None, content=b"", status=200, headers=None):
-            self.text = text or ""
-            self._content = content or (text.encode() if text else b"")
-            self.status_code = status
-            self.headers = headers or {}
-        def iter_content(self, chunk_size=64 * 1024):
-            if self._content:
-                yield self._content
-        def raise_for_status(self):
-            if self.status_code >= 400:
-                import requests
-                raise requests.HTTPError(f"{self.status_code}", response=self)
-
-    def fake_get(url, **kw):
-        if "browse-edgar" in url:
-            return _R(text=SAMPLE_ATOM)
-        return _R(content=SAMPLE_FILING, headers={"ETag": "smoke"})
-    monkeypatch.setattr(sec_mod, "_get_with_retry", fake_get)
+    # 2026-04-22: rewritten to mock edgartools (SecLander 3.0.0).
+    import sys as _sys
+    from unittest.mock import MagicMock as _MagicMock
+    _filing = _MagicMock()
+    _filing.html.return_value = SAMPLE_FILING_HTML
+    _filing.accession_number = "000000000-00-000000"
+    _filing.filing_date = "2026-04-17"
+    _filing.filing_url = "https://www.sec.gov/smoke-index.htm"
+    _filing.cik = "0000000000"
+    _filing.company = "SMOKE CO"
+    _filing.period_of_report = "2025-12-31"
+    _filings = _MagicMock()
+    _filings.__len__.return_value = 1
+    _filings.__getitem__.return_value = _filing
+    _company = _MagicMock()
+    _company.not_found = False
+    _company.name = "SMOKE CO"
+    _company.cik = "0000000000"
+    _company.get_filings.return_value = _filings
+    _fake_edgar = _MagicMock()
+    _fake_edgar.set_identity = _MagicMock()
+    _fake_edgar.Company = _MagicMock(return_value=_company)
+    monkeypatch.setitem(_sys.modules, "edgar", _fake_edgar)
 
     rc = main([
         "--ticker", "TST",
@@ -104,7 +98,7 @@ def test_sec_lander_cli_against_shim(
     assert len(corpus_docs) == 1
     record = corpus_docs[0]
     # Pointer points at the bytes on disk
-    assert Path(record.pointer.value).read_bytes() == SAMPLE_FILING
+    assert Path(record.pointer.value).read_text(encoding="utf-8") == SAMPLE_FILING_HTML
     # Actor was set by the lander CLI
     assert record.provenance.registered_by == "fetcher:sec_edgar"
     # Metadata round-tripped
