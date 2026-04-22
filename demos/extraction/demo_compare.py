@@ -2444,6 +2444,15 @@ async def model_pricing():
     return JSONResponse(GEMINI_MODEL_PRICING)
 
 
+@app.get("/api/multihop/scenarios")
+async def multihop_scenarios():
+    """PRD-004 v4 #9: return the multi-hop scenario pack for the picker."""
+    from demos.extraction.scenarios import load_scenarios, scenario_to_dict
+    return JSONResponse({
+        "scenarios": [scenario_to_dict(s) for s in load_scenarios()],
+    })
+
+
 @app.get("/api/impact/{doc_id}")
 async def impact(
     doc_id: str, request: Request,
