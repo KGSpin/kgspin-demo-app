@@ -7682,8 +7682,11 @@ async function onSlotPipelineChange(slotIdx) {
             opts.domains.forEach(d => {
                 const opt = document.createElement('option');
                 opt.value = d.domain_id;
-                const ver = (d.version || d.domain_id).replace(/^v/i, '');
-                opt.textContent = `Domain V${ver}`;
+                // Show the admin-registered domain id verbatim (e.g.
+                // ``financial-v2`` / ``clinical-v2``). Prior
+                // "Domain V<version>" template produced "Domain Vfinancial-v2"
+                // — missing space + redundant prefix.
+                opt.textContent = d.domain_id;
                 bundleSel.appendChild(opt);
             });
             const autoSelect = opts.default_domain_id || (opts.domains.length > 0 ? opts.domains[0].domain_id : '');
