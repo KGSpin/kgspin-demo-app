@@ -7864,7 +7864,7 @@ function runSlot(slotIdx) {
         // Named SSE 'error' event from server (not connection error).
         // Sprint 05 Task 5: if the payload carries a `reason` field, render
         // an actionable hint inside the slot's graph container with a
-        // README link when the reason is a known SEC_USER_AGENT config issue.
+        // README link when the reason is a known EDGAR_IDENTITY config issue.
         if (e.data) {
             const d = JSON.parse(e.data);
             if (!_isRelevantEvent(d)) return;
@@ -7875,8 +7875,8 @@ function runSlot(slotIdx) {
                 const container = document.getElementById(`slot-${slotIdx}-graph`);
                 if (container) {
                     let helpLink = '';
-                    if (d.reason === 'SEC_USER_AGENT missing') {
-                        helpLink = '<div style="margin-top:10px;"><a href="/static/pipelines-help.html#sec-user-agent" target="_blank" style="color:#5B9FE6;">How to set SEC_USER_AGENT &raquo;</a></div>';
+                    if (d.reason === 'EDGAR_IDENTITY missing') {
+                        helpLink = '<div style="margin-top:10px;"><a href="/static/pipelines-help.html#edgar-identity" target="_blank" style="color:#5B9FE6;">How to set EDGAR_IDENTITY &raquo;</a></div>';
                     } else if (d.reason === 'NCT not found') {
                         helpLink = '<div style="margin-top:10px; color:#8b949e; font-size:11px;">Try a different NCT ID from ClinicalTrials.gov.</div>';
                     }

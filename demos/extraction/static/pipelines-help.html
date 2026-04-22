@@ -105,23 +105,23 @@ maintains cross-chunk context. Default for slot 3.</p>
 <p><strong>Strategy:</strong> <code>agentic_analyst</code> &nbsp;
 <strong>Pipeline YAML:</strong> <code>agentic-analyst.yaml</code></p>
 
-<h2 id="sec-user-agent">Setting SEC_USER_AGENT</h2>
+<h2 id="edgar-identity">Setting EDGAR_IDENTITY</h2>
 <p class="capability">Configuration</p>
 <p>Live SEC EDGAR fetch (required for any ticker other than the offline
-<code>demo_mock</code> fixtures, e.g. MSFT / PFE / AAPL) requires a
-<code>SEC_USER_AGENT</code> environment variable. SEC compliance rules
-mandate that all EDGAR API consumers identify themselves with a real
-name and email — the <code>kgspin-plugin-financial</code> EDGAR provider
-enforces this at construction time.</p>
+<code>demo_mock</code> fixtures, e.g. MSFT / PFE / AAPL) requires an
+<code>EDGAR_IDENTITY</code> environment variable. SEC compliance rules
+mandate that all EDGAR API consumers identify themselves — an email
+address is sufficient — and the SEC EDGAR lander enforces this at
+construction time.</p>
 <p><strong>One-line setup:</strong></p>
-<pre style="background:#1a1a2e; padding:12px 16px; border-radius:6px; overflow-x:auto; color:#FFD700;">export SEC_USER_AGENT='Your Name your@email.com'</pre>
+<pre style="background:#1a1a2e; padding:12px 16px; border-radius:6px; overflow-x:auto; color:#FFD700;">export EDGAR_IDENTITY='you@example.com'</pre>
 <p>Then re-run the demo:</p>
-<pre style="background:#1a1a2e; padding:12px 16px; border-radius:6px; overflow-x:auto; color:#c9d1d9;">uv run python demos/extraction/demo_compare.py</pre>
+<pre style="background:#1a1a2e; padding:12px 16px; border-radius:6px; overflow-x:auto; color:#c9d1d9;">./scripts/start-demo.sh</pre>
 <p>Once set, every ticker in the dropdown (and any free-text ticker) will
 work against live SEC data. The first fetch per ticker is slow (one
-live EDGAR HTTP round-trip); subsequent fetches hit the local cache at
-<code>~/.kgenskills/data_lake/financial/sec_edgar/</code>.</p>
-<p><em>Offline mode:</em> if <code>SEC_USER_AGENT</code> is unset, only
+live EDGAR HTTP round-trip); subsequent fetches hit the local cache
+under <code>~/.kgspin/corpus/</code>.</p>
+<p><em>Offline mode:</em> if <code>EDGAR_IDENTITY</code> is unset, only
 tickers with fixture files at <code>tests/fixtures/corpus/{ticker}.html</code>
 will work. The default fixture is <code>JNJ</code>; other tickers will
 surface an actionable error in the slot.</p>

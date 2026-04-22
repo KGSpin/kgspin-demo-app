@@ -370,7 +370,8 @@ def _try_corpus_fetch(ticker: str):
             f"No landed artifact for {ticker}. Run:\n"
             f"  uv run kgspin-demo-lander-sec --ticker {ticker}\n"
             f"...then re-run extraction. Or click 'Refresh Local Corpus' in the UI. "
-            f"(SEC_USER_AGENT env var required for the lander.)"
+            f"(EDGAR_IDENTITY env var required for the lander — an email works, "
+            f"e.g. EDGAR_IDENTITY='you@example.com'.)"
         )
     raise CorpusFetchError(
         ticker=ticker,
