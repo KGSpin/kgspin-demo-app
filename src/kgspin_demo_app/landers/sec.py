@@ -21,13 +21,14 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import ClassVar, Literal, Optional
 from xml.etree import ElementTree
 
 import requests
 from kgspin_interface import (
     DOCUMENT_FETCHER_CONTRACT_VERSION,
     DocumentFetcher,
+    FetchConfig,
     FetchResult,
     FetcherError,
     FetcherNotFoundError,
@@ -48,12 +49,26 @@ from .metadata import build_source_extras, iso_utc_now
 
 
 LANDER_CLI_NAME = "kgspin-demo-lander-sec"
-LANDER_VERSION = "2.0.0"  # bumped from 0.1.0 for Sprint 09 contract change
+LANDER_VERSION = "2.1.0"  # Wave A: FetchConfig dual-method adoption
 
 _TICKER_RE = re.compile(r"^[A-Z]{1,5}$")
 _VALID_FILING_TYPES = {"10-K", "10-Q", "8-K"}
 
 _SEC_BROWSE_URL = "https://www.sec.gov/cgi-bin/browse-edgar"
+
+
+class SecFetchConfig(FetchConfig):
+    """Typed config for :class:`SecLander`.
+
+    ``extra="forbid"`` (inherited) — unknown keys in a wire-format
+    identifier dict raise ``pydantic.ValidationError`` at parse time.
+    """
+
+    ticker: str
+    form: Literal["10-K", "10-Q", "8-K"] = "10-K"
+    output_root: Path | None = None
+    date: str | None = None
+    user_agent: str | None = None
 
 
 @retry(
@@ -119,34 +134,39 @@ def _fetch_filing_atom(
 
 
 class SecLander(DocumentFetcher):
-    """SEC EDGAR filing fetcher.
+    """SEC EDGAR filing fetcher — dual-method (Wave A / interface 0.8.1).
 
-    ``identifier`` dict shape: ``{"ticker": "<1-5 letters>", "form": "10-K|10-Q|8-K"}``.
+    Typed path: ``lander.fetch(ticker="JNJ", form="10-K")``.
+    Wire path: ``lander.fetch_by_id({"ticker": "JNJ", "form": "10-K"})``.
 
-    Additional kwargs:
-    - ``user_agent: str`` — override ``$SEC_USER_AGENT``
-    - ``output_root: Path | str`` — override ``$KGSPIN_CORPUS_ROOT``
-    - ``date: str`` — YYYY-MM-DD; defaults to today UTC
+    The base class validates the wire-format dict against
+    :class:`SecFetchConfig` and delegates to ``fetch(**parsed_kwargs)``.
     """
 
     name = "sec_edgar"
     version = LANDER_VERSION
     contract_version = DOCUMENT_FETCHER_CONTRACT_VERSION
+    fetch_config_cls: ClassVar[type[FetchConfig]] = SecFetchConfig
+
+    DOMAIN: ClassVar[str] = "financial"
+    SOURCE: ClassVar[str] = "sec_edgar"
 
     def fetch(
         self,
-        domain: str,
-        source: str,
-        identifier: dict[str, str],
-        **kwargs: Any,
+        *,
+        ticker: str,
+        form: Literal["10-K", "10-Q", "8-K"] = "10-K",
+        output_root: Path | None = None,
+        date: str | None = None,
+        user_agent: str | None = None,
     ) -> FetchResult:
         # --- identifier validation ---
-        ticker = (identifier.get("ticker") or "").strip().upper()
-        form = (identifier.get("form") or "10-K").strip().upper()
+        ticker = ticker.strip().upper()
+        form = form.strip().upper()  # type: ignore[assignment]
         if not _TICKER_RE.fullmatch(ticker):
             raise FetcherError(
-                f"SecLander: invalid ticker in identifier: {ticker!r} "
-                f"(expected 1-5 ASCII letters; identifier={identifier!r})"
+                f"SecLander: invalid ticker {ticker!r} "
+                f"(expected 1-5 ASCII letters)"
             )
         if form not in _VALID_FILING_TYPES:
             raise FetcherError(
@@ -159,12 +179,12 @@ class SecLander(DocumentFetcher):
         # of the demo repo (README, demo_ticker.py, pipeline_common.py).
         # SEC_USER_AGENT was introduced in Sprint 07 by mistake and is
         # retained as a fallback so Sprint 07-era scripts keep working.
-        user_agent = (
-            kwargs.get("user_agent")
+        resolved_agent = (
+            user_agent
             or os.environ.get("EDGAR_IDENTITY", "").strip()
             or os.environ.get("SEC_USER_AGENT", "").strip()
         )
-        if not user_agent:
+        if not resolved_agent:
             raise FetcherError(
                 "SecLander: EDGAR_IDENTITY not provided. "
                 "SEC compliance requires 'Your Name your@email.com' in the "
@@ -173,25 +193,24 @@ class SecLander(DocumentFetcher):
             )
 
         # --- path resolution ---
-        raw_output_root = kwargs.get("output_root")
-        if raw_output_root:
-            output_root = Path(raw_output_root).expanduser().resolve()
-            output_root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if output_root is not None:
+            resolved_root = Path(output_root).expanduser().resolve()
+            resolved_root.mkdir(parents=True, exist_ok=True, mode=0o700)
             try:
-                output_root.chmod(0o700)
+                resolved_root.chmod(0o700)
             except PermissionError:
                 pass
         else:
-            output_root = _shared.get_corpus_root()
+            resolved_root = _shared.get_corpus_root()
 
-        date = _shared.validate_date(kwargs.get("date") or _shared.today_iso_utc())
+        resolved_date = _shared.validate_date(date or _shared.today_iso_utc())
 
         raw_path = _shared.default_artifact_path(
-            output_root,
-            domain=domain,
-            source=source,
+            resolved_root,
+            domain=self.DOMAIN,
+            source=self.SOURCE,
             identifier=ticker,
-            date=date,
+            date=resolved_date,
             artifact_type=form,
             filename="raw.html",
         )
@@ -200,7 +219,7 @@ class SecLander(DocumentFetcher):
         fetch_timestamp_utc = iso_utc_now()
         try:
             raw_url, accession, updated = _fetch_filing_atom(
-                ticker, form, user_agent,
+                ticker, form, resolved_agent,
             )
         except FetcherNotFoundError:
             raise  # surface as-is
@@ -211,7 +230,7 @@ class SecLander(DocumentFetcher):
             ) from e
 
         try:
-            resp = _get_with_retry(raw_url, user_agent=user_agent, stream=True)
+            resp = _get_with_retry(raw_url, user_agent=resolved_agent, stream=True)
             etag = resp.headers.get("etag") or resp.headers.get("ETag")
             http_status = resp.status_code
 
@@ -306,9 +325,8 @@ def main(argv: list[str] | None = None) -> int:
     lander = SecLander()
     try:
         result = lander.fetch(
-            domain="financial",
-            source="sec_edgar",
-            identifier={"ticker": args.ticker, "form": args.filing},
+            ticker=args.ticker,
+            form=args.filing,
             output_root=args.output_root,
             date=args.date,
         )

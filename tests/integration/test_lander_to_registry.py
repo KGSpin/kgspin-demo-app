@@ -58,12 +58,11 @@ def test_sec_lander_to_fake_registry_end_to_end(tmp_path: Path, monkeypatch) -> 
         return filing_resp
     monkeypatch.setattr(sec_mod, "_get_with_retry", fake_get)
 
-    # Step 1: fetch via the lander
+    # Step 1: fetch via the lander (typed dual-method path)
     lander = sec_mod.SecLander()
     result = lander.fetch(
-        domain="financial",
-        source="sec_edgar",
-        identifier={"ticker": "TST", "form": "10-K"},
+        ticker="TST",
+        form="10-K",
         output_root=tmp_path / "corpus",
         date="2025-02-13",
     )

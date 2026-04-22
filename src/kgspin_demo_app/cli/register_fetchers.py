@@ -1,14 +1,15 @@
 """``kgspin-demo register-fetchers`` — idempotent lander registration CLI.
 
-Sprint 11 rewrite (Task 4): catalog is now derived from
-``kgspin_demo_app.domain_fetchers.DOMAIN_FETCHERS`` per ADR-004. Adding a
-new lander is a one-line edit to that module + a new lander file; this
-CLI picks it up automatically.
+Wave A (CTO Q3): ``fetchers/registrations.yaml`` in the sibling
+``kgspin-demo-config`` repo is the authoritative per-instance domain →
+fetcher mapping. This CLI iterates over that YAML (resolved lazily by
+:mod:`kgspin_demo_app.domain_fetchers` via ``KGSPIN_DEMO_CONFIG_PATH``)
+and registers one FETCHER record per unique backend-named lander.
 
-Registers exactly one FETCHER record per unique backend-named lander
-(e.g. ``newsapi`` registers ONCE even though it appears under two
-domains). Per ADR-004 §2 the FETCHER record is domain-agnostic; the
-per-domain mapping lives in the demo repo.
+Registers exactly one record per unique ID (e.g. ``newsapi`` registers
+ONCE even though it appears under two domains). Per ADR-004 §2 the
+FETCHER record is domain-agnostic; the per-domain mapping lives in
+``kgspin-demo-config``.
 
 Actor: ``demo:packager`` (per Sprint 09 convention).
 
@@ -43,7 +44,8 @@ from kgspin_demo_app.domain_fetchers import DOMAIN_FETCHERS
 #
 # Mapping from backend-named lander ID → (module_path, class_name,
 # description). ADR-004: lander IDs are backend names; the domain(s) a
-# lander serves come from DOMAIN_FETCHERS, not from this table.
+# lander serves come from fetchers/registrations.yaml in
+# kgspin-demo-config (read via DOMAIN_FETCHERS), not from this table.
 
 _LANDER_CATALOG: dict[str, tuple[str, str, str]] = {
     "sec_edgar": (

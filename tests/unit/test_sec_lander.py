@@ -57,7 +57,7 @@ def test_sec_lander_is_a_document_fetcher() -> None:
     lander = SecLander()
     assert isinstance(lander, DocumentFetcher)
     assert lander.name == "sec_edgar"
-    assert lander.version == "2.0.0"
+    assert lander.version == "2.1.0"
     assert lander.contract_version == DOCUMENT_FETCHER_CONTRACT_VERSION
 
 
@@ -86,9 +86,8 @@ def test_fetch_happy_path_returns_fetch_result(sec_env: dict, httpx_mock) -> Non
     try:
         lander = sec_mod_local.SecLander()
         result = lander.fetch(
-            domain="financial",
-            source="sec_edgar",
-            identifier={"ticker": "TST", "form": "10-K"},
+            ticker="TST",
+            form="10-K",
             output_root=sec_env["output_root"],
             date="2025-02-13",
         )
@@ -114,7 +113,7 @@ def test_fetch_happy_path_returns_fetch_result(sec_env: dict, httpx_mock) -> Non
     assert result.metadata["bytes_written"] == len(SAMPLE_FILING_HTML)
     assert result.metadata["source_url"].endswith(".txt")
     assert result.metadata["lander_name"] == "sec_edgar"
-    assert result.metadata["lander_version"] == "2.0.0"
+    assert result.metadata["lander_version"] == "2.1.0"
     assert result.metadata["http_status"] == 200
 
     # VP Eng test-eval: hash is computed from the bytes actually on disk —
@@ -134,9 +133,8 @@ def test_fetch_empty_feed_raises_fetcher_not_found(sec_env: dict) -> None:
         lander = sec_mod.SecLander()
         with pytest.raises(FetcherNotFoundError) as excinfo:
             lander.fetch(
-                domain="financial",
-                source="sec_edgar",
-                identifier={"ticker": "ZZZ", "form": "10-K"},
+                ticker="ZZZ",
+                form="10-K",
                 output_root=sec_env["output_root"],
             )
         assert "ZZZ" in str(excinfo.value) or "10-K" in str(excinfo.value)
@@ -149,9 +147,8 @@ def test_fetch_invalid_ticker_raises_fetcher_error(sec_env: dict) -> None:
     lander = SecLander()
     with pytest.raises(FetcherError) as excinfo:
         lander.fetch(
-            domain="financial",
-            source="sec_edgar",
-            identifier={"ticker": "JNJ; rm -rf /", "form": "10-K"},
+            ticker="JNJ; rm -rf /",
+            form="10-K",
             output_root=sec_env["output_root"],
         )
     assert "invalid ticker" in str(excinfo.value).lower()
@@ -160,11 +157,13 @@ def test_fetch_invalid_ticker_raises_fetcher_error(sec_env: dict) -> None:
 def test_fetch_invalid_form_raises_fetcher_error(sec_env: dict) -> None:
     from kgspin_demo_app.landers.sec import SecLander
     lander = SecLander()
+    # Literal type at the typed path refuses "NOT-A-FORM" via pydantic at
+    # fetch_by_id (wire) boundary; at the direct typed-fetch path the
+    # runtime check surfaces it as FetcherError.
     with pytest.raises(FetcherError) as excinfo:
         lander.fetch(
-            domain="financial",
-            source="sec_edgar",
-            identifier={"ticker": "JNJ", "form": "NOT-A-FORM"},
+            ticker="JNJ",
+            form="NOT-A-FORM",  # type: ignore[arg-type]
             output_root=sec_env["output_root"],
         )
     assert "invalid form" in str(excinfo.value).lower()
@@ -183,9 +182,8 @@ def test_fetch_missing_user_agent_raises_fetcher_error(
     lander = SecLander()
     with pytest.raises(FetcherError) as excinfo:
         lander.fetch(
-            domain="financial",
-            source="sec_edgar",
-            identifier={"ticker": "JNJ", "form": "10-K"},
+            ticker="JNJ",
+            form="10-K",
             output_root=tmp_path / "corpus",
         )
     err = str(excinfo.value).lower()
@@ -216,9 +214,8 @@ def test_fetch_5xx_after_retries_raises_fetcher_error(
         lander = sec_mod.SecLander()
         with pytest.raises(FetcherError) as excinfo:
             lander.fetch(
-                domain="financial",
-                source="sec_edgar",
-                identifier={"ticker": "JNJ", "form": "10-K"},
+                ticker="JNJ",
+                form="10-K",
                 output_root=sec_env["output_root"],
             )
         assert "500" in str(excinfo.value) or "http" in str(excinfo.value).lower()

@@ -40,7 +40,7 @@ def test_clinical_lander_is_a_document_fetcher() -> None:
     lander = ClinicalLander()
     assert isinstance(lander, DocumentFetcher)
     assert lander.name == "clinicaltrials_gov"
-    assert lander.version == "2.0.0"
+    assert lander.version == "2.1.0"
     assert lander.contract_version == DOCUMENT_FETCHER_CONTRACT_VERSION
 
 
@@ -52,9 +52,7 @@ def test_fetch_happy_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
 
     lander = mod.ClinicalLander()
     result = lander.fetch(
-        domain="clinical",
-        source="clinicaltrials_gov",
-        identifier={"nct": "NCT01234567"},
+        nct="NCT01234567",
         output_root=tmp_path / "corpus",
         date="2026-04-17",
     )
@@ -84,9 +82,7 @@ def test_fetch_404_raises_fetcher_not_found(
     lander = mod.ClinicalLander()
     with pytest.raises(FetcherNotFoundError):
         lander.fetch(
-            domain="clinical",
-            source="clinicaltrials_gov",
-            identifier={"nct": "NCT99999999"},
+            nct="NCT99999999",
             output_root=tmp_path / "corpus",
         )
 
@@ -97,8 +93,6 @@ def test_invalid_nct_raises_fetcher_error(tmp_path: Path) -> None:
     for bad in ["../../etc", "NCT123", "NOT-AN-NCT", ""]:
         with pytest.raises(FetcherError):
             lander.fetch(
-                domain="clinical",
-                source="clinicaltrials_gov",
-                identifier={"nct": bad},
+                nct=bad,
                 output_root=tmp_path / "corpus",
             )

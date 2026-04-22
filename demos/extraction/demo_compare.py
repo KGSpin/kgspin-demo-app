@@ -311,18 +311,15 @@ def _auto_land_corpus(
     if is_clinical:
         from kgspin_demo_app.landers.clinical import ClinicalLander
         lander = ClinicalLander()
-        fetch_identifier = {"nct": normalized_id}
+        register_identifier: dict[str, str] = {"nct": normalized_id}
+        result = lander.fetch(nct=normalized_id)
     else:
         from kgspin_demo_app.landers.sec import SecLander
         lander = SecLander()
-        fetch_identifier = {"ticker": normalized_id, "form": "10-K"}
-
-    result = lander.fetch(
-        domain=domain, source=source, identifier=fetch_identifier,
-    )
+        register_identifier = {"ticker": normalized_id, "form": "10-K"}
+        result = lander.fetch(ticker=normalized_id, form="10-K")
 
     extras = result.metadata or {}
-    register_identifier = dict(fetch_identifier)
     doc_meta = CorpusDocumentMetadata(
         domain=domain,
         source=source,

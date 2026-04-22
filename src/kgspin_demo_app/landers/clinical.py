@@ -18,12 +18,13 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import ClassVar, Optional
 
 import requests
 from kgspin_interface import (
     DOCUMENT_FETCHER_CONTRACT_VERSION,
     DocumentFetcher,
+    FetchConfig,
     FetchResult,
     FetcherError,
     FetcherNotFoundError,
@@ -44,10 +45,19 @@ from .metadata import build_source_extras, iso_utc_now
 
 
 LANDER_CLI_NAME = "kgspin-demo-lander-clinical"
-LANDER_VERSION = "2.0.0"
+LANDER_VERSION = "2.1.0"  # Wave A: FetchConfig dual-method adoption
 
 _NCT_RE = re.compile(r"^NCT[0-9]{8}$")
 _CTGOV_V2_BASE = "https://clinicaltrials.gov/api/v2"
+
+
+class ClinicalFetchConfig(FetchConfig):
+    """Typed config for :class:`ClinicalLander`."""
+
+    nct: str
+    output_root: Path | None = None
+    date: str | None = None
+    api_key: str | None = None
 
 
 @retry(
@@ -71,55 +81,62 @@ def _get_study(
 
 
 class ClinicalLander(DocumentFetcher):
-    """ClinicalTrials.gov trial fetcher.
+    """ClinicalTrials.gov trial fetcher — dual-method (Wave A / interface 0.8.1).
 
-    ``identifier`` dict shape: ``{"nct": "NCT########"}``.
+    Typed path: ``lander.fetch(nct="NCT12345678")``.
+    Wire path: ``lander.fetch_by_id({"nct": "NCT12345678"})``.
 
-    Additional kwargs:
-    - ``api_key: str`` — override ``$CLINICAL_TRIALS_API_KEY``
-    - ``output_root: Path | str``
-    - ``date: str`` — YYYY-MM-DD
+    The base class validates the wire-format dict against
+    :class:`ClinicalFetchConfig` and delegates to ``fetch(**parsed_kwargs)``.
     """
 
     name = "clinicaltrials_gov"
     version = LANDER_VERSION
     contract_version = DOCUMENT_FETCHER_CONTRACT_VERSION
+    fetch_config_cls: ClassVar[type[FetchConfig]] = ClinicalFetchConfig
+
+    DOMAIN: ClassVar[str] = "clinical"
+    SOURCE: ClassVar[str] = "clinicaltrials_gov"
 
     def fetch(
         self,
-        domain: str,
-        source: str,
-        identifier: dict[str, str],
-        **kwargs: Any,
+        *,
+        nct: str,
+        output_root: Path | None = None,
+        date: str | None = None,
+        api_key: str | None = None,
     ) -> FetchResult:
-        nct = (identifier.get("nct") or "").strip().upper()
+        nct = nct.strip().upper()
         if not _NCT_RE.fullmatch(nct):
             raise FetcherError(
                 f"ClinicalLander: invalid NCT id {nct!r} "
-                f"(expected NCT + 8 digits; identifier={identifier!r})"
+                f"(expected NCT + 8 digits)"
             )
 
-        api_key = kwargs.get("api_key") or os.environ.get("CLINICAL_TRIALS_API_KEY", "").strip() or None
+        resolved_key = (
+            api_key
+            or os.environ.get("CLINICAL_TRIALS_API_KEY", "").strip()
+            or None
+        )
 
-        raw_output_root = kwargs.get("output_root")
-        if raw_output_root:
-            output_root = Path(raw_output_root).expanduser().resolve()
-            output_root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if output_root is not None:
+            resolved_root = Path(output_root).expanduser().resolve()
+            resolved_root.mkdir(parents=True, exist_ok=True, mode=0o700)
             try:
-                output_root.chmod(0o700)
+                resolved_root.chmod(0o700)
             except PermissionError:
                 pass
         else:
-            output_root = _shared.get_corpus_root()
+            resolved_root = _shared.get_corpus_root()
 
-        date = _shared.validate_date(kwargs.get("date") or _shared.today_iso_utc())
+        resolved_date = _shared.validate_date(date or _shared.today_iso_utc())
 
         raw_path = _shared.default_artifact_path(
-            output_root,
-            domain=domain,
-            source=source,
+            resolved_root,
+            domain=self.DOMAIN,
+            source=self.SOURCE,
             identifier=nct,
-            date=date,
+            date=resolved_date,
             artifact_type="trial",
             filename="raw.json",
         )
@@ -128,7 +145,7 @@ class ClinicalLander(DocumentFetcher):
         source_url = f"{_CTGOV_V2_BASE}/studies/{nct}"
 
         try:
-            resp = _get_study(nct, api_key=api_key)
+            resp = _get_study(nct, api_key=resolved_key)
             etag = resp.headers.get("etag") or resp.headers.get("ETag")
             http_status = resp.status_code
             bytes_written = _shared.stream_to_file(
@@ -206,9 +223,7 @@ def main(argv: list[str] | None = None) -> int:
     lander = ClinicalLander()
     try:
         result = lander.fetch(
-            domain="clinical",
-            source="clinicaltrials_gov",
-            identifier={"nct": args.nct},
+            nct=args.nct,
             output_root=args.output_root,
             date=args.date,
         )
