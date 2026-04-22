@@ -186,7 +186,8 @@ def test_try_corpus_fetch_no_match(fake_registry: FakeRegistryClient) -> None:
     with pytest.raises(dc.CorpusFetchError) as exc:
         dc._try_corpus_fetch("UNKNOWN")
     assert exc.value.reason == "no landed artifact"
-    assert "kgspin-demo-lander-sec" in exc.value.actionable_hint
+    assert "SEC EDGAR" in exc.value.actionable_hint
+    assert "Auto-land attempt" in exc.value.actionable_hint
     assert exc.value.attempted  # non-empty
 
 
