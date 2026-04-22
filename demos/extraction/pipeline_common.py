@@ -231,19 +231,47 @@ def resolve_domain_bundle_path(domain_id: str) -> Path:
 def resolve_domain_yaml_path(domain_id: str) -> Path:
     """Resolve a domain source YAML via admin's bundle_source_yaml registry.
 
-    Matches by pointer filename stem (e.g. ``financial-v2.yaml`` ↔
-    ``domain_id='financial-v2'``). Raises ``FileNotFoundError`` if
-    admin has no registration for the requested stem.
+    Accepts two input shapes:
+
+    - Versioned id (``financial-v2``, ``clinical-v2``): matches by
+      pointer filename stem exactly.
+    - Bare domain (``financial``, ``clinical``): returns the most
+      recently registered YAML for that domain — newest-first by
+      ``provenance.registered_at``. Callers that want a specific
+      version pass the versioned id.
+
+    Raises ``FileNotFoundError`` if admin has no registration that matches.
     """
     domain = domain_id.split("-", 1)[0] if "-" in domain_id else domain_id
     resources = _admin_list("bundle_source_yaml", domain=domain)
+
+    is_bare_domain = ("-" not in domain_id)
+    candidates: list[Path] = []
     for r in resources:
         pointer = r.get("pointer") or {}
         value = pointer.get("value", "")
         if not value:
             continue
-        if Path(value).stem == domain_id:
-            return Path(value)
+        p = Path(value)
+        if is_bare_domain:
+            # Collect every YAML registered for this domain; we'll pick
+            # the newest after the loop.
+            candidates.append(p)
+        elif p.stem == domain_id:
+            # Versioned id — exact filename-stem match wins.
+            return p
+
+    if is_bare_domain and candidates:
+        # Newest-first via admin's registered_at. Fall back to
+        # alphabetical stem (descending) when registered_at is equal.
+        def _registered_at(path: Path) -> str:
+            for r in resources:
+                if (r.get("pointer") or {}).get("value", "") == str(path):
+                    return (r.get("provenance") or {}).get("registered_at", "")
+            return ""
+        candidates.sort(key=lambda p: (_registered_at(p), p.stem), reverse=True)
+        return candidates[0]
+
     raise FileNotFoundError(
         f"Domain YAML {domain_id!r} not registered in admin at {_admin_url()}. "
         f"Run `kgspin-admin sync archetypes <blueprint>` to register it."

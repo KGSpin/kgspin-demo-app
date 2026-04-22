@@ -1796,7 +1796,7 @@ async def compare_clinical(
         refresh_set = {"gemini", "modular", "kgen"}
     return StreamingResponse(
         _run_clinical_comparison(
-            nct_id, request, bundle_name=bundle_name,
+            doc_id, request, bundle_name=bundle_name,
             model=gem_model, chunk_size=cs,
             force_refresh=refresh_set,
             corpus_source=source,
