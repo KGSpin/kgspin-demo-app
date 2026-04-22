@@ -213,6 +213,7 @@ async function tryLoadCachedSlot(slotIdx) {
             }
             updateAnalyzeButton();
             updateSlotHistory(slotIdx);
+            if (typeof loadSlotHealth === 'function') loadSlotHealth(slotIdx);
             return;
         }
     } catch (e) {
@@ -354,6 +355,7 @@ function runSlot(slotIdx) {
             renderGraph(`slot-${slotIdx}`, d.vis, d.stats || {});
             updateAnalyzeButton();
             updateSlotHistory(slotIdx);
+            if (typeof loadSlotHealth === 'function') loadSlotHealth(slotIdx);
 
             // Sprint 05 HITL-round-2: WTM moved into the expand modal as a
             // slot-scoped "Why" tab. Nothing to show inline here any more.

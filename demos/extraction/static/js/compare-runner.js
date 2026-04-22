@@ -2594,5 +2594,406 @@ registerAction('mod-refresh', () => modRefresh());
 registerAction('kgen-refresh', () => kgenRefresh());
 
 
+// ====================================================================
+// Wave G — Multi-hop comparison + Topological Health badge & drawer
+// PRD-004 v4 #12 (viewer-first comparison UI)
+// PRD-055 #2-#5 (topology badge, drilldown drawer, RAGSearch citation)
+// ====================================================================
+
+const multihopState = {
+    scenarios: [],
+    scenarioById: {},
+    selectedScenarioId: '',
+    lastResult: null,
+    revealed: false,
+    healthBySource: {},
+};
+
+async function initMultihop() {
+    try {
+        const res = await fetch('/api/multihop/scenarios');
+        if (!res.ok) return;
+        const data = await res.json();
+        const scenarios = Array.isArray(data.scenarios) ? data.scenarios : [];
+        multihopState.scenarios = scenarios;
+        multihopState.scenarioById = Object.fromEntries(scenarios.map(s => [s.scenario_id, s]));
+        const picker = document.getElementById('multihop-scenario-picker');
+        if (!picker) return;
+        scenarios.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.scenario_id;
+            const hops = s.expected_hops ? ` · ${s.expected_hops} hops` : '';
+            opt.textContent = `[${s.domain}${hops}] ${s.question}`;
+            picker.appendChild(opt);
+        });
+        const bar = document.querySelector('.multihop-bar');
+        if (bar) bar.hidden = false;
+    } catch (e) {
+        console.warn('initMultihop failed:', e);
+    }
+}
+
+function pickMultihopScenario(el) {
+    multihopState.selectedScenarioId = el.value || '';
+    const trackEl = document.getElementById('multihop-talking-track');
+    const scenario = multihopState.scenarioById[multihopState.selectedScenarioId];
+    if (scenario && scenario.talking_track) {
+        trackEl.textContent = scenario.talking_track;
+        trackEl.hidden = false;
+    } else {
+        trackEl.textContent = '';
+        trackEl.hidden = true;
+    }
+    refreshRunMultihopButton();
+}
+
+function getCurrentDocId() {
+    const input = document.getElementById('doc-id-input');
+    return input ? input.value.trim().toUpperCase() : '';
+}
+
+function getMultihopSlotPipelines() {
+    if (typeof slotState === 'undefined' || !Array.isArray(slotState)) return [];
+    return slotState.map(s => (s && s.pipeline) ? s.pipeline : null);
+}
+
+function refreshRunMultihopButton() {
+    const btn = document.getElementById('run-multihop-btn');
+    const statusEl = document.getElementById('multihop-status');
+    if (!btn) return;
+    const pipelines = getMultihopSlotPipelines();
+    const filled = pipelines.filter(Boolean);
+    const docId = getCurrentDocId();
+    let reason = '';
+    if (!multihopState.selectedScenarioId) reason = 'Pick a scenario.';
+    else if (!docId) reason = 'Enter a ticker first.';
+    else if (filled.length < 3) reason = `Pick a pipeline in all 3 slots (${filled.length}/3).`;
+    btn.disabled = !!reason;
+    if (statusEl) statusEl.textContent = reason;
+}
+
+async function runMultihop() {
+    const scenarioId = multihopState.selectedScenarioId;
+    const docId = getCurrentDocId();
+    const pipelines = getMultihopSlotPipelines();
+    if (!scenarioId || !docId || pipelines.filter(Boolean).length < 3) {
+        refreshRunMultihopButton();
+        return;
+    }
+    const btn = document.getElementById('run-multihop-btn');
+    const statusEl = document.getElementById('multihop-status');
+    const revealBtn = document.getElementById('reveal-pipelines-btn');
+    btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Running 3 pipelines in parallel + judge…';
+    revealBtn.hidden = true;
+    multihopState.revealed = false;
+    multihopState.healthBySource = {};
+    try {
+        const res = await fetch('/api/multihop/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                doc_id: docId,
+                scenario_id: scenarioId,
+                slot_pipelines: pipelines,
+            }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+            const msg = data.error || `HTTP ${res.status}`;
+            if (statusEl) statusEl.textContent = `Run failed: ${msg}`;
+            if (typeof showToast === 'function') showToast(`Multi-hop failed: ${msg}`, 'fp');
+            return;
+        }
+        multihopState.lastResult = data;
+        renderMultihopAnswers(data);
+        // PRD-004 v4 #12: stagger the judge render so the viewer reads the
+        // 3 answers before the verdict slides in. Single-payload response,
+        // UI-side sequencing only.
+        setTimeout(() => renderJudge(data), 250);
+        revealBtn.hidden = false;
+        revealBtn.textContent = 'Reveal Pipelines';
+        if (statusEl) statusEl.textContent = 'Done.';
+    } catch (e) {
+        if (statusEl) statusEl.textContent = `Run failed: ${e.message}`;
+    } finally {
+        btn.disabled = false;
+        refreshRunMultihopButton();
+    }
+}
+
+function renderMultihopAnswers(data) {
+    const section = document.querySelector('.multihop-answers');
+    if (!section) return;
+    section.hidden = false;
+    const labels = ['A', 'B', 'C'];
+    const answers = Array.isArray(data.answers) ? data.answers : [];
+    labels.forEach((label, i) => {
+        const article = section.querySelector(`[data-answer-slot="${label}"]`);
+        if (!article) return;
+        const a = answers[i] || {};
+        article.dataset.pipeline = a.pipeline || '';
+        const reveal = article.querySelector('.pipeline-reveal');
+        const meta = (typeof PIPELINE_META !== 'undefined' && a.pipeline) ? PIPELINE_META[a.pipeline] : null;
+        reveal.textContent = meta ? meta.label : (a.pipeline || '—');
+        reveal.hidden = true;
+        const txtEl = article.querySelector('.answer-text');
+        if (a.error) {
+            txtEl.textContent = `[${a.error}]`;
+            txtEl.style.color = '#ff6b6b';
+        } else {
+            txtEl.textContent = a.answer_text || '(no answer)';
+            txtEl.style.color = '';
+        }
+        const lat = article.querySelector('.answer-latency');
+        const cost = article.querySelector('.answer-cost');
+        const tok = article.querySelector('.answer-tokens');
+        lat.textContent = a.latency_ms ? `${(a.latency_ms / 1000).toFixed(2)}s` : '';
+        cost.textContent = a.cost_usd ? `$${a.cost_usd.toFixed(4)}` : '';
+        tok.textContent = a.tokens_used ? `${a.tokens_used.toLocaleString()} tok` : '';
+        const badge = article.querySelector('.multihop-health-badge');
+        const sourceKey = `multihop:${label}`;
+        if (a.topology_health) {
+            multihopState.healthBySource[sourceKey] = {
+                health: a.topology_health,
+                title: meta ? `Answer ${label} (${meta.label})` : `Answer ${label}`,
+                pipeline: a.pipeline || '',
+            };
+            applyHealthBadge(badge, a.topology_health);
+            badge.hidden = false;
+        } else {
+            badge.hidden = true;
+        }
+    });
+}
+
+function renderJudge(data) {
+    const verdict = document.getElementById('judge-verdict');
+    if (!verdict) return;
+    const list = verdict.querySelector('.judge-ranking');
+    const errEl = verdict.querySelector('.judge-error');
+    list.innerHTML = '';
+    errEl.hidden = true;
+    errEl.textContent = '';
+    const judge = data.judge || {};
+    if (judge.error) {
+        verdict.hidden = false;
+        errEl.textContent = judge.error;
+        errEl.hidden = false;
+        return;
+    }
+    const ranking = Array.isArray(judge.ranking) ? judge.ranking : [];
+    const rationales = judge.rationales || {};
+    if (!ranking.length) { verdict.hidden = true; return; }
+    verdict.hidden = false;
+    ranking.forEach(letter => {
+        const li = document.createElement('li');
+        const pick = document.createElement('span');
+        pick.className = 'judge-rank-pick';
+        pick.textContent = `Answer ${letter}:`;
+        li.appendChild(pick);
+        li.appendChild(document.createTextNode(' ' + (rationales[letter] || '')));
+        list.appendChild(li);
+    });
+}
+
+function revealPipelines() {
+    const section = document.querySelector('.multihop-answers');
+    if (!section) return;
+    multihopState.revealed = true;
+    section.querySelectorAll('.pipeline-reveal').forEach(el => { el.hidden = false; });
+    const btn = document.getElementById('reveal-pipelines-btn');
+    if (btn) btn.textContent = 'Pipelines Revealed';
+}
+
+function applyHealthBadge(el, health) {
+    if (!el) return;
+    if (!health || typeof health.score !== 'number' || health.score < 0) {
+        el.textContent = '—';
+        el.classList.remove('health-low', 'health-mid', 'health-high');
+        return;
+    }
+    el.textContent = `${health.score}`;
+    el.classList.remove('health-low', 'health-mid', 'health-high');
+    if (health.score < 40) el.classList.add('health-low');
+    else if (health.score <= 70) el.classList.add('health-mid');
+    else el.classList.add('health-high');
+}
+
+async function loadSlotHealth(slotIdx) {
+    const badge = document.getElementById(`slot-${slotIdx}-health-badge`);
+    if (!badge) return;
+    const slot = (typeof slotState !== 'undefined') ? slotState[slotIdx] : null;
+    const pipeline = slot && slot.pipeline ? slot.pipeline : '';
+    const docId = getCurrentDocId();
+    if (!pipeline || !docId) {
+        badge.hidden = true;
+        return;
+    }
+    try {
+        const res = await fetch(`/api/topology-health/${encodeURIComponent(docId)}/${encodeURIComponent(pipeline)}`);
+        const health = await res.json();
+        applyHealthBadge(badge, health);
+        badge.hidden = false;
+        const meta = (typeof PIPELINE_META !== 'undefined') ? PIPELINE_META[pipeline] : null;
+        multihopState.healthBySource[`slot:${slotIdx}`] = {
+            health,
+            title: meta ? `Slot ${slotIdx} (${meta.label})` : `Slot ${slotIdx}`,
+            pipeline,
+        };
+    } catch (e) {
+        badge.hidden = true;
+    }
+    refreshRunMultihopButton();
+}
+
+function clearSlotHealth(slotIdx) {
+    const badge = document.getElementById(`slot-${slotIdx}-health-badge`);
+    if (badge) badge.hidden = true;
+    delete multihopState.healthBySource[`slot:${slotIdx}`];
+    refreshRunMultihopButton();
+}
+
+const HEALTH_METRIC_DEFS = [
+    {
+        key: 'connectivity',
+        name: 'Connectivity',
+        format: (v) => (typeof v === 'number') ? v.toFixed(3) : '—',
+        explain: 'Fraction of entity pairs that share a path. Closer to 1.0 means the graph is one weave; closer to 0 means islands. Multi-hop questions need high connectivity — disconnected components cannot bridge facts.',
+    },
+    {
+        key: 'bridge_density',
+        name: 'Bridge density',
+        format: (v) => (typeof v === 'number') ? v.toFixed(3) : '—',
+        explain: 'Share of edges whose removal would split the graph. Bridges are the single-link facts that join otherwise distinct topics — exactly the joints multi-hop reasoning crosses. A few load-bearing bridges is healthy; an over-bridged graph is brittle.',
+    },
+    {
+        key: 'mean_hop_length',
+        name: 'Mean hop length',
+        format: (v) => (typeof v === 'number') ? v.toFixed(2) : '—',
+        explain: 'Average shortest-path length between connected entity pairs. Tells you how many edges a typical multi-hop traversal will follow. Very short means the graph is already collapsed (LLM-style); very long means questions will exceed practical hop budgets.',
+    },
+    {
+        key: 'degree_gini',
+        name: 'Degree Gini',
+        format: (v) => (typeof v === 'number') ? v.toFixed(3) : '—',
+        explain: 'Inequality of node degree. 0 means every entity has the same number of links; 1 means one super-hub holds everything. Healthy KGs have moderate Gini — some hubs are useful, but a single-hub graph collapses to a star and breaks under hub failure.',
+    },
+];
+
+function openHealthDrawer(el) {
+    const source = el.dataset.source;
+    let key;
+    let title;
+    let pipelineNote;
+    if (source === 'slot') {
+        const slotIdx = el.dataset.slot;
+        key = `slot:${slotIdx}`;
+        const cached = multihopState.healthBySource[key];
+        title = cached ? cached.title : `Slot ${slotIdx}`;
+        pipelineNote = cached ? cached.pipeline : '';
+    } else if (source === 'multihop') {
+        const ansSlot = el.dataset.answerSlot;
+        key = `multihop:${ansSlot}`;
+        const cached = multihopState.healthBySource[key];
+        title = cached ? cached.title : `Answer ${ansSlot}`;
+        pipelineNote = cached ? cached.pipeline : '';
+    } else {
+        return;
+    }
+    const cached = multihopState.healthBySource[key];
+    const drawer = document.getElementById('health-drawer');
+    if (!drawer) return;
+    document.getElementById('health-drawer-title').textContent =
+        cached && cached.health && typeof cached.health.score === 'number' && cached.health.score >= 0
+            ? `Topological Health: ${cached.health.score}/100`
+            : 'Topological Health';
+    const sourceEl = document.getElementById('health-drawer-source');
+    if (multihopState.revealed && pipelineNote) {
+        sourceEl.textContent = `${title} · pipeline: ${pipelineNote}`;
+    } else {
+        sourceEl.textContent = title;
+    }
+    const metricsEl = document.getElementById('health-drawer-metrics');
+    const emptyEl = document.getElementById('health-drawer-empty');
+    metricsEl.innerHTML = '';
+    if (!cached || !cached.health || (typeof cached.health.score === 'number' && cached.health.score < 0)) {
+        emptyEl.hidden = false;
+        emptyEl.textContent = (cached && cached.health && cached.health.insufficient_reason)
+            ? `No score: ${cached.health.insufficient_reason}`
+            : 'No topology data available.';
+        metricsEl.style.display = 'none';
+    } else {
+        emptyEl.hidden = true;
+        metricsEl.style.display = '';
+        const h = cached.health;
+        HEALTH_METRIC_DEFS.forEach(def => {
+            const card = document.createElement('div');
+            card.className = 'health-metric-card';
+            const name = document.createElement('div');
+            name.className = 'metric-name';
+            name.textContent = def.name;
+            const value = document.createElement('div');
+            value.className = 'metric-value';
+            value.textContent = def.format(h[def.key]);
+            const explain = document.createElement('div');
+            explain.className = 'metric-explain';
+            explain.textContent = def.explain;
+            card.appendChild(name); card.appendChild(value); card.appendChild(explain);
+            metricsEl.appendChild(card);
+        });
+        const meta = document.createElement('div');
+        meta.className = 'health-metric-card';
+        meta.style.gridColumn = '1 / -1';
+        const mn = document.createElement('div');
+        mn.className = 'metric-name';
+        mn.textContent = 'Graph size';
+        const mv = document.createElement('div');
+        mv.className = 'metric-value';
+        mv.textContent = `${h.node_count} nodes · ${h.edge_count} edges`;
+        meta.appendChild(mn); meta.appendChild(mv);
+        metricsEl.appendChild(meta);
+    }
+    drawer.style.display = 'flex';
+}
+
+function closeHealthDrawer() {
+    const drawer = document.getElementById('health-drawer');
+    if (drawer) drawer.style.display = 'none';
+}
+
+registerAction('pick-multihop-scenario', (el) => pickMultihopScenario(el));
+registerAction('run-multihop', () => runMultihop());
+registerAction('reveal-pipelines', () => revealPipelines());
+registerAction('open-health-drawer', (el) => openHealthDrawer(el));
+registerAction('close-health-drawer', () => closeHealthDrawer());
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const drawer = document.getElementById('health-drawer');
+        if (drawer && drawer.style.display === 'flex') closeHealthDrawer();
+    }
+});
+
+// Refresh the Run Multi-Hop enable/disable state whenever the ticker changes
+// or a slot pipeline gets picked. We rely on existing change events bubbling.
+document.addEventListener('change', (e) => {
+    const tgt = e.target;
+    if (!tgt) return;
+    if (tgt.id === 'doc-id-input' || (tgt.classList && tgt.classList.contains('slot-pipeline-select'))) {
+        refreshRunMultihopButton();
+    }
+});
+document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'doc-id-input') refreshRunMultihopButton();
+});
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMultihop);
+} else {
+    initMultihop();
+}
+
+
 // --- Document Explorer (Sprint 90: per-node click from graph) ---
 
