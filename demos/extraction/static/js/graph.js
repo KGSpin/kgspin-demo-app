@@ -9,19 +9,18 @@ function buildFeedbackButton(pipeline, edgeId) {
     const backendType = resolveBackendType(pipeline);
     if (backendType === 'kgspin') {
         if (flagState === 'fp') {
-            return `<div style="margin-top:12px;"><button onclick="retractFeedback('${pipeline}', '${edgeId}')" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Flag</button></div>`;
+            return `<div style="margin-top:12px;"><button data-action="retract-feedback" data-pipeline="${pipeline}" data-edge-id="${edgeId}" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Flag</button></div>`;
         }
-        return `<div style="margin-top:12px;"><button onclick="openFPModal('${pipeline}', '${edgeId}')" style="width:100%;padding:8px;background:#5a2a2a;color:#ff6b6b;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Flag as Incorrect</button></div>`;
+        return `<div style="margin-top:12px;"><button data-action="open-fp-modal" data-pipeline="${pipeline}" data-edge-id="${edgeId}" style="width:100%;padding:8px;background:#5a2a2a;color:#ff6b6b;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Flag as Incorrect</button></div>`;
     } else if (backendType === 'llm') {
         if (flagState === 'fn') {
-            return `<div style="margin-top:12px;"><button onclick="retractFeedback('${pipeline}', '${edgeId}')" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Flag</button></div>`;
+            return `<div style="margin-top:12px;"><button data-action="retract-feedback" data-pipeline="${pipeline}" data-edge-id="${edgeId}" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Flag</button></div>`;
         }
-        return `<div style="margin-top:12px;"><button onclick="openFNModal('${pipeline}', '${edgeId}')" style="width:100%;padding:8px;background:#3a3017;color:#d4a017;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Save to Gold Dataset</button></div>`;
+        return `<div style="margin-top:12px;"><button data-action="open-fn-modal" data-pipeline="${pipeline}" data-edge-id="${edgeId}" style="width:100%;padding:8px;background:#3a3017;color:#d4a017;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Save to Gold Dataset</button></div>`;
     }
-    // Unknown pipeline — show both FP and FN options
     return `<div style="margin-top:12px; display:flex; gap:6px;">
-        <button onclick="openFPModal('${pipeline}', '${edgeId}')" style="flex:1;padding:8px;background:#5a2a2a;color:#ff6b6b;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Flag as Incorrect</button>
-        <button onclick="openFNModal('${pipeline}', '${edgeId}')" style="flex:1;padding:8px;background:#3a3017;color:#d4a017;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Save to Gold</button>
+        <button data-action="open-fp-modal" data-pipeline="${pipeline}" data-edge-id="${edgeId}" style="flex:1;padding:8px;background:#5a2a2a;color:#ff6b6b;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Flag as Incorrect</button>
+        <button data-action="open-fn-modal" data-pipeline="${pipeline}" data-edge-id="${edgeId}" style="flex:1;padding:8px;background:#3a3017;color:#d4a017;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Save to Gold</button>
     </div>`;
 }
 
@@ -279,34 +278,30 @@ function buildAutoFlagAlert(pipeline, type, id) {
             <div style="font-size:12px;color:#FFB347;margin-top:4px;">Reasons: ${reasonsText}</div>
             ${detailText}
             <div style="display:flex;gap:6px;margin-top:8px;">
-                <button onclick="confirmAutoFlag('${pipeline}', '${type}', '${id}')" style="flex:1;padding:6px;background:#ff6b6b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Confirm</button>
-                <button onclick="confirmAutoFlagWithEdits('${pipeline}', '${type}', '${id}')" style="flex:1;padding:6px;background:#3a3017;color:#d4a017;border:1px solid #5a4a17;border-radius:4px;cursor:pointer;font-size:12px;">Edit & Confirm</button>
-                <button onclick="dismissAutoFlag('${pipeline}', '${type}', '${id}')" style="flex:1;padding:6px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:12px;">Dismiss</button>
+                <button data-action="confirm-auto-flag" data-pipeline="${pipeline}" data-flag-type="${type}" data-flag-id="${id}" style="flex:1;padding:6px;background:#ff6b6b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Confirm</button>
+                <button data-action="confirm-auto-flag-with-edits" data-pipeline="${pipeline}" data-flag-type="${type}" data-flag-id="${id}" style="flex:1;padding:6px;background:#3a3017;color:#d4a017;border:1px solid #5a4a17;border-radius:4px;cursor:pointer;font-size:12px;">Edit & Confirm</button>
+                <button data-action="dismiss-auto-flag" data-pipeline="${pipeline}" data-flag-type="${type}" data-flag-id="${id}" style="flex:1;padding:6px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:12px;">Dismiss</button>
             </div>
         </div>`;
 }
 
 function buildEntityFeedbackButton(pipeline, nodeId) {
-    // Sprint 90: FP flagging from any graph panel (not just KGSpin)
     const key = `entity_${pipeline}_${nodeId}`;
     if (feedbackState[key]) {
-        return `<div style="margin-top:12px;"><button onclick="retractEntityFeedback('${pipeline}', '${nodeId}')" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Entity Flag</button></div>`;
+        return `<div style="margin-top:12px;"><button data-action="retract-entity-feedback" data-pipeline="${pipeline}" data-node-id="${nodeId}" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Entity Flag</button></div>`;
     }
-    // Sprint 90: FP + TP buttons from any pipeline
     return `<div style="margin-top:12px; display:flex; gap:6px;">
-        <button onclick="openEntityFPModal('${pipeline}', '${nodeId}')" style="flex:1;padding:8px;background:#5a2a2a;color:#ff6b6b;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Flag as FP</button>
-        <button onclick="flagEntityTP('${pipeline}', '${nodeId}')" style="flex:1;padding:8px;background:#1a3a1a;color:#5ED68A;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Confirm as TP</button>
+        <button data-action="open-entity-fp-modal" data-pipeline="${pipeline}" data-node-id="${nodeId}" style="flex:1;padding:8px;background:#5a2a2a;color:#ff6b6b;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Flag as FP</button>
+        <button data-action="flag-entity-tp" data-pipeline="${pipeline}" data-node-id="${nodeId}" style="flex:1;padding:8px;background:#1a3a1a;color:#5ED68A;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Confirm as TP</button>
     </div>`;
 }
 
-// Sprint 39.3: Entity-level FN (Save LLM entity to gold dataset)
 function buildEntityFNButton(pipeline, nodeId) {
-    // Sprint 90: FN flagging from any pipeline
     const key = `entity_fn_${pipeline}_${nodeId}`;
     if (feedbackState[key]) {
-        return `<div style="margin-top:12px;"><button onclick="retractEntityFeedback('${pipeline}', '${nodeId}', 'fn')" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Gold Entity</button></div>`;
+        return `<div style="margin-top:12px;"><button data-action="retract-entity-feedback" data-pipeline="${pipeline}" data-node-id="${nodeId}" data-feedback-type="fn" style="width:100%;padding:8px;background:#2a2a4e;color:#aaa;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:12px;">Retract Gold Entity</button></div>`;
     }
-    return `<div style="margin-top:6px;"><button onclick="openEntityFNModal('${pipeline}', '${nodeId}')" style="width:100%;padding:8px;background:#3a3017;color:#d4a017;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Save Entity to Gold Dataset</button></div>`;
+    return `<div style="margin-top:6px;"><button data-action="open-entity-fn-modal" data-pipeline="${pipeline}" data-node-id="${nodeId}" style="width:100%;padding:8px;background:#3a3017;color:#d4a017;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Save Entity to Gold Dataset</button></div>`;
 }
 
 function openEntityFPModal(pipeline, nodeId) {
@@ -1136,10 +1131,10 @@ function showNodeDetail(pipeline, nodeId) {
                 ? `color:${hasFeedback.type === 'fp' ? '#ff6b6b' : '#d4a017'};opacity:1`
                 : 'color:#666;opacity:0.5';
             return `<li style="display:flex;align-items:center;gap:6px;">
-                <span onclick="navigateToEdge('${pipeline}', '${e.id}')" title="Click to view relationship" style="flex:1;cursor:pointer;">
+                <span data-action="navigate-to-edge" data-pipeline="${pipeline}" data-edge-id="${e.id}" title="Click to view relationship" style="flex:1;cursor:pointer;">
                     <span class="rel-name">${e.label || '?'}</span> ${arrow} ${otherName}
                 </span>
-                <span onclick="event.stopPropagation();navigateToEdge('${pipeline}', '${e.id}')" title="Click to flag/save this relationship" style="cursor:pointer;font-size:14px;${flagStyle}">&#9873;</span>
+                <span data-action="navigate-to-edge" data-pipeline="${pipeline}" data-edge-id="${e.id}" title="Click to flag/save this relationship" style="cursor:pointer;font-size:14px;${flagStyle}">&#9873;</span>
             </li>`;
         });
         connectionsHtml = `
@@ -1277,13 +1272,13 @@ function showEdgeDetail(pipeline, edgeId) {
         <div class="detail-row">
             <div class="detail-label">Subject</div>
             <ul class="detail-connected-list">
-                <li onclick="navigateToNode('${pipeline}', ${meta.subject_id})" title="Click to view entity">${subjName}${canonBadge(subjCanonical)}</li>
+                <li data-action="navigate-to-node" data-pipeline="${pipeline}" data-node-id="${meta.subject_id}" title="Click to view entity">${subjName}${canonBadge(subjCanonical)}</li>
             </ul>
         </div>
         <div class="detail-row">
             <div class="detail-label">Object</div>
             <ul class="detail-connected-list">
-                <li onclick="navigateToNode('${pipeline}', ${meta.object_id})" title="Click to view entity">${objName}${canonBadge(objCanonical)}</li>
+                <li data-action="navigate-to-node" data-pipeline="${pipeline}" data-node-id="${meta.object_id}" title="Click to view entity">${objName}${canonBadge(objCanonical)}</li>
             </ul>
         </div>
         ${evidenceHtml}
@@ -1510,7 +1505,7 @@ function buildLegend(pipeline, visData) {
             const color = TYPE_COLORS[t] || '#AAA';
             const style = isNoise ? `background:${color}; border: 2px solid #FF4444;` : `background:${color};`;
             const label = isNoise ? `<span style="opacity:0.5">${t}</span>` : t;
-            return `<div class="legend-item" data-type="${t}" onclick="toggleEntityTypeFilter('${pipeline}','${t}')" style="cursor:pointer;"><div class="legend-dot" style="${style}"></div>${label}</div>`;
+            return `<div class="legend-item" data-type="${t}" data-action="toggle-entity-type-filter" data-pipeline="${pipeline}" style="cursor:pointer;"><div class="legend-dot" style="${style}"></div>${label}</div>`;
         }).join('');
     }
 
@@ -1519,7 +1514,7 @@ function buildLegend(pipeline, visData) {
     const relLegendEl = document.getElementById(`${pipeline}-rel-legend`);
     if (relLegendEl && relTypes.size > 0) {
         relLegendEl.innerHTML = Array.from(relTypes).map(rt =>
-            `<div class="legend-item rel-legend-item" data-rel="${rt}" onclick="toggleRelHighlight('${pipeline}','${rt}')" style="cursor:pointer;">` +
+            `<div class="legend-item rel-legend-item" data-rel="${rt}" data-action="toggle-rel-highlight" data-pipeline="${pipeline}" style="cursor:pointer;">` +
             `<div class="legend-line" style="background:${REL_COLORS[rt] || '#AAA'}"></div>${rt}</div>`
         ).join('');
     }
@@ -1584,5 +1579,21 @@ registerAction('doc-search-debounced', () => docSearchDebounced());
 registerAction('doc-search-prev', () => docSearchPrev());
 registerAction('doc-search-next', () => docSearchNext());
 registerAction('confirm-doc-viewer-selection', () => confirmDocViewerSelection());
+
+// Wave F — actions for template-string handlers (edge + entity feedback, navigation, legend filters, auto-flag)
+registerAction('retract-feedback', (el) => retractFeedback(el.dataset.pipeline, el.dataset.edgeId));
+registerAction('open-fp-modal', (el) => openFPModal(el.dataset.pipeline, el.dataset.edgeId));
+registerAction('open-fn-modal', (el) => openFNModal(el.dataset.pipeline, el.dataset.edgeId));
+registerAction('confirm-auto-flag', (el) => confirmAutoFlag(el.dataset.pipeline, el.dataset.flagType, el.dataset.flagId));
+registerAction('confirm-auto-flag-with-edits', (el) => confirmAutoFlagWithEdits(el.dataset.pipeline, el.dataset.flagType, el.dataset.flagId));
+registerAction('dismiss-auto-flag', (el) => dismissAutoFlag(el.dataset.pipeline, el.dataset.flagType, el.dataset.flagId));
+registerAction('retract-entity-feedback', (el) => retractEntityFeedback(el.dataset.pipeline, el.dataset.nodeId, el.dataset.feedbackType));
+registerAction('open-entity-fp-modal', (el) => openEntityFPModal(el.dataset.pipeline, el.dataset.nodeId));
+registerAction('flag-entity-tp', (el) => flagEntityTP(el.dataset.pipeline, el.dataset.nodeId));
+registerAction('open-entity-fn-modal', (el) => openEntityFNModal(el.dataset.pipeline, el.dataset.nodeId));
+registerAction('navigate-to-edge', (el) => navigateToEdge(el.dataset.pipeline, el.dataset.edgeId));
+registerAction('navigate-to-node', (el) => navigateToNode(el.dataset.pipeline, el.dataset.nodeId));
+registerAction('toggle-entity-type-filter', (el) => toggleEntityTypeFilter(el.dataset.pipeline, el.dataset.type));
+registerAction('toggle-rel-highlight', (el) => toggleRelHighlight(el.dataset.pipeline, el.dataset.rel));
 
 

@@ -736,7 +736,7 @@ function filterModalData() {
             const color = TYPE_COLORS[type] || '#AAA';
             const sources = (meta.sources || []).length;
             const isNoise = meta.is_noise ? ' <span style="color:#FF4444;font-size:10px;">(noise)</span>' : '';
-            html += `<tr class="data-row-clickable" onclick="toggleDataDetail(this)"><td>${escapeHtml(n.label || '')}${isNoise}</td><td><span class="type-badge" style="background:${color}33;color:${color};">${escapeHtml(type)}</span></td><td style="color:#888;">${sources}</td></tr>`;
+            html += `<tr class="data-row-clickable" data-action="toggle-data-detail"><td>${escapeHtml(n.label || '')}${isNoise}</td><td><span class="type-badge" style="background:${color}33;color:${color};">${escapeHtml(type)}</span></td><td style="color:#888;">${sources}</td></tr>`;
             html += `<tr class="data-detail-row" style="display:none;"><td colspan="3">${renderEntityDetail(n)}</td></tr>`;
         });
         html += `</tbody></table>`;
@@ -761,7 +761,7 @@ function filterModalData() {
             const pred = e.label || meta.predicate || '—';
             const method = (meta.extraction_method || '').replace(/_/g, ' ');
             const relColor = REL_COLORS[pred] || '#AAA';
-            html += `<tr class="data-row-clickable" onclick="toggleDataDetail(this)"><td>${escapeHtml(subj)}</td><td><span class="type-badge" style="background:${relColor}33;color:${relColor};">${escapeHtml(pred)}</span></td><td>${escapeHtml(obj)}</td><td style="color:#888;font-size:11px;">${escapeHtml(method)}</td></tr>`;
+            html += `<tr class="data-row-clickable" data-action="toggle-data-detail"><td>${escapeHtml(subj)}</td><td><span class="type-badge" style="background:${relColor}33;color:${relColor};">${escapeHtml(pred)}</span></td><td>${escapeHtml(obj)}</td><td style="color:#888;font-size:11px;">${escapeHtml(method)}</td></tr>`;
             html += `<tr class="data-detail-row" style="display:none;"><td colspan="4">${renderRelDetail(e)}</td></tr>`;
         });
         html += `</tbody></table>`;
@@ -1357,6 +1357,9 @@ registerAction('switch-modal-tab', (el) => switchModalTab(el.dataset.modalTab));
 registerAction('filter-modal-data', () => filterModalData());
 registerAction('trigger-modal-why-this-matters', () => triggerModalWhyThisMatters());
 registerAction('run-modal-intelligence', () => runModalIntelligence());
+
+// Wave F — action for toggle-data-detail (passes the row element itself)
+registerAction('toggle-data-detail', (el) => toggleDataDetail(el));
 
 
 // ============================================================

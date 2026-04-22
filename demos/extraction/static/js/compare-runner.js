@@ -485,10 +485,10 @@ function renderFlagExplorer() {
     if (autoItems.length) {
         const bulkBar = `<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
             <label style="font-size:12px;color:#aaa;cursor:pointer;display:flex;align-items:center;gap:4px;">
-                <input type="checkbox" id="auto-flag-select-all" onchange="toggleAllAutoFlags(this.checked)" style="width:14px;height:14px;cursor:pointer;">All
+                <input type="checkbox" id="auto-flag-select-all" data-change-action="toggle-all-auto-flags" style="width:14px;height:14px;cursor:pointer;">All
             </label>
-            <button onclick="bulkConfirmAutoFlags()" style="padding:3px 10px;background:#2a3a2a;color:#4DD4C0;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;">Confirm Selected</button>
-            <button onclick="bulkDismissAutoFlags()" style="padding:3px 10px;background:#2a2a2e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Dismiss Selected</button>
+            <button data-action="bulk-confirm-auto-flags" style="padding:3px 10px;background:#2a3a2a;color:#4DD4C0;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;">Confirm Selected</button>
+            <button data-action="bulk-dismiss-auto-flags" style="padding:3px 10px;background:#2a2a2e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Dismiss Selected</button>
         </div>`;
         autoList.innerHTML = bulkBar + autoItems.map(({ key, entry }) => renderFlagItem(key, entry)).join('');
     } else {
@@ -510,9 +510,6 @@ function renderFlagItem(key, entry) {
     const typeLabels = { fp: 'FP Edge', entity_fp: 'FP Entity', fn: 'FN Edge', entity_fn: 'FN Entity', entity_tp: 'TP Entity', auto_fp: 'AI Suggested', auto_entity_fp: 'AI Entity', auto_edge_fp: 'AI Edge', auto_tp: 'AI Gold' };
     const color = typeColors[entry.type] || '#aaa';
     const label = typeLabels[entry.type] || entry.type;
-    const goTo = parsed.isNode
-        ? `goToFlag('${parsed.pipeline}', 'node', ${parsed.id})`
-        : `goToFlag('${parsed.pipeline}', 'edge', '${parsed.id}')`;
 
     let detailHtml = '';
     if (entry.entity_type) detailHtml += `<span style="font-size:10px;color:#4DD4C0;background:#4DD4C022;border:1px solid #4DD4C044;border-radius:3px;padding:1px 5px;margin-right:4px;">${entry.entity_type}</span>`;
@@ -532,20 +529,18 @@ function renderFlagItem(key, entry) {
 
     const isAuto = entry.type === 'auto_fp' || entry.type === 'auto_entity_fp' || entry.type === 'auto_edge_fp';
     const isAutoTP = entry.type === 'auto_tp';
-    const idArg = typeof parsed.id === 'string' ? "'" + parsed.id + "'" : parsed.id;
     const typeArg = parsed.isNode ? 'node' : 'edge';
 
     let actionHtml = '';
     if (isAutoTP) {
-        // AI-selected gold candidate: confirm saves as TP, dismiss removes
-        actionHtml += `<button onclick="confirmAutoTP('${key.replace(/'/g, "\\'")}')" style="padding:4px 10px;background:#2a3a2a;color:#d4a017;border:1px solid #4a5a20;border-radius:4px;cursor:pointer;font-size:11px;">Confirm Gold</button>`;
-        actionHtml += ` <button onclick="dismissAutoTP('${key.replace(/'/g, "\\'")}')" style="padding:4px 10px;background:#2a2a2e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Dismiss</button>`;
+        actionHtml += `<button data-action="confirm-auto-tp" data-key="${escapeHtml(key)}" style="padding:4px 10px;background:#2a3a2a;color:#d4a017;border:1px solid #4a5a20;border-radius:4px;cursor:pointer;font-size:11px;">Confirm Gold</button>`;
+        actionHtml += ` <button data-action="dismiss-auto-tp" data-key="${escapeHtml(key)}" style="padding:4px 10px;background:#2a2a2e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Dismiss</button>`;
     } else {
-        actionHtml = `<button onclick="${goTo}" style="padding:4px 10px;background:${color}22;color:${color};border:1px solid ${color}44;border-radius:4px;cursor:pointer;font-size:11px;">Go To</button>`;
+        actionHtml = `<button data-action="go-to-flag" data-pipeline="${parsed.pipeline}" data-flag-type="${typeArg}" data-flag-id="${parsed.id}" style="padding:4px 10px;background:${color}22;color:${color};border:1px solid ${color}44;border-radius:4px;cursor:pointer;font-size:11px;">Go To</button>`;
         if (isAuto) {
-            actionHtml += ` <button onclick="confirmAutoFlag('${parsed.pipeline}', '${typeArg}', ${idArg})" style="padding:4px 10px;background:#2a3a2a;color:#4DD4C0;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;">Confirm</button>`;
-            actionHtml += ` <button onclick="confirmAutoFlagWithEdits('${parsed.pipeline}', '${typeArg}', ${idArg})" style="padding:4px 10px;background:#2a3a2a;color:#d4a017;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;">Edit</button>`;
-            actionHtml += ` <button onclick="dismissAutoFlag('${parsed.pipeline}', '${typeArg}', ${idArg})" style="padding:4px 10px;background:#2a2a2e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Dismiss</button>`;
+            actionHtml += ` <button data-action="confirm-auto-flag" data-pipeline="${parsed.pipeline}" data-flag-type="${typeArg}" data-flag-id="${parsed.id}" style="padding:4px 10px;background:#2a3a2a;color:#4DD4C0;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;">Confirm</button>`;
+            actionHtml += ` <button data-action="confirm-auto-flag-with-edits" data-pipeline="${parsed.pipeline}" data-flag-type="${typeArg}" data-flag-id="${parsed.id}" style="padding:4px 10px;background:#2a3a2a;color:#d4a017;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;">Edit</button>`;
+            actionHtml += ` <button data-action="dismiss-auto-flag" data-pipeline="${parsed.pipeline}" data-flag-type="${typeArg}" data-flag-id="${parsed.id}" style="padding:4px 10px;background:#2a2a2e;color:#aaa;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Dismiss</button>`;
         }
     }
 
@@ -690,7 +685,7 @@ function renderStoredFeedbackItem(entry, feedbackType) {
     }
 
     const feedbackId = entry.id || '';
-    const retractBtn = `<button onclick="retractStoredFeedback('${feedbackId}', this)" style="padding:4px 10px;background:#2a2a2e;color:#ff6b6b;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Retract</button>`;
+    const retractBtn = `<button data-action="retract-stored-feedback" data-feedback-id="${escapeHtml(feedbackId)}" style="padding:4px 10px;background:#2a2a2e;color:#ff6b6b;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;">Retract</button>`;
 
     return `<div style="padding:8px 12px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">
         <span style="background:${color}22;color:${color};border:1px solid ${color}44;border-radius:4px;padding:2px 8px;font-size:11px;white-space:nowrap;">${label}</span>
@@ -765,10 +760,10 @@ function gemRefresh() {
             statsEl.innerHTML += `<div style="color:#5ED68A; font-size:11px; margin-top:4px;">&#9889; ${d.stats.throughput_kb_sec.toFixed(1)} KB/sec</div>`;
         }
         if (d.errors > 0) {
-            statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" onclick="gemRefresh()">&#8635; Retry</button></div>`;
+            statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" data-action="gem-refresh">&#8635; Retry</button></div>`;
         }
         if (d.truncated) {
-            statsEl.innerHTML += `<div class="error-badge" style="background:#3a2a15; border-color:#5a4a20;">\u26A0 LLM Output Truncated: Graph incomplete \u2014 try a more powerful model. <button class="retry-btn" onclick="gemRefresh()" style="margin-left:8px;">&#8635; Retry</button></div>`;
+            statsEl.innerHTML += `<div class="error-badge" style="background:#3a2a15; border-color:#5a4a20;">\u26A0 LLM Output Truncated: Graph incomplete \u2014 try a more powerful model. <button class="retry-btn" data-action="gem-refresh" style="margin-left:8px;">&#8635; Retry</button></div>`;
         }
         if (typeof d.total_runs === 'number') {
             gemRunState.currentIndex = 0;
@@ -796,7 +791,7 @@ function gemRefresh() {
             updateStepState('compare', 'gem-refresh', d.message || 'LLM Full Shot failed', 'error');
             document.getElementById('gemini-graph').innerHTML =
                 `<div class="placeholder">${d.message || 'Extraction failed'}` +
-                `<br><button class="retry-btn" onclick="gemRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+                `<br><button class="retry-btn" data-action="gem-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
         }
         gemRefreshBtn.disabled = false;
     });
@@ -806,7 +801,7 @@ function gemRefresh() {
         updateStepState('compare', 'gem-refresh', 'LLM Full Shot \u2717', 'error');
         document.getElementById('gemini-graph').innerHTML =
             `<div class="placeholder">Connection lost` +
-            `<br><button class="retry-btn" onclick="gemRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+            `<br><button class="retry-btn" data-action="gem-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
         refreshSource.close();
         gemRefreshBtn.disabled = false;
     };
@@ -864,7 +859,7 @@ function modRefresh() {
             statsEl.innerHTML += `<div style="color:#5ED68A; font-size:11px; margin-top:4px;">&#9889; ${d.stats.throughput_kb_sec.toFixed(1)} KB/sec</div>`;
         }
         if (d.errors > 0) {
-            statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" onclick="modRefresh()">&#8635; Retry</button></div>`;
+            statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" data-action="mod-refresh">&#8635; Retry</button></div>`;
         }
         // Sprint 33.6: Partial results badge
         if (d.stats.chunks_completed && d.stats.chunks_total && d.stats.chunks_completed < d.stats.chunks_total) {
@@ -906,7 +901,7 @@ function modRefresh() {
             updateStepState('compare', 'mod-refresh', d.message || 'LLM Multi-Stage failed', 'error');
             document.getElementById('modular-graph').innerHTML =
                 `<div class="placeholder">${d.message || 'Extraction failed'}` +
-                `<br><button class="retry-btn" onclick="modRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+                `<br><button class="retry-btn" data-action="mod-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
             document.getElementById('modular-progress').style.display = 'none';
             document.getElementById('mod-cancel').style.display = 'none';
         }
@@ -918,7 +913,7 @@ function modRefresh() {
         updateStepState('compare', 'mod-refresh', 'LLM Multi-Stage \u2717', 'error');
         document.getElementById('modular-graph').innerHTML =
             `<div class="placeholder">Connection lost` +
-            `<br><button class="retry-btn" onclick="modRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+            `<br><button class="retry-btn" data-action="mod-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
         refreshSource.close();
         modRefreshBtn.disabled = false;
     };
@@ -992,7 +987,7 @@ function kgenRefresh() {
             updateStepState('compare', 'kgen-refresh', d.message || 'KGSpin failed', 'error');
             document.getElementById('kgenskills-graph').innerHTML =
                 `<div class="placeholder">${d.message || 'Extraction failed'}` +
-                `<br><button class="retry-btn" onclick="kgenRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+                `<br><button class="retry-btn" data-action="kgen-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
         }
         kgenRefreshBtn.disabled = false;
     });
@@ -1002,7 +997,7 @@ function kgenRefresh() {
         updateStepState('compare', 'kgen-refresh', 'KGSpin \u2717', 'error');
         document.getElementById('kgenskills-graph').innerHTML =
             `<div class="placeholder">Connection lost` +
-            `<br><button class="retry-btn" onclick="kgenRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+            `<br><button class="retry-btn" data-action="kgen-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
         refreshSource.close();
         kgenRefreshBtn.disabled = false;
     };
@@ -1226,7 +1221,7 @@ function startComparisonForTicker(ticker, forceRefresh) {
                 }
             }
             if (d.errors > 0) {
-                statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" onclick="modRefresh()">&#8635; Retry</button></div>`;
+                statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" data-action="mod-refresh">&#8635; Retry</button></div>`;
             }
             // Sprint 33.6: Partial results badge
             if (d.stats && d.stats.chunks_completed && d.stats.chunks_total && d.stats.chunks_completed < d.stats.chunks_total) {
@@ -1249,11 +1244,11 @@ function startComparisonForTicker(ticker, forceRefresh) {
                 }
             }
             if (d.errors > 0) {
-                statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" onclick="gemRefresh()">&#8635; Retry</button></div>`;
+                statsEl.innerHTML += `<div class="error-badge">\u26A0 ${d.errors} Throttled by Provider <button class="retry-btn" data-action="gem-refresh">&#8635; Retry</button></div>`;
             }
             // Sprint 33.3: VP Refinement #4 — truncation warning
             if (d.truncated) {
-                statsEl.innerHTML += `<div class="error-badge" style="background:#3a2a15; border-color:#5a4a20;">\u26A0 LLM Output Truncated: Graph incomplete \u2014 try a more powerful model. <button class="retry-btn" onclick="gemRefresh()" style="margin-left:8px;">&#8635; Retry</button></div>`;
+                statsEl.innerHTML += `<div class="error-badge" style="background:#3a2a15; border-color:#5a4a20;">\u26A0 LLM Output Truncated: Graph incomplete \u2014 try a more powerful model. <button class="retry-btn" data-action="gem-refresh" style="margin-left:8px;">&#8635; Retry</button></div>`;
             }
         }
         updateComparisonMatrix();
@@ -1280,13 +1275,13 @@ function startComparisonForTicker(ticker, forceRefresh) {
             if (d.recoverable && d.pipeline === 'gemini') {
                 document.getElementById('gemini-graph').innerHTML =
                     `<div class="placeholder">${d.message}` +
-                    `<br><button class="retry-btn" onclick="gemRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+                    `<br><button class="retry-btn" data-action="gem-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
                 gemRunState.docId = gemRunState.docId || document.getElementById('doc-id-input').value.toUpperCase();
             }
             if (d.recoverable && d.pipeline === 'modular') {
                 document.getElementById('modular-graph').innerHTML =
                     `<div class="placeholder">${d.message}` +
-                    `<br><button class="retry-btn" onclick="modRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
+                    `<br><button class="retry-btn" data-action="mod-refresh" style="margin-top:12px;">&#8635; Retry</button></div>`;
                 modRunState.docId = modRunState.docId || document.getElementById('doc-id-input').value.toUpperCase();
             }
         } else {
@@ -2582,6 +2577,21 @@ registerAction('run-slot-qa', () => runSlotQA());
 registerAction('run-auto-flag', () => runAutoFlag());
 registerAction('load-stored-feedback', () => loadStoredFeedback());
 registerAction('bulk-retract-all', () => bulkRetractAll());
+
+// Wave F — actions for template-string handlers (auto-flag bulk/row buttons, retry buttons)
+registerAction('toggle-all-auto-flags', (el) => toggleAllAutoFlags(el.checked));
+registerAction('bulk-confirm-auto-flags', () => bulkConfirmAutoFlags());
+registerAction('bulk-dismiss-auto-flags', () => bulkDismissAutoFlags());
+registerAction('confirm-auto-tp', (el) => confirmAutoTP(el.dataset.key));
+registerAction('dismiss-auto-tp', (el) => dismissAutoTP(el.dataset.key));
+registerAction('go-to-flag', (el) => {
+    const id = el.dataset.flagType === 'node' ? parseInt(el.dataset.flagId, 10) : el.dataset.flagId;
+    goToFlag(el.dataset.pipeline, el.dataset.flagType, id);
+});
+registerAction('retract-stored-feedback', (el) => retractStoredFeedback(el.dataset.feedbackId, el));
+registerAction('gem-refresh', () => gemRefresh());
+registerAction('mod-refresh', () => modRefresh());
+registerAction('kgen-refresh', () => kgenRefresh());
 
 
 // --- Document Explorer (Sprint 90: per-node click from graph) ---
