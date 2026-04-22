@@ -24,7 +24,7 @@ def _sentinel(reason: str) -> dict:
         "score": -1,
         "connectivity": 0.0,
         "bridge_density": 0.0,
-        "mean_hop_length": float("inf"),
+        "mean_hop_length": None,
         "degree_gini": 0.0,
         "node_count": 0,
         "edge_count": 0,

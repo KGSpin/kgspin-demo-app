@@ -2453,6 +2453,224 @@ async def multihop_scenarios():
     })
 
 
+# Pipeline -> _kg_cache field. The KG-side strategies (fan_out and the
+# discovery_* variants) all land in ``kgs_kg``; the LLM-side ones land in
+# ``gem_kg`` (agentic_flash) and ``mod_kg`` (agentic_analyst).
+_MULTIHOP_PIPELINE_TO_CACHE_KEY = {
+    "fan_out": "kgs_kg",
+    "discovery_rapid": "kgs_kg",
+    "discovery_deep": "kgs_kg",
+    "agentic_flash": "gem_kg",
+    "agentic_analyst": "mod_kg",
+}
+
+# Pipelines whose answers we score via a micro-graph built from the answer
+# text itself (PRD-055 #3 "LLM-side score"). KG-side pipelines instead score
+# the cached extraction directly.
+_MULTIHOP_LLM_PIPELINES = {"agentic_flash", "agentic_analyst"}
+
+_MULTIHOP_JUDGE_ALIAS = "gemini-flash-2.5"
+_MULTIHOP_ANSWER_ALIAS = "gemini-flash-2.5"
+_MULTIHOP_PER_CALL_TIMEOUT_S = 60.0
+
+
+def _multihop_cost_usd(model: str, tokens_used: int) -> float:
+    """Best-effort cost estimate. We don't break input vs. output here so
+    we apply the more conservative output rate; the badge is indicative,
+    not invoice-grade. Returns 0.0 for unknown / preview models."""
+    pricing = GEMINI_MODEL_PRICING.get(model or "", {})
+    rate = pricing.get("output", 0.0)
+    if not rate or not tokens_used:
+        return 0.0
+    return round((tokens_used / 1_000_000.0) * rate, 6)
+
+
+@app.post("/api/multihop/run")
+async def multihop_run(request: Request):
+    """PRD-004 v4 #10: parallel fan-out across three slot pipelines for a
+    single multi-hop scenario, with topology-health scoring per answer
+    and a blinded LLM-as-judge ranking on top.
+
+    Body: ``{doc_id, scenario_id, slot_pipelines: [name, name, name]}``.
+    Pipelines must be canonical strategy names (``fan_out``,
+    ``agentic_flash``, ``agentic_analyst``, etc). The three answer tasks
+    run via ``asyncio.gather`` — deliberately no inter-call sleep
+    because the demo narrative depends on parallel dispatch. Per-call
+    timeout (``_MULTIHOP_PER_CALL_TIMEOUT_S``) prevents one hung pipeline
+    from blocking the others.
+    """
+    from demos.extraction.judge import JudgeParseError, rank_answers
+    from demos.extraction.scenarios import get_scenario, scenario_to_dict
+    from kgspin_demo_app.services.micrograph import build_micrograph_from_answer
+    from kgspin_demo_app.services.topology_health import health_for_kg
+
+    body = await request.json()
+    doc_id = (body.get("doc_id") or "").strip()
+    scenario_id = (body.get("scenario_id") or "").strip()
+    slot_pipelines = body.get("slot_pipelines") or []
+
+    if not doc_id:
+        return JSONResponse({"error": "doc_id required"}, status_code=400)
+    if not scenario_id:
+        return JSONResponse({"error": "scenario_id required"}, status_code=400)
+    if not isinstance(slot_pipelines, list) or len(slot_pipelines) != 3:
+        return JSONResponse(
+            {"error": "slot_pipelines must be a list of exactly 3 pipeline names"},
+            status_code=400,
+        )
+    unknown = [p for p in slot_pipelines if p not in _MULTIHOP_PIPELINE_TO_CACHE_KEY]
+    if unknown:
+        return JSONResponse(
+            {
+                "error": f"unknown pipeline(s): {unknown}; allowed: "
+                f"{sorted(_MULTIHOP_PIPELINE_TO_CACHE_KEY)}"
+            },
+            status_code=400,
+        )
+
+    try:
+        scenario = get_scenario(scenario_id)
+    except KeyError:
+        return JSONResponse(
+            {"error": f"unknown scenario: {scenario_id!r}"}, status_code=404
+        )
+
+    ticker = doc_id.upper()
+    with _cache_lock:
+        cached = dict(_kg_cache.get(ticker, {}))
+    if not cached:
+        return JSONResponse(
+            {"error": f"no cached data for {ticker}; run an extraction first"},
+            status_code=404,
+        )
+
+    domain_role = "clinical research analyst" if scenario.domain == "clinical" else "financial analyst"
+
+    def _run_one(pipeline_name: str) -> dict:
+        cache_key = _MULTIHOP_PIPELINE_TO_CACHE_KEY[pipeline_name]
+        kg = cached.get(cache_key)
+        if not kg:
+            return {
+                "pipeline": pipeline_name,
+                "answer_text": None,
+                "error": f"no cached KG for {pipeline_name}; rerun the slot first",
+                "latency_ms": 0,
+                "cost_usd": 0.0,
+                "tokens_used": 0,
+                "topology_health": None,
+            }
+        kg_context = _build_kg_context_string(kg)
+        prompt = (
+            f"You are a {domain_role} answering a multi-hop question using a "
+            f"structured knowledge graph.\n\n"
+            f"## Knowledge Graph Context\n{kg_context}\n\n"
+            f"## Question\n{scenario.question}\n\n"
+            f"Answer factually using only the knowledge graph above. "
+            f"If the graph does not contain enough information to answer, "
+            f"state precisely what is missing."
+        )
+        from kgspin_demo_app.llm_backend import resolve_llm_backend
+
+        try:
+            backend = resolve_llm_backend(
+                llm_alias=_MULTIHOP_ANSWER_ALIAS, flow="multihop_run"
+            )
+            t0 = time.perf_counter()
+            result = backend.complete(prompt)
+            latency_ms = int((time.perf_counter() - t0) * 1000)
+        except Exception as e:
+            return {
+                "pipeline": pipeline_name,
+                "answer_text": None,
+                "error": f"answer call failed: {type(e).__name__}: {e}",
+                "latency_ms": 0,
+                "cost_usd": 0.0,
+                "tokens_used": 0,
+                "topology_health": None,
+            }
+        text = (result.text or "").strip()
+        tokens = int(getattr(result, "tokens_used", 0) or 0)
+        model_used = getattr(result, "model", "") or ""
+        if pipeline_name in _MULTIHOP_LLM_PIPELINES:
+            topology_health = health_for_kg(build_micrograph_from_answer(text))
+        else:
+            topology_health = health_for_kg(kg)
+        return {
+            "pipeline": pipeline_name,
+            "answer_text": text,
+            "latency_ms": latency_ms,
+            "cost_usd": _multihop_cost_usd(model_used, tokens),
+            "tokens_used": tokens,
+            "topology_health": topology_health,
+        }
+
+    async def _run_one_with_timeout(pipeline_name: str) -> dict:
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(_run_one, pipeline_name),
+                timeout=_MULTIHOP_PER_CALL_TIMEOUT_S,
+            )
+        except asyncio.TimeoutError:
+            return {
+                "pipeline": pipeline_name,
+                "answer_text": None,
+                "error": f"timed out after {_MULTIHOP_PER_CALL_TIMEOUT_S:.0f}s",
+                "latency_ms": int(_MULTIHOP_PER_CALL_TIMEOUT_S * 1000),
+                "cost_usd": 0.0,
+                "tokens_used": 0,
+                "topology_health": None,
+            }
+
+    answers = await asyncio.gather(
+        *(_run_one_with_timeout(p) for p in slot_pipelines)
+    )
+
+    answer_texts = [a.get("answer_text") for a in answers]
+    valid_count = sum(1 for t in answer_texts if t)
+    if valid_count == 3:
+        try:
+            verdict = await asyncio.to_thread(
+                rank_answers, scenario.question, answer_texts
+            )
+            judge = verdict.to_dict()
+        except JudgeParseError as e:
+            judge = {"error": f"judge parse failed: {e}"}
+        except Exception as e:
+            judge = {"error": f"judge call failed: {type(e).__name__}: {e}"}
+    else:
+        judge = {
+            "error": f"only {valid_count}/3 valid answers; judge skipped",
+        }
+
+    return JSONResponse({
+        "scenario": scenario_to_dict(scenario),
+        "answers": answers,
+        "judge": judge,
+    })
+
+
+@app.get("/api/topology-health/{doc_id}/{pipeline}")
+async def topology_health(doc_id: str, pipeline: str):
+    """PRD-055 #1: stateless score over a slot's cached KG.
+
+    Returns the same shape as ``health_for_kg`` (TopologicalHealth dict
+    or sentinel). Slot panels call this on render to populate the
+    badge; the multi-hop endpoint computes the same score inline.
+    """
+    from kgspin_demo_app.services.topology_health import health_for_kg
+
+    cache_key = _MULTIHOP_PIPELINE_TO_CACHE_KEY.get(pipeline) or _SLOT_PIPELINE_TO_CACHE_KEY.get(pipeline)
+    if not cache_key:
+        return JSONResponse(
+            {"error": f"unknown pipeline: {pipeline}"}, status_code=400
+        )
+    ticker = doc_id.upper()
+    with _cache_lock:
+        cached = dict(_kg_cache.get(ticker, {}))
+    kg = cached.get(cache_key) if cached else None
+    return JSONResponse(health_for_kg(kg))
+
+
 @app.get("/api/impact/{doc_id}")
 async def impact(
     doc_id: str, request: Request,
