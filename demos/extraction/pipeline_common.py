@@ -322,9 +322,22 @@ except (FileNotFoundError, Exception) as _bundle_err:
         _admin_url(), _bundle_err,
     )
     BUNDLE_PATH = None  # type: ignore[assignment]
-# Prefer tuned YAML if it exists, otherwise fall back to sample patterns
-_tuned_yaml = PROJECT_ROOT / "bundles" / "legacy" / "financial-structural-v5.0.yaml"
-PATTERNS_PATH = _tuned_yaml if _tuned_yaml.exists() else PROJECT_ROOT / "bundles" / "legacy" / "financial.yaml"
+# Wave A: `bundles/legacy/` tree retired. Financial patterns YAML now
+# resolves via admin-backed domain YAML lookup; if admin can't supply one,
+# the module-level default is None and downstream consumers must pass
+# a split-bundle-resolved path explicitly.
+try:
+    PATTERNS_PATH: Path | None = resolve_domain_yaml_path("financial")
+except FileNotFoundError as _patterns_err:
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "No financial patterns YAML resolved at import — admin reports no "
+        "matching resource. Split-bundle UI paths still work; endpoints "
+        "that rely on the module-level default will raise at call time. "
+        "Error: %s",
+        _patterns_err,
+    )
+    PATTERNS_PATH = None
 
 
 # --- Self-Cleaning Entity Filters ---

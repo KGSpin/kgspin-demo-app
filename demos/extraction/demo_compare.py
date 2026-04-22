@@ -2067,9 +2067,21 @@ async def refresh_all_domain_news(
         DONE_SENTINEL = ("__done__", "")
 
         async def _drive(kind: str, args: list[str], rk: tuple[str, str, dict[str, str]]):
-            async for ev in _run_lander_subprocess(kind, args, registry_key=rk):
-                await queue.put((kind, ev))
-            await queue.put(DONE_SENTINEL)
+            try:
+                async for ev in _run_lander_subprocess(kind, args, registry_key=rk):
+                    await queue.put((kind, ev))
+            except Exception as e:
+                # A child lander subprocess generator raised. Surface it
+                # as a structured SSE error event so the parent fan-out
+                # doesn't hang waiting for DONE_SENTINEL.
+                logger.exception("Lander driver failed: kind=%s", kind)
+                await queue.put((kind, sse_event("error", {
+                    "step": f"lander:{kind}",
+                    "message": f"{kind} lander failed: {e}",
+                    "recoverable": False,
+                })))
+            finally:
+                await queue.put(DONE_SENTINEL)
 
         tasks = [
             _asyncio.create_task(_drive(kind, args, rk))
@@ -3727,7 +3739,7 @@ async def slot_cache_check(ticker: str, pipeline: str = "", bundle: str = "", st
         bundle_path = resolve_bundle_path(bundle)
     # For clinical domain, use clinical patterns
     if ticker.startswith("NCT"):
-        _patterns = Path(__file__).resolve().parent.parent.parent / "bundles" / "legacy" / "clinical.yaml"
+        _patterns = resolve_domain_yaml_path("clinical")
         if not bundle:
             bundle_name = "clinical-v2"
             bundle_path = resolve_bundle_path(bundle_name)
@@ -7202,6 +7214,12 @@ async def _run_kgen_refresh(
         except asyncio.TimeoutError:
             yield ": heartbeat\n\n"
             await asyncio.sleep(0)
+        except Exception:
+            # Task raised a non-timeout exception. Break out so the
+            # structured handler on task.result() below catches and
+            # emits a proper SSE error event — otherwise the exception
+            # escapes the async-gen and severs the stream.
+            break
         if await request.is_disconnected():
             kgs_task.cancel()
             return
@@ -7569,6 +7587,8 @@ async def run_single_refresh(
             except asyncio.TimeoutError:
                 yield ": heartbeat\n\n"
                 await asyncio.sleep(0)
+            except Exception:
+                break
             if await request.is_disconnected():
                 modular_task.cancel()
                 return
@@ -7860,7 +7880,7 @@ async def _run_clinical_comparison(
         # Legacy gold path needs the clinical patterns YAML + ClinicalCorpusPlugin
         # document context for cache backfill. Tolerate import failure
         # gracefully — the kgenskills package may be gone post-split.
-        _clinical_patterns = Path(__file__).resolve().parent.parent.parent / "bundles" / "legacy" / "clinical.yaml"
+        _clinical_patterns = resolve_domain_yaml_path("clinical")
         try:
             from kgenskills.domains.clinical.plugin import ClinicalCorpusPlugin as _CCP
             _clinical_doc_ctx = _CCP.build_document_context(gold_data, nct_id)
@@ -8072,8 +8092,22 @@ async def _run_clinical_comparison(
             except asyncio.TimeoutError:
                 if kgen_task.done():
                     kgen_done = True
+            except Exception:
+                # Non-timeout task exception — break so the structured
+                # handler below surfaces a proper SSE error event.
+                kgen_done = True
 
-        kgen_result = await kgen_task
+        try:
+            kgen_result = await kgen_task
+        except Exception as e:
+            logger.exception("Clinical KGSpin pipeline failed")
+            yield sse_event("error", {
+                "step": "kgenskills", "pipeline": "kgenskills",
+                "message": f"KGSpin extraction failed: {e}",
+                "recoverable": False,
+            })
+            yield sse_event("done", {"total_duration_ms": int((time.time() - kgs_t0) * 1000)})
+            return
         kgs_elapsed = (time.time() - kgs_t0)
         # Sprint 79: Inject clinical document_context
         if _clinical_doc_ctx and "document_context" not in kgen_result:
@@ -9085,6 +9119,8 @@ async def run_intelligence(
                 except asyncio.TimeoutError:
                     yield ": heartbeat\n\n"
                     await asyncio.sleep(0)
+                except Exception:
+                    break
                 if await request.is_disconnected():
                     sec_task.cancel()
                     return
@@ -9104,7 +9140,17 @@ async def run_intelligence(
                     })
                 await asyncio.sleep(0)
 
-            sec_kg = sec_task.result()
+            try:
+                sec_kg = sec_task.result()
+            except Exception as e:
+                logger.exception("Intelligence SEC extraction failed")
+                yield sse_event("error", {
+                    "step": "extraction", "pipeline": "intelligence",
+                    "message": f"SEC extraction failed: {e}",
+                    "recoverable": False,
+                })
+                yield sse_event("done", {"total_duration_ms": int((time.time() - t0) * 1000)})
+                return
             duration = int((time.time() - t0) * 1000)
             sec_ents = len(sec_kg.get("entities", []))
             sec_rels = len(sec_kg.get("relationships", []))
@@ -9202,6 +9248,8 @@ async def run_intelligence(
                 except asyncio.TimeoutError:
                     yield ": heartbeat\n\n"
                     await asyncio.sleep(0)
+                except Exception:
+                    break
                 if await request.is_disconnected():
                     news_task.cancel()
                     return
@@ -9229,7 +9277,17 @@ async def run_intelligence(
                     })
                 await asyncio.sleep(0)
 
-            article_kgs = news_task.result()
+            try:
+                article_kgs = news_task.result()
+            except Exception as e:
+                logger.exception("Intelligence news extraction failed")
+                yield sse_event("error", {
+                    "step": "news_extraction", "pipeline": "intelligence",
+                    "message": f"News extraction failed: {e}",
+                    "recoverable": False,
+                })
+                yield sse_event("done", {"total_duration_ms": int((time.time() - t0) * 1000)})
+                return
             duration = int((time.time() - t0) * 1000)
             yield sse_event("step_complete", {
                 "step": "news_extraction",
@@ -9318,6 +9376,8 @@ async def run_intelligence(
             except asyncio.TimeoutError:
                 yield ": heartbeat\n\n"
                 await asyncio.sleep(0)
+            except Exception:
+                break
             if await request.is_disconnected():
                 extraction_task.cancel()
                 return
@@ -9345,7 +9405,17 @@ async def run_intelligence(
                 })
             await asyncio.sleep(0)
 
-        article_kgs = extraction_task.result()
+        try:
+            article_kgs = extraction_task.result()
+        except Exception as e:
+            logger.exception("Intelligence cached-path article extraction failed")
+            yield sse_event("error", {
+                "step": "extraction", "pipeline": "intelligence",
+                "message": f"Article extraction failed: {e}",
+                "recoverable": False,
+            })
+            yield sse_event("done", {"total_duration_ms": int((time.time() - t0) * 1000)})
+            return
 
         # Merge: cached SEC KG + all per-article news KGs
         kgs_kg = cached_kgs_kg

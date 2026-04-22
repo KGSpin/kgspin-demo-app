@@ -1154,7 +1154,7 @@ provides-extras = ["dev", "test"]
 
 [[package]]
 name = "kgspin-interface"
-version = "0.7.0"
+version = "0.8.1"
 source = { editable = "../kgspin-interface" }
 dependencies = [
     { name = "pydantic" },
