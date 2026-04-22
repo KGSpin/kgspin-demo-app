@@ -1443,8 +1443,8 @@ body {
         </select>
         <input type="hidden" id="bundle-select" value="">
         <!-- Financial: ticker input -->
-        <input type="text" id="ticker-input" placeholder="TICKER" maxlength="5" list="ticker-list">
-        <datalist id="ticker-list"></datalist>
+        <input type="text" id="doc-id-input" placeholder="TICKER" maxlength="5" list="doc-id-list">
+        <datalist id="doc-id-list"></datalist>
         <!-- Sprint 77 Task 5c: Clinical trial selector (hidden by default) -->
         <select id="trial-select" title="Clinical trial" style="display:none; background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:8px 10px; border-radius:6px; font-size:13px; max-width:280px;">
         </select>
@@ -2624,7 +2624,7 @@ async function submitFalsePositive() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                document_id: state.ticker || '',
+                document_id: state.docId || '',
                 pipeline: pipeline,
                 subject_text: subjName,
                 subject_type: '',
@@ -2746,7 +2746,7 @@ async function submitFalseNegative() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                document_id: state.ticker || '',
+                document_id: state.docId || '',
                 pipeline: pipeline,
                 subject_text: subjName,
                 subject_type: '',
@@ -2938,7 +2938,7 @@ async function submitEntityFP() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                document_id: state.ticker || '',
+                document_id: state.docId || '',
                 pipeline: pipeline,
                 feedback_target: 'entity',
                 subject_text: meta.text,
@@ -3027,7 +3027,7 @@ async function flagEntityTP(pipeline, nodeId) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                document_id: state.ticker || '',
+                document_id: state.docId || '',
                 pipeline: pipeline,
                 subject_text: meta.text,
                 subject_type: meta.entity_type,
@@ -3085,7 +3085,7 @@ async function submitEntityFN() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                document_id: state.ticker || '',
+                document_id: state.docId || '',
                 pipeline: pipeline,
                 feedback_target: 'entity',
                 subject_text: meta.text,
@@ -3182,7 +3182,7 @@ let docSearchCurrent = -1;
 let docSearchTimer = null;
 
 async function openDocViewer() {
-    const ticker = state.ticker;
+    const ticker = state.docId;
     if (!ticker) { showToast('No ticker loaded', 'error'); return; }
     document.getElementById('doc-viewer-modal').style.display = 'flex';
     document.getElementById('doc-viewer-text').textContent = 'Loading document...';
@@ -3361,7 +3361,7 @@ async function _runAutoFlagForPipeline(pipeline, btn, statusEl, slotIdx) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ticker: state.ticker || '',
+                ticker: state.docId || '',
                 bundle_name: bundleName || null,
                 nodes: nodeItems.map(n => ({ id: n.id, ...n.metadata })),
                 edges: edgeItems.map(e => ({ id: e.id, ...e.metadata })),
@@ -3439,7 +3439,7 @@ async function runSlotDiscoverTP(slotIdx) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ticker: state.ticker || '',
+                ticker: state.docId || '',
                 bundle_name: bundleName || null,
                 nodes: nodeItems.map(n => ({ id: n.id, ...n.metadata })),
                 edges: edgeItems.map(e => ({ id: e.id, ...e.metadata })),
@@ -3523,7 +3523,7 @@ async function confirmAutoFlag(pipeline, type, id) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    document_id: state.ticker || '', pipeline,
+                    document_id: state.docId || '', pipeline,
                     feedback_target: 'entity',
                     subject_text: meta ? meta.text : '', subject_type: meta ? meta.entity_type : '',
                     predicate: '', object_text: '', object_type: '',
@@ -3548,7 +3548,7 @@ async function confirmAutoFlag(pipeline, type, id) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    document_id: state.ticker || '', pipeline,
+                    document_id: state.docId || '', pipeline,
                     subject_text: edgeMeta ? edgeMeta.subject_text : '',
                     subject_type: '', predicate: edgeMeta ? edgeMeta.predicate : '',
                     object_text: edgeMeta ? edgeMeta.object_text : '', object_type: '',
@@ -3650,7 +3650,7 @@ async function confirmAutoTP(key) {
         const isEntity = entry.discovery_type === 'entity';
         // These are EXISTING graph items confirmed as gold — save as True Positive
         const body = {
-            document_id: state.ticker || '',
+            document_id: state.docId || '',
             pipeline: entry.pipeline || '',
             subject_text: isEntity ? entry.entity_text : entry.subject_text,
             subject_type: isEntity ? entry.entity_type : '',
@@ -4284,7 +4284,7 @@ function gemNextRun() {
 
 async function loadGeminiRun(index) {
     try {
-        const resp = await fetch(`/api/gemini-runs/${gemRunState.ticker}/${index}`);
+        const resp = await fetch(`/api/gemini-runs/${gemRunState.docId}/${index}`);
         if (!resp.ok) return;
         const data = await resp.json();
 
@@ -4326,7 +4326,7 @@ async function loadGeminiRun(index) {
 }
 
 function gemRefresh() {
-    if (!gemRunState.ticker) return;
+    if (!gemRunState.docId) return;
     let refreshDone = false;  // Sprint 33.10: SSE completion flag — guards onerror on normal close
     // Sprint 33.9b: Disable button during refresh to prevent double-clicks
     const gemRefreshBtn = document.getElementById('gem-refresh');
@@ -4335,8 +4335,8 @@ function gemRefresh() {
     const corpusKb = document.getElementById('corpus-kb-select').value;
     const gemModel = document.getElementById('model-select').value;
     const refreshUrl = currentDomain === 'clinical'
-        ? `/api/compare-clinical/${gemRunState.ticker}?force_refresh=gemini&model=${gemModel}`
-        : `/api/refresh-agentic-flash/${gemRunState.ticker}?corpus_kb=${corpusKb}&model=${gemModel}`;
+        ? `/api/compare-clinical/${gemRunState.docId}?force_refresh=gemini&model=${gemModel}`
+        : `/api/refresh-agentic-flash/${gemRunState.docId}?corpus_kb=${corpusKb}&model=${gemModel}`;
     const refreshSource = new EventSource(refreshUrl);
     document.getElementById('gemini-graph').innerHTML = '<div class="placeholder">Re-extracting...</div>';
     document.getElementById('gemini-stats').innerHTML = '';
@@ -4440,7 +4440,7 @@ function modNextRun() {
 
 async function loadModularRun(index) {
     try {
-        const resp = await fetch(`/api/modular-runs/${modRunState.ticker}/${index}`);
+        const resp = await fetch(`/api/modular-runs/${modRunState.docId}/${index}`);
         if (!resp.ok) return;
         const data = await resp.json();
 
@@ -4480,7 +4480,7 @@ async function loadModularRun(index) {
 }
 
 function modRefresh() {
-    if (!modRunState.ticker) return;
+    if (!modRunState.docId) return;
     let refreshDone = false;  // Sprint 33.10: SSE completion flag — guards onerror on normal close
     // Sprint 33.9b: Disable button during refresh to prevent double-clicks
     const modRefreshBtn = document.getElementById('mod-refresh');
@@ -4490,8 +4490,8 @@ function modRefresh() {
     const chunkSize = document.getElementById('chunk-size-select').value;
     const gemModel = document.getElementById('model-select').value;
     const refreshUrl = currentDomain === 'clinical'
-        ? `/api/compare-clinical/${modRunState.ticker}?force_refresh=modular&model=${gemModel}&chunk_size=${chunkSize}`
-        : `/api/refresh-agentic-analyst/${modRunState.ticker}?corpus_kb=${corpusKb}&chunk_size=${chunkSize}&model=${gemModel}`;
+        ? `/api/compare-clinical/${modRunState.docId}?force_refresh=modular&model=${gemModel}&chunk_size=${chunkSize}`
+        : `/api/refresh-agentic-analyst/${modRunState.docId}?corpus_kb=${corpusKb}&chunk_size=${chunkSize}&model=${gemModel}`;
     const refreshSource = new EventSource(refreshUrl);
     document.getElementById('modular-graph').innerHTML = '<div class="placeholder">Re-extracting...</div>';
     document.getElementById('modular-stats').innerHTML = '';
@@ -4623,7 +4623,7 @@ function kgenNextRun() {
 
 async function loadKgenRun(index) {
     try {
-        const resp = await fetch(`/api/kgen-runs/${kgenRunState.ticker}/${index}`);
+        const resp = await fetch(`/api/kgen-runs/${kgenRunState.docId}/${index}`);
         if (!resp.ok) return;
         const data = await resp.json();
 
@@ -4666,15 +4666,15 @@ async function loadKgenRun(index) {
 }
 
 function kgenRefresh() {
-    if (!kgenRunState.ticker) return;
+    if (!kgenRunState.docId) return;
     let refreshDone = false;
     const kgenRefreshBtn = document.getElementById('kgen-refresh');
     kgenRefreshBtn.disabled = true;
     const corpusKb = document.getElementById('corpus-kb-select').value;
     const bundleVersion = document.getElementById('bundle-select').value;
     const refreshEndpoint = currentDomain === 'clinical'
-        ? `/api/compare-clinical/${kgenRunState.ticker}?force_refresh=kgen&bundle=${bundleVersion}`
-        : `/api/refresh-discovery/${kgenRunState.ticker}?corpus_kb=${corpusKb}&bundle=${bundleVersion}`;
+        ? `/api/compare-clinical/${kgenRunState.docId}?force_refresh=kgen&bundle=${bundleVersion}`
+        : `/api/refresh-discovery/${kgenRunState.docId}?corpus_kb=${corpusKb}&bundle=${bundleVersion}`;
     const refreshUrl = refreshEndpoint;
     const refreshSource = new EventSource(refreshUrl);
     document.getElementById('kgenskills-graph').innerHTML = '<div class="placeholder">Re-extracting...</div>';
@@ -4779,7 +4779,7 @@ function intelNextRun() {
 
 async function loadIntelRun(index) {
     try {
-        const resp = await fetch(`/api/intel-runs/${intelRunState.ticker}/${index}`);
+        const resp = await fetch(`/api/intel-runs/${intelRunState.docId}/${index}`);
         if (!resp.ok) return;
         const data = await resp.json();
 
@@ -4802,7 +4802,7 @@ async function loadIntelRun(index) {
 }
 
 function intelRefresh() {
-    if (!intelRunState.ticker) return;
+    if (!intelRunState.docId) return;
     // Re-run the full intelligence pipeline
     startIntelligence();
 }
@@ -4945,8 +4945,8 @@ function switchDomain(domain) {
     });
 
     // Swap corpus selector: ticker input vs trial dropdown
-    const tickerInput = document.getElementById('ticker-input');
-    const tickerList = document.getElementById('ticker-list');
+    const tickerInput = document.getElementById('doc-id-input');
+    const tickerList = document.getElementById('doc-id-list');
     const trialSelect = document.getElementById('trial-select');
     const clinicalBadge = document.getElementById('clinical-badge');
 
@@ -4991,13 +4991,13 @@ function switchDomain(domain) {
     clearAllGraphs();
 
     // Reset per-pipeline run-state globals so pager arrows / cached lookups
-    // don't fire stale `/api/gemini-runs/<prev-ticker>/<idx>` calls after
+    // don't fire stale `/api/gemini-runs/<prev-doc_id>/<idx>` calls after
     // the domain changed. Without this, switching financial → clinical
-    // re-runs the pager against the prior ticker and surfaces 422s in
-    // the console (stale ticker + NaN index from the in-flight
+    // re-runs the pager against the prior doc_id and surfaces 422s in
+    // the console (stale doc_id + NaN index from the in-flight
     // `currentIndex` math).
     [gemRunState, modRunState, kgenRunState, intelRunState].forEach(s => {
-        s.ticker = null;
+        s.docId = null;
         s.currentIndex = 0;
         s.totalRuns = 0;
     });
@@ -5017,7 +5017,7 @@ function clearAllGraphs() {
 async function init() {
     const resp = await fetch('/api/tickers');
     const tickers = await resp.json();
-    const dl = document.getElementById('ticker-list');
+    const dl = document.getElementById('doc-id-list');
     for (const [ticker, name] of Object.entries(tickers)) {
         const opt = document.createElement('option');
         opt.value = ticker;
@@ -5026,13 +5026,13 @@ async function init() {
     }
     // Load available bundles for default domain
     await loadBundles('financial');
-    document.getElementById('ticker-input').addEventListener('keydown', (e) => {
+    document.getElementById('doc-id-input').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') runActiveTab();
     });
-    document.getElementById('ticker-input').addEventListener('input', () => {
+    document.getElementById('doc-id-input').addEventListener('input', () => {
         const activeTab = document.querySelector('.tab.active').dataset.tab;
         if (activeTab === 'impact') {
-            const ticker = document.getElementById('ticker-input').value.trim();
+            const ticker = document.getElementById('doc-id-input').value.trim();
             const reproActive = document.querySelector('.impact-subtab[data-subtab="reproducibility"]').classList.contains('active');
             if (ticker && reproActive) loadReproducibility();
         }
@@ -5068,7 +5068,7 @@ function switchTab(tabName) {
         if (currentDomain === 'clinical') {
             ticker = document.getElementById('trial-select').value || '';
         } else {
-            ticker = (document.getElementById('ticker-input').value || '').trim().toUpperCase();
+            ticker = (document.getElementById('doc-id-input').value || '').trim().toUpperCase();
         }
         const docFilter = document.getElementById('stored-feedback-doc-filter');
         if (docFilter && ticker) docFilter.value = ticker;
@@ -5083,15 +5083,15 @@ function switchImpactSubTab(name) {
         c.classList.toggle('active', c.id === `impact-sub-${name}`));
     // Auto-load reproducibility when switching to that sub-tab
     if (name === 'reproducibility') {
-        const ticker = document.getElementById('ticker-input').value.trim();
+        const ticker = document.getElementById('doc-id-input').value.trim();
         if (ticker) loadReproducibility();
     }
     if (name === 'lineage') {
-        const ticker = document.getElementById('ticker-input').value.trim();
+        const ticker = document.getElementById('doc-id-input').value.trim();
         if (ticker) loadLineage();
     }
     if (name === 'agentic') {
-        const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
         if (ticker && state.impact.results.length === 0) {
             fetch(`/api/impact-qa-runs/${ticker}`)
                 .then(r => r.ok ? r.json() : null)
@@ -5099,7 +5099,7 @@ function switchImpactSubTab(name) {
                     if (data && data.total > 0) {
                         qaRunTotal = data.total;
                         qaRunIndex = 0;
-                        state.ticker = ticker;
+                        state.docId = ticker;
                         loadCachedQARun(ticker, 0).then(run => {
                             if (run) {
                                 document.getElementById('agentic-welcome').style.display = 'none';
@@ -5122,12 +5122,12 @@ function startComparison() {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
 
     // Sprint 91: Slot-based mode — just set ticker and show slot panels
-    state.ticker = ticker;
+    state.docId = ticker;
     document.getElementById('welcome').style.display = 'none';
     document.getElementById('compare-content').style.display = 'block';
     document.getElementById('status').textContent = `Ready — select pipelines for ${ticker}`;
@@ -5156,14 +5156,14 @@ function startComparison() {
 }
 
 function startComparisonForTicker(ticker, forceRefresh) {
-    state.ticker = ticker;
-    gemRunState.ticker = ticker;
+    state.docId = ticker;
+    gemRunState.docId = ticker;
     gemRunState.currentIndex = 0;
     gemRunState.totalRuns = 0;
-    modRunState.ticker = ticker;
+    modRunState.docId = ticker;
     modRunState.currentIndex = 0;
     modRunState.totalRuns = 0;
-    kgenRunState.ticker = ticker;
+    kgenRunState.docId = ticker;
     kgenRunState.currentIndex = 0;
     kgenRunState.totalRuns = 0;
     resetCompareUI();
@@ -5302,7 +5302,7 @@ function startComparisonForTicker(ticker, forceRefresh) {
             state.compare.stats_kgs = d.stats;
             // Sprint 33.17 (WI-3): KGSpin history bar
             if (typeof d.total_runs === 'number' && d.total_runs > 0) {
-                kgenRunState.ticker = state.ticker;
+                kgenRunState.docId = state.docId;
                 kgenRunState.currentIndex = d.run_index || 0;
                 kgenRunState.totalRuns = d.total_runs;
                 updateKgenRunUI();
@@ -5385,13 +5385,13 @@ function startComparisonForTicker(ticker, forceRefresh) {
                 document.getElementById('gemini-graph').innerHTML =
                     `<div class="placeholder">${d.message}` +
                     `<br><button class="retry-btn" onclick="gemRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
-                gemRunState.ticker = gemRunState.ticker || document.getElementById('ticker-input').value.toUpperCase();
+                gemRunState.docId = gemRunState.docId || document.getElementById('doc-id-input').value.toUpperCase();
             }
             if (d.recoverable && d.pipeline === 'modular') {
                 document.getElementById('modular-graph').innerHTML =
                     `<div class="placeholder">${d.message}` +
                     `<br><button class="retry-btn" onclick="modRefresh()" style="margin-top:12px;">&#8635; Retry</button></div>`;
-                modRunState.ticker = modRunState.ticker || document.getElementById('ticker-input').value.toUpperCase();
+                modRunState.docId = modRunState.docId || document.getElementById('doc-id-input').value.toUpperCase();
             }
         } else {
             document.getElementById('status').textContent = 'Connection lost';
@@ -5448,8 +5448,8 @@ function highlightBestThroughput() {
 
 // Sprint 33.6: Cancel Multi-Stage extraction
 function cancelMultistage() {
-    if (!modRunState.ticker) return;
-    fetch(`/api/cancel-multistage/${modRunState.ticker}`, { method: 'POST' });
+    if (!modRunState.docId) return;
+    fetch(`/api/cancel-multistage/${modRunState.docId}`, { method: 'POST' });
     document.getElementById('mod-cancel').style.display = 'none';
 }
 
@@ -5538,7 +5538,9 @@ function showSourcePanel(details) {
     if (!details) return;
 
     let html = '<span class="source-label">Source:</span> ';
-    const name = details.company_name || details.ticker || '';
+    // Wave A: backend emits `doc_id`; fall back to the pre-Wave-A `ticker`
+    // key while older cached fixtures might still carry it.
+    const name = details.company_name || details.doc_id || details.ticker || '';
     const date = details.filing_date || '';
     const accession = details.accession_number || '';
     const url = details.source_url || '';
@@ -6503,7 +6505,7 @@ function renderScores(d) {
 }
 
 async function refreshScores() {
-    const ticker = state.compare.source?.ticker || state.ticker;
+    const ticker = state.compare.source?.doc_id || state.docId;
     if (!ticker) return;
     try {
         const resp = await fetch(`/api/scores/${ticker}`);
@@ -6525,7 +6527,7 @@ function clearAnalysis() {
 }
 
 async function refreshAnalysis() {
-    const ticker = state.compare.source?.ticker || state.ticker;
+    const ticker = state.compare.source?.doc_id || state.docId;
     if (!ticker) return;
     document.getElementById('analysis-content').innerHTML = '<div style="color:#888">Analyzing...</div>';
     document.getElementById('qualitative-analysis').style.display = 'block';
@@ -6613,12 +6615,12 @@ function showMetadataPopover(pipeline, btnEl) {
 // Tab 1: Document Explorer
 // ============================================================
 function startIntelligence() {
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     if (!ticker) {
-        document.getElementById('ticker-input').focus();
+        document.getElementById('doc-id-input').focus();
         return;
     }
-    state.ticker = ticker;
+    state.docId = ticker;
 
     // Reset UI
     document.getElementById('intel-welcome').style.display = 'none';
@@ -6639,7 +6641,7 @@ function startIntelligence() {
     delete networks['intelligence'];
     state.intelligence = { kg: null, articles: [], entities: [] };
     // Sprint 33.17 (WI-4): Reset Intel history state
-    intelRunState.ticker = ticker;
+    intelRunState.docId = ticker;
     intelRunState.currentIndex = 0;
     intelRunState.totalRuns = 0;
     activeSourceFilter = null;
@@ -6728,7 +6730,7 @@ function startIntelligence() {
         renderGraph('intelligence', d.vis, d.stats);
         // Sprint 33.17 (WI-4): Intelligence history bar
         if (typeof d.total_runs === 'number' && d.total_runs > 0) {
-            intelRunState.ticker = state.ticker;
+            intelRunState.docId = state.docId;
             intelRunState.currentIndex = 0;
             intelRunState.totalRuns = d.total_runs;
             updateIntelRunUI();
@@ -6859,7 +6861,7 @@ let lineageNetwork = null;
 let lineageEvidenceIndex = [];
 
 async function loadLineage() {
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase() || state.ticker;
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase() || state.docId;
     if (!ticker) return;
 
     // Guard against redundant loads
@@ -7113,7 +7115,7 @@ function clearSourceHighlight() {
 // Tab 3: Graph Impact — Reproducibility Benchmark
 // ============================================================
 async function loadReproducibility() {
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase() || state.ticker;
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase() || state.docId;
     if (!ticker) return;
     document.getElementById('repro-content').style.display = 'block';
     document.getElementById('repro-gauges').innerHTML = '<p style="color:#888; text-align:center;">Loading benchmark data...</p>';
@@ -7186,12 +7188,12 @@ function renderReproGauges(data) {
 // Tab 3: Graph Impact — Agentic Q&A
 // ============================================================
 function startImpact() {
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     if (!ticker) {
-        document.getElementById('ticker-input').focus();
+        document.getElementById('doc-id-input').focus();
         return;
     }
-    state.ticker = ticker;
+    state.docId = ticker;
 
     // Reset UI
     document.getElementById('impact-welcome').style.display = 'none';
@@ -7261,7 +7263,7 @@ function startImpact() {
 
         // Refresh run navigation
         try {
-            const resp = await fetch(`/api/impact-qa-runs/${state.ticker}`);
+            const resp = await fetch(`/api/impact-qa-runs/${state.docId}`);
             if (resp.ok) {
                 const runs = await resp.json();
                 qaRunTotal = runs.total;
@@ -7358,7 +7360,7 @@ async function loadCachedQARun(ticker, index) {
 async function navigateQARun(delta) {
     const newIndex = qaRunIndex + delta;
     if (newIndex < 0 || newIndex >= qaRunTotal) return;
-    const ticker = state.ticker;
+    const ticker = state.docId;
     if (!ticker) return;
     const data = await loadCachedQARun(ticker, newIndex);
     if (!data) return;
@@ -7400,7 +7402,7 @@ async function updateQARunNav() {
 }
 
 async function showQAConsistency() {
-    const ticker = state.ticker;
+    const ticker = state.docId;
     const run0 = await loadCachedQARun(ticker, 0);
     const run1 = await loadCachedQARun(ticker, 1);
     if (!run0 || !run1) return;
@@ -7555,8 +7557,8 @@ document.addEventListener('click', function(e) {
 
 // --- Per-Graph Run ---
 function runPanel(pipeline) {
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
-    if (!ticker) { document.getElementById('ticker-input').focus(); return; }
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
+    if (!ticker) { document.getElementById('doc-id-input').focus(); return; }
     const corpusKb = document.getElementById('corpus-kb-select').value;
     const model = document.getElementById('model-select').value;
     const chunkSize = document.getElementById('chunk-size-select') ? document.getElementById('chunk-size-select').value : '12';
@@ -7592,7 +7594,7 @@ function runPanel(pipeline) {
 }
 
 function refreshScores() {
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     if (!ticker) return;
     fetch(`/api/scores/${ticker}`)
         .then(r => r.json())
@@ -7743,7 +7745,7 @@ async function tryLoadCachedSlot(slotIdx) {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
 
@@ -7800,12 +7802,12 @@ function runSlot(slotIdx) {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) {
         const focusEl = currentDomain === 'clinical'
             ? document.getElementById('trial-select')
-            : document.getElementById('ticker-input');
+            : document.getElementById('doc-id-input');
         if (focusEl) focusEl.focus();
         return;
     }
@@ -8047,7 +8049,7 @@ const WTM_DEFAULT_QUESTIONS = {
 function showWhyThisMattersSection() { /* no-op */ }
 
 function triggerWhyThisMatters() {
-    const ticker = document.getElementById('ticker-input')?.value?.trim().toUpperCase();
+    const ticker = document.getElementById('doc-id-input')?.value?.trim().toUpperCase();
     if (!ticker) return;
 
     const input = document.getElementById('wtm-question-input');
@@ -8147,7 +8149,7 @@ async function loadSlotRun(slotIdx, runIndex) {
     const slot = slotState[slotIdx];
     const meta = PIPELINE_META[slot.pipeline];
     if (!meta) return;
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
 
     // Map backend to run history endpoint
     const runsEndpointMap = {
@@ -8488,7 +8490,7 @@ function triggerModalWhyThisMatters() {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
 
@@ -8548,7 +8550,7 @@ function loadModalLineage(slotIdx) {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
 
@@ -8762,7 +8764,7 @@ function loadModalExplorer(slotIdx) {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) {
         graphEl.innerHTML = '<div class="placeholder">No ticker loaded</div>';
@@ -8823,7 +8825,7 @@ function runModalIntelligence() {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
 
@@ -9384,7 +9386,7 @@ async function runSlotAnalysis() {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
     const populated = slotState.filter(s => s.visData !== null);
@@ -9476,7 +9478,7 @@ async function runSlotQA() {
     if (currentDomain === 'clinical') {
         ticker = document.getElementById('trial-select').value;
     } else {
-        ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     }
     if (!ticker) return;
     const populated = slotState.filter(s => s.visData !== null);
@@ -9631,7 +9633,7 @@ function askAgenticQuestion() {
     const question = document.getElementById('agentic-question-input').value.trim();
     if (!question) return;
     const pipeline = document.getElementById('agentic-pipeline-select').value;
-    const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+    const ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
     if (!ticker) { alert('Please enter a ticker and run an extraction first.'); return; }
 
     const resultsEl = document.getElementById('agentic-results');

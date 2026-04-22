@@ -99,6 +99,10 @@ from kgspin_demo_app.corpus import CorpusFetchError, ProviderConfigurationError 
 # still write to FileStoreLayout but the registry is the single index.
 from kgspin_demo_app.registry_http import HttpResourceRegistryClient  # noqa: E402
 from kgspin_demo_app.domain_fetchers import DOMAIN_FETCHERS  # noqa: E402
+from kgspin_interface import (  # noqa: E402
+    ResourceMetadataValidationError,
+    typed_metadata,
+)
 from kgspin_interface.registry_client import (  # noqa: E402
     Resource,
     ResourceKind,
@@ -157,7 +161,7 @@ def _read_pointer_bytes(pointer) -> bytes:
     """
     if not isinstance(pointer, FilePointer):
         raise CorpusFetchError(
-            ticker="<unknown>",
+            doc_id="<unknown>",
             reason="unexpected pointer scheme",
             actionable_hint=(
                 f"Corpus-document pointer is {type(pointer).__name__}; "
@@ -257,12 +261,24 @@ def _fetch_newsapi_articles(query: str, limit: int = 5) -> list[dict]:
             )
             query_matches: list[Resource] = []
             for resource in resources:
-                meta = resource.metadata or {}
-                stored_q = ((meta.get("source_extras") or {}).get("query") or "").lower()
+                # Wave A: typed_metadata at the consumption boundary. The
+                # helper validates the CorpusDocumentMetadata envelope on
+                # read (catches cross-repo schema skew) — we still reach
+                # into `source_extras` as a loose dict per CTO Q6.
+                try:
+                    md = typed_metadata(resource)
+                except ResourceMetadataValidationError as exc:
+                    logger.warning(
+                        "skipping resource %s: metadata failed validation: %s",
+                        resource.id, exc,
+                    )
+                    continue
+                stored_q = ((md.source_extras or {}).get("query") or "").lower()
                 if stored_q and (stored_q in q_lower or q_lower in stored_q):
                     query_matches.append(resource)
             query_matches.sort(
-                key=lambda r: (r.metadata or {}).get("fetch_timestamp", ""),
+                key=lambda r: (typed_metadata(r).fetch_timestamp.isoformat()
+                               if r.metadata else ""),
                 reverse=True,
             )
             for resource in query_matches[:limit - len(results)]:
@@ -396,7 +412,7 @@ def _try_corpus_fetch(ticker: str):
     except CorpusFetchError as cfe:
         # Re-raise with ticker on the envelope.
         raise CorpusFetchError(
-            ticker=ticker, reason=cfe.reason,
+            doc_id=ticker, reason=cfe.reason,
             actionable_hint=cfe.actionable_hint,
             attempted=attempted + cfe.attempted,
         )
@@ -425,7 +441,7 @@ def _try_corpus_fetch(ticker: str):
                 return refreshed
         except CorpusFetchError as cfe:
             raise CorpusFetchError(
-                ticker=ticker, reason=cfe.reason,
+                doc_id=ticker, reason=cfe.reason,
                 actionable_hint=cfe.actionable_hint,
                 attempted=attempted + cfe.attempted,
             )
@@ -468,7 +484,7 @@ def _try_corpus_fetch(ticker: str):
             f"email (e.g. EDGAR_IDENTITY='you@example.com') and restart the demo."
         )
     raise CorpusFetchError(
-        ticker=ticker,
+        doc_id=ticker,
         reason="no landed artifact",
         actionable_hint=hint,
         attempted=attempted,
@@ -503,7 +519,7 @@ def _classify_llm_error(exc: Exception) -> tuple[str, str]:
 
 # Sprint 33.3: Cache invalidation — bump when UI/schema changes break compatibility.
 # Changing this constant auto-invalidates all existing cached run logs.
-DEMO_CACHE_VERSION = "4.0.0"  # 4.0.0: Sprint 118 pipeline/domain split
+DEMO_CACHE_VERSION = "5.0.0"  # 4.0.0: Sprint 118 pipeline/domain split
 
 # Sprint 33.3: Byte-based corpus sizing — replaces MAX_DEMO_CHUNKS
 VALID_CORPUS_KB = {0, 100, 200, 500}
@@ -875,12 +891,16 @@ async def warmup_models():
 class GeminiRunLog:
     """Disk-based run log for Gemini KG extraction results.
 
-    Structure: ~/.kgenskills/logs/gemini/{TICKER}/{config_key}@{timestamp}.json
+    Wave A: all ``ticker`` parameters renamed to ``doc_id``; on-disk
+    directory structure uses ``{DOC_ID}`` segments. A ``DEMO_CACHE_VERSION``
+    bump forces all pre-Wave-A cached runs to be invalidated.
+
+    Structure: ``~/.kgenskills/logs/gemini/{DOC_ID}/{config_key}@{timestamp}.json``
     Each file stores one complete extraction run.
     """
 
     LOG_ROOT = Path.home() / ".kgenskills" / "logs" / "gemini"
-    MAX_RUNS = 20  # Max logged runs per ticker+config
+    MAX_RUNS = 20  # Max logged runs per doc_id+config
 
     def config_key(self, method: str, **kwargs) -> str:
         """Human-readable cache key from method name + args.
@@ -892,8 +912,8 @@ class GeminiRunLog:
             parts.append(f"{k}={v}")
         return "_".join(parts)
 
-    def _run_dir(self, ticker: str) -> Path:
-        return self.LOG_ROOT / ticker.upper()
+    def _run_dir(self, doc_id: str) -> Path:
+        return self.LOG_ROOT / doc_id.upper()
 
     @staticmethod
     def _strip_bv(cfg_key: str) -> str:
@@ -909,14 +929,14 @@ class GeminiRunLog:
         key = re.sub(r'_?cv=[^_@]*', '', key)
         return key
 
-    def _run_files(self, ticker: str, cfg_key: str) -> List[Path]:
-        """Get all run files for ticker+config, sorted newest first.
+    def _run_files(self, doc_id: str, cfg_key: str) -> List[Path]:
+        """Get all run files for doc_id+config, sorted newest first.
 
         Matches are bv- and pv-agnostic: a query for 'gemini_corpus_kb=200_cv=2.5.0'
         also matches old files with different bv= or pv= segments,
         so that bundle/prompt version changes don't invalidate the disk cache.
         """
-        run_dir = self._run_dir(ticker)
+        run_dir = self._run_dir(doc_id)
         if not run_dir.exists():
             return []
         normalized = self._strip_bv(cfg_key)
@@ -932,7 +952,7 @@ class GeminiRunLog:
 
     def log_run(
         self,
-        ticker: str,
+        doc_id: str,
         cfg_hash: str,
         kg: dict,
         total_tokens: int,
@@ -961,14 +981,14 @@ class GeminiRunLog:
             and run_status != "failed"
         ):
             logger.warning(
-                "Refusing to log empty run (ticker=%s cfg=%s model=%s "
+                "Refusing to log empty run (doc_id=%s cfg=%s model=%s "
                 "elapsed=%.1fs tokens=%d) — likely an errored extraction. "
                 "Check upstream traceback.",
-                ticker.upper(), cfg_hash, model, elapsed_seconds, total_tokens,
+                doc_id.upper(), cfg_hash, model, elapsed_seconds, total_tokens,
             )
             return None
 
-        run_dir = self._run_dir(ticker)
+        run_dir = self._run_dir(doc_id)
         run_dir.mkdir(parents=True, exist_ok=True)
 
         ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + f"{datetime.now(timezone.utc).microsecond:06d}Z"
@@ -976,7 +996,7 @@ class GeminiRunLog:
         filepath = run_dir / filename
 
         run_data = {
-            "ticker": ticker.upper(),
+            "doc_id": doc_id.upper(),
             "config_key": cfg_hash,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "model": model,
@@ -994,7 +1014,7 @@ class GeminiRunLog:
         logger.info(f"Logged Gemini run: {filepath}")
 
         # Cleanup old runs beyond MAX_RUNS
-        existing = self._run_files(ticker, cfg_hash)
+        existing = self._run_files(doc_id, cfg_hash)
         if len(existing) > self.MAX_RUNS:
             for old_file in existing[self.MAX_RUNS:]:
                 old_file.unlink(missing_ok=True)
@@ -1003,10 +1023,10 @@ class GeminiRunLog:
         return filepath
 
     def update_run_analysis(
-        self, ticker: str, cfg_hash: str, index: int, analysis: dict
+        self, doc_id: str, cfg_hash: str, index: int, analysis: dict
     ) -> None:
         """Update the analysis field of a logged run."""
-        files = self._run_files(ticker, cfg_hash)
+        files = self._run_files(doc_id, cfg_hash)
         if index < 0 or index >= len(files):
             return
         filepath = files[index]
@@ -1014,9 +1034,9 @@ class GeminiRunLog:
         run_data["analysis"] = analysis
         filepath.write_text(json.dumps(run_data, default=str, indent=2))
 
-    def list_runs(self, ticker: str, cfg_hash: str) -> List[dict]:
-        """List all logged runs for ticker+config, sorted newest first."""
-        files = self._run_files(ticker, cfg_hash)
+    def list_runs(self, doc_id: str, cfg_hash: str) -> List[dict]:
+        """List all logged runs for doc_id+config, sorted newest first."""
+        files = self._run_files(doc_id, cfg_hash)
         runs = []
         for f in files:
             try:
@@ -1035,9 +1055,9 @@ class GeminiRunLog:
                 continue
         return runs
 
-    def load_run(self, ticker: str, cfg_hash: str, index: int) -> Optional[dict]:
+    def load_run(self, doc_id: str, cfg_hash: str, index: int) -> Optional[dict]:
         """Load a specific run by index (0 = newest). Returns full run data."""
-        files = self._run_files(ticker, cfg_hash)
+        files = self._run_files(doc_id, cfg_hash)
         if index < 0 or index >= len(files):
             return None
         try:
@@ -1045,13 +1065,13 @@ class GeminiRunLog:
         except Exception:
             return None
 
-    def latest(self, ticker: str, cfg_hash: str) -> Optional[dict]:
+    def latest(self, doc_id: str, cfg_hash: str) -> Optional[dict]:
         """Load the most recent run. Shortcut for load_run(..., 0)."""
-        return self.load_run(ticker, cfg_hash, 0)
+        return self.load_run(doc_id, cfg_hash, 0)
 
-    def count(self, ticker: str, cfg_hash: str) -> int:
-        """Number of logged runs for this ticker+config."""
-        return len(self._run_files(ticker, cfg_hash))
+    def count(self, doc_id: str, cfg_hash: str) -> int:
+        """Number of logged runs for this doc_id+config."""
+        return len(self._run_files(doc_id, cfg_hash))
 
 
 # Singleton run logs
@@ -1061,7 +1081,7 @@ _run_log = GeminiRunLog()
 class ModularRunLog(GeminiRunLog):
     """Disk-based run log for LLM Multi-Stage extraction results.
 
-    Separate namespace from Full Shot logs: ~/.kgenskills/logs/modular/{TICKER}/
+    Separate namespace from Full Shot logs: ~/.kgenskills/logs/modular/{DOC_ID}/
     """
 
     LOG_ROOT = Path.home() / ".kgenskills" / "logs" / "modular"
@@ -1074,7 +1094,7 @@ class KGenRunLog(GeminiRunLog):
     """Disk-based run log for KGSpin extraction results.
 
     Sprint 33.10: Separate namespace so page refreshes don't re-run the 430s
-    deterministic pipeline. ~/.kgenskills/logs/kgen/{TICKER}/
+    deterministic pipeline. ~/.kgenskills/logs/kgen/{DOC_ID}/
     """
 
     LOG_ROOT = Path.home() / ".kgenskills" / "logs" / "kgen"
@@ -1099,7 +1119,7 @@ _kgen_run_log = KGenRunLog()
 class IntelRunLog(GeminiRunLog):
     """Sprint 33.17: Disk-based run log for Intelligence pipeline results.
 
-    ~/.kgenskills/logs/intel/{TICKER}/
+    ~/.kgenskills/logs/intel/{DOC_ID}/
     """
 
     LOG_ROOT = Path.home() / ".kgenskills" / "logs" / "intel"
@@ -1111,23 +1131,24 @@ _intel_run_log = IntelRunLog()
 class ImpactQARunLog(GeminiRunLog):
     """Disk-based run log for Impact Q&A comparison results.
 
-    ~/.kgenskills/logs/impact_qa/{TICKER}/
-    Each file stores one complete Q&A run (all questions + summary + quality analysis).
+    Wave A: ``~/.kgenskills/logs/impact_qa/{DOC_ID}/`` (was ``{DOC_ID}``).
+    Each file stores one complete Q&A run (all questions + summary +
+    quality analysis).
     """
 
     LOG_ROOT = Path.home() / ".kgenskills" / "logs" / "impact_qa"
 
     def log_qa_run(
         self,
-        ticker: str,
+        doc_id: str,
         results: list,
         summary: dict,
         quality_analysis: dict | None,
         elapsed_seconds: float,
     ) -> Path:
         """Log a completed Q&A comparison run to disk."""
-        ticker = ticker.upper()
-        run_dir = self._run_dir(ticker)
+        doc_id = doc_id.upper()
+        run_dir = self._run_dir(doc_id)
         run_dir.mkdir(parents=True, exist_ok=True)
 
         ts = (
@@ -1143,7 +1164,7 @@ class ImpactQARunLog(GeminiRunLog):
         )
 
         run_data = {
-            "ticker": ticker,
+            "doc_id": doc_id,
             "config_key": cfg_key,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "model": "gemini",
@@ -1159,7 +1180,7 @@ class ImpactQARunLog(GeminiRunLog):
         logger.info(f"Logged impact Q&A run: {filepath}")
 
         # Cleanup old runs beyond MAX_RUNS
-        existing = self._run_files(ticker, cfg_key)
+        existing = self._run_files(doc_id, cfg_key)
         if len(existing) > self.MAX_RUNS:
             for old_file in existing[self.MAX_RUNS :]:
                 old_file.unlink(missing_ok=True)
@@ -1812,14 +1833,15 @@ async def _run_lander_subprocess(
     yield sse_event("done", {"total_duration_ms": 0})
 
 
-@app.get("/api/refresh-corpus/sec/{ticker}")
-async def refresh_corpus_sec(ticker: str, request: Request, filing: str = "10-K"):
+@app.get("/api/refresh-corpus/sec/{doc_id}")
+async def refresh_corpus_sec(doc_id: str, request: Request, filing: str = "10-K"):
     """Sprint 07 Task 7: trigger the SEC lander from the UI.
 
     Input is validated against ``_TICKER_RE`` (VP Sec Mandate 7.1) BEFORE
     any subprocess invocation. Invalid tickers return HTTP 400 without
     touching ``subprocess.run``.
     """
+    ticker = doc_id  # Wave A wire-format shim
     t = ticker.strip().upper()
     if not _TICKER_RE.fullmatch(t):
         return JSONResponse(
@@ -1841,9 +1863,10 @@ async def refresh_corpus_sec(ticker: str, request: Request, filing: str = "10-K"
     )
 
 
-@app.get("/api/refresh-corpus/clinical/{nct}")
-async def refresh_corpus_clinical(nct: str, request: Request):
+@app.get("/api/refresh-corpus/clinical/{doc_id}")
+async def refresh_corpus_clinical(doc_id: str, request: Request):
     """Sprint 07 Task 7: trigger the clinical lander from the UI."""
+    nct = doc_id  # Wave A wire-format shim
     n = nct.strip().upper()
     if not _NCT_RE.fullmatch(n):
         return JSONResponse(
@@ -1860,9 +1883,10 @@ async def refresh_corpus_clinical(nct: str, request: Request):
     )
 
 
-@app.get("/api/refresh-corpus/yahoo-rss/{ticker}")
-async def refresh_corpus_yahoo_rss(ticker: str, request: Request, limit: int = 5):
+@app.get("/api/refresh-corpus/yahoo-rss/{doc_id}")
+async def refresh_corpus_yahoo_rss(doc_id: str, request: Request, limit: int = 5):
     """Sprint 11 (ADR-004): trigger the real Yahoo Finance RSS lander."""
+    ticker = doc_id  # Wave A wire-format shim
     t = ticker.strip().upper()
     if not _TICKER_RE.fullmatch(t):
         return JSONResponse(
@@ -1881,9 +1905,10 @@ async def refresh_corpus_yahoo_rss(ticker: str, request: Request, limit: int = 5
     )
 
 
-@app.get("/api/refresh-corpus/marketaux/{ticker}")
-async def refresh_corpus_marketaux(ticker: str, request: Request, limit: int = 5):
+@app.get("/api/refresh-corpus/marketaux/{doc_id}")
+async def refresh_corpus_marketaux(doc_id: str, request: Request, limit: int = 5):
     """Sprint 11 (ADR-004): trigger the Marketaux finance news lander."""
+    ticker = doc_id  # Wave A wire-format shim
     t = ticker.strip().upper()
     if not _TICKER_RE.fullmatch(t):
         return JSONResponse(
@@ -2372,9 +2397,9 @@ async def test_sse():
     )
 
 
-@app.get("/api/compare-clinical/{nct_id}")
+@app.get("/api/compare-clinical/{doc_id}")
 async def compare_clinical(
-    nct_id: str, request: Request, bundle: str = "",
+    doc_id: str, request: Request, bundle: str = "",
     model: str = DEFAULT_GEMINI_MODEL, chunk_size: int = DEFAULT_CHUNK_SIZE,
     force_refresh: str = "",
     source: str = "live",
@@ -2590,8 +2615,9 @@ def _pipeline_id_from_compare_args(strategy: str, pipeline_config_ref: str) -> s
     return _canonical_pipeline_name(candidate)
 
 
-@app.get("/api/compare/{ticker}")
-async def compare(ticker: str, request: Request, force_refresh: int = 0, corpus_kb: int = DEFAULT_CORPUS_KB, chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", strategy: str = "", pipeline_config_ref: str = "", confidence_floor: float = -1.0, llm_alias: str = ""):
+@app.get("/api/compare/{doc_id}")
+async def compare(doc_id: str, request: Request, force_refresh: int = 0, corpus_kb: int = DEFAULT_CORPUS_KB, chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", strategy: str = "", pipeline_config_ref: str = "", confidence_floor: float = -1.0, llm_alias: str = ""):
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     alias = llm_alias.strip() or None
@@ -2635,13 +2661,14 @@ async def compare(ticker: str, request: Request, force_refresh: int = 0, corpus_
     )
 
 
-@app.get("/api/refresh-agentic-flash/{ticker}")
-async def refresh_agentic_flash(ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = ""):
+@app.get("/api/refresh-agentic-flash/{doc_id}")
+async def refresh_agentic_flash(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = ""):
     """INIT-001 Sprint 04: Re-run only Agentic Flash (single-prompt LLM) for this ticker.
 
     Stage 0.5.4 (ADR-002): ``llm_alias`` selects an admin-registered LLM
     alias. ``model`` is retained as deprecated compat; passing both is 400.
     """
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     alias = llm_alias.strip() or None
@@ -2668,13 +2695,14 @@ async def refresh_agentic_flash(ticker: str, request: Request, corpus_kb: int = 
     )
 
 
-@app.get("/api/refresh-agentic-analyst/{ticker}")
-async def refresh_agentic_analyst(ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = ""):
+@app.get("/api/refresh-agentic-analyst/{doc_id}")
+async def refresh_agentic_analyst(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = ""):
     """INIT-001 Sprint 04: Re-run only Agentic Analyst (schema-aware chunked LLM) for this ticker.
 
     Stage 0.5.4 (ADR-002): ``llm_alias`` selects an admin-registered LLM
     alias. ``model`` is retained as deprecated compat; passing both is 400.
     """
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     alias = llm_alias.strip() or None
@@ -2703,12 +2731,13 @@ async def refresh_agentic_analyst(ticker: str, request: Request, corpus_kb: int 
     )
 
 
-@app.get("/api/refresh-discovery/{ticker}")
-async def refresh_discovery(ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, bundle: str = "", strategy: str = "", pipeline_config_ref: str = ""):
+@app.get("/api/refresh-discovery/{doc_id}")
+async def refresh_discovery(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, bundle: str = "", strategy: str = "", pipeline_config_ref: str = ""):
     """Re-run a zero-token KGSpin pipeline (fan_out / discovery_rapid /
     discovery_deep). Accepts ``strategy=`` or ``pipeline_config_ref=``
     (both canonical form); anything outside the canonical 5 → 400.
     """
+    ticker = doc_id  # Wave A wire-format shim
     if corpus_kb not in VALID_CORPUS_KB:
         corpus_kb = DEFAULT_CORPUS_KB
     bundle_name = bundle if bundle else None
@@ -2727,9 +2756,10 @@ async def refresh_discovery(ticker: str, request: Request, corpus_kb: int = DEFA
     )
 
 
-@app.post("/api/cancel-multistage/{ticker}")
-async def cancel_multistage(ticker: str):
+@app.post("/api/cancel-multistage/{doc_id}")
+async def cancel_multistage(doc_id: str):
     """Sprint 33.6: Cancel a running Multi-Stage extraction and show partial results."""
+    ticker = doc_id  # Wave A wire-format shim
     event = _modular_cancel_events.get(ticker.upper())
     if event:
         event.set()
@@ -2737,9 +2767,10 @@ async def cancel_multistage(ticker: str):
     return JSONResponse({"status": "not_running"})
 
 
-@app.get("/api/scores/{ticker}")
-async def get_scores(ticker: str):
+@app.get("/api/scores/{doc_id}")
+async def get_scores(doc_id: str):
     """PRD-048: Lightweight endpoint to recompute Performance Delta scores from cached KGs."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     with _cache_lock:
         cached = dict(_kg_cache.get(ticker, {}))
@@ -2764,13 +2795,14 @@ async def get_scores(ticker: str):
     return JSONResponse(scores)
 
 
-@app.post("/api/refresh-analysis/{ticker}")
-async def refresh_analysis(ticker: str, request: Request):
+@app.post("/api/refresh-analysis/{doc_id}")
+async def refresh_analysis(doc_id: str, request: Request):
     """Sprint 33.11: Re-run quality analysis using whatever KGs are currently cached.
 
     Stage 0.5.4 (ADR-002): accepts optional ``llm_alias`` / ``model`` in
     the JSON body (backwards compatible — an empty body still works).
     """
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     ticker = ticker.upper()
@@ -2849,8 +2881,8 @@ _SLOT_PIPELINE_LABELS = {
 }
 
 
-@app.post("/api/compare-qa/{ticker}")
-async def compare_qa(ticker: str, request: Request):
+@app.post("/api/compare-qa/{doc_id}")
+async def compare_qa(doc_id: str, request: Request):
     """Sprint 91: Compare Q&A across slot-loaded graphs.
 
     Request body: {graphs: [{pipeline, bundle, slot_index}], domain: str,
@@ -2860,6 +2892,7 @@ async def compare_qa(ticker: str, request: Request):
     Stage 0.5.4 (ADR-002): body accepts ``llm_alias`` (preferred) or the
     deprecated ``model`` string. Passing both is a 400 error.
     """
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     ticker = ticker.upper()
@@ -2989,11 +3022,12 @@ async def compare_qa(ticker: str, request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-@app.get("/api/intelligence/{ticker}")
-async def intelligence(ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, domain: str = "financial", llm_alias: str = ""):
+@app.get("/api/intelligence/{doc_id}")
+async def intelligence(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, domain: str = "financial", llm_alias: str = ""):
     """Stage 0.5.4 (ADR-002): ``llm_alias`` selects an admin-registered
     alias; ``model`` stays as deprecated compat. Passing both returns 400.
     """
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     alias = llm_alias.strip() or None
@@ -3019,13 +3053,14 @@ async def intelligence(ticker: str, request: Request, corpus_kb: int = DEFAULT_C
     )
 
 
-@app.get("/api/refresh-intel/{ticker}")
-async def refresh_intel(ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, llm_alias: str = ""):
+@app.get("/api/refresh-intel/{doc_id}")
+async def refresh_intel(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, llm_alias: str = ""):
     """Sprint 33.17: Re-run Intelligence pipeline for this ticker.
 
     Stage 0.5.4 (ADR-002): ``llm_alias`` selects an admin-registered LLM
     alias; ``model`` retained as deprecated compat. Passing both is 400.
     """
+    ticker = doc_id  # Wave A wire-format shim
     from kgspin_demo_app.llm_backend import LLMParamsError, check_endpoint_llm_params
 
     alias = llm_alias.strip() or None
@@ -3057,9 +3092,9 @@ async def model_pricing():
     return JSONResponse(GEMINI_MODEL_PRICING)
 
 
-@app.get("/api/impact/{ticker}")
+@app.get("/api/impact/{doc_id}")
 async def impact(
-    ticker: str, request: Request,
+    doc_id: str, request: Request,
     llm_alias: str = "",
     model: str = "",
 ):
@@ -3091,9 +3126,9 @@ async def impact(
     )
 
 
-@app.get("/api/why-this-matters/{ticker}")
+@app.get("/api/why-this-matters/{doc_id}")
 async def why_this_matters(
-    ticker: str,
+    doc_id: str,
     domain: str = "financial",
     question: str = "",
     pipeline: str = "",
@@ -3131,7 +3166,7 @@ async def why_this_matters(
         cached = _kg_cache.get(ticker)
 
     if not cached or "text" not in cached:
-        return {"error": "No cached data for ticker. Load a graph first.", "ticker": ticker}
+        return {"error": "No cached data for doc_id. Load a graph first.", "doc_id": ticker}
 
     # Sprint 05 HITL-round-2 fix: when the modal asks for a specific pipeline,
     # use that slot's KG instead of the best-available fallback. Also fixes a
@@ -3169,14 +3204,14 @@ async def why_this_matters(
                 break
 
     if not best_kg:
-        return {"error": "No graph available yet. Run at least one pipeline first.", "ticker": ticker}
+        return {"error": "No graph available yet. Run at least one pipeline first.", "doc_id": ticker}
 
     # Check Gemini availability
     gemini_available = bool(
         os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_GENAI_API_KEY")
     )
     if not gemini_available:
-        return {"error": "GEMINI_API_KEY not set.", "ticker": ticker}
+        return {"error": "GEMINI_API_KEY not set.", "doc_id": ticker}
 
     kg_context = _build_kg_context_string(best_kg)
     raw_context = cached["text"][:30000]
@@ -3234,8 +3269,8 @@ async def why_this_matters(
     return result
 
 
-@app.get("/api/impact/lineage/{ticker}")
-async def lineage_data(ticker: str, domain: str = "financial", pipeline: str = "kgenskills"):
+@app.get("/api/impact/lineage/{doc_id}")
+async def lineage_data(doc_id: str, domain: str = "financial", pipeline: str = "kgenskills"):
     """Return KG vis data + source text + full evidence index for lineage exploration.
 
     Sprint 05 HITL-round-2 fix: accept a ``pipeline`` query param so the
@@ -3243,6 +3278,7 @@ async def lineage_data(ticker: str, domain: str = "financial", pipeline: str = "
     (kgenskills / gemini / modular), not the hardcoded KGSpin graph.
     Defaults to ``kgenskills`` to preserve the Impact tab's old behavior.
     """
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     pipeline_to_cache_key = {
         "kgenskills": "kgs_kg",
@@ -3312,9 +3348,9 @@ async def lineage_data(ticker: str, domain: str = "financial", pipeline: str = "
     })
 
 
-@app.get("/api/impact/reproducibility/{ticker}")
+@app.get("/api/impact/reproducibility/{doc_id}")
 async def reproducibility_benchmark(
-    ticker: str, corpus_kb: int = DEFAULT_CORPUS_KB,
+    doc_id: str, corpus_kb: int = DEFAULT_CORPUS_KB,
     model: str = DEFAULT_GEMINI_MODEL, chunk_size: int = DEFAULT_CHUNK_SIZE,
 ):
     """Compute reproducibility variance from logged runs (no LLM calls)."""
@@ -3410,9 +3446,10 @@ def _latest_config_key(runs_by_key: dict) -> str:
     )
 
 
-@app.get("/api/gemini-runs/{ticker}")
-async def gemini_runs(ticker: str):
+@app.get("/api/gemini-runs/{doc_id}")
+async def gemini_runs(doc_id: str):
     """List all logged Gemini runs for a ticker (across all config hashes)."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     run_dir = _run_log._run_dir(ticker)
     if not run_dir.exists():
@@ -3444,9 +3481,10 @@ async def gemini_runs(ticker: str):
     })
 
 
-@app.get("/api/gemini-runs/{ticker}/{index}")
-async def gemini_run_detail(ticker: str, index: int):
+@app.get("/api/gemini-runs/{doc_id}/{index}")
+async def gemini_run_detail(doc_id: str, index: int):
     """Load a specific Gemini run by index. Includes pre-built vis data."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
 
     # Find the config hash from the most recent runs
@@ -3503,9 +3541,10 @@ async def gemini_run_detail(ticker: str, index: int):
     })
 
 
-@app.get("/api/modular-runs/{ticker}")
-async def modular_runs(ticker: str):
+@app.get("/api/modular-runs/{doc_id}")
+async def modular_runs(doc_id: str):
     """List all logged LLM Multi-Stage runs for a ticker."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     run_dir = _modular_run_log._run_dir(ticker)
     if not run_dir.exists():
@@ -3534,9 +3573,10 @@ async def modular_runs(ticker: str):
     })
 
 
-@app.get("/api/modular-runs/{ticker}/{index}")
-async def modular_run_detail(ticker: str, index: int):
+@app.get("/api/modular-runs/{doc_id}/{index}")
+async def modular_run_detail(doc_id: str, index: int):
     """Load a specific LLM Multi-Stage run by index. Includes pre-built vis data."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
 
     run_dir = _modular_run_log._run_dir(ticker)
@@ -3593,9 +3633,10 @@ async def modular_run_detail(ticker: str, index: int):
 # --- KGSpin Run History (Sprint 33.17) ---
 
 
-@app.get("/api/kgen-runs/{ticker}")
-async def kgen_runs(ticker: str):
+@app.get("/api/kgen-runs/{doc_id}")
+async def kgen_runs(doc_id: str):
     """List all logged KGSpin runs for a ticker."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     run_dir = _kgen_run_log._run_dir(ticker)
     if not run_dir.exists():
@@ -3625,9 +3666,10 @@ async def kgen_runs(ticker: str):
     })
 
 
-@app.get("/api/kgen-runs/{ticker}/{index}")
-async def kgen_run_detail(ticker: str, index: int):
+@app.get("/api/kgen-runs/{doc_id}/{index}")
+async def kgen_run_detail(doc_id: str, index: int):
     """Load a specific KGSpin run by index. Includes pre-built vis data."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
 
     run_dir = _kgen_run_log._run_dir(ticker)
@@ -3685,8 +3727,8 @@ async def kgen_run_detail(ticker: str, index: int):
 # --- Slot Cache Check (Sprint 91) ---
 
 
-@app.get("/api/slot-cache-check/{ticker}")
-async def slot_cache_check(ticker: str, pipeline: str = "", bundle: str = "", strategy: str = "", pipeline_config_ref: str = ""):
+@app.get("/api/slot-cache-check/{doc_id}")
+async def slot_cache_check(doc_id: str, pipeline: str = "", bundle: str = "", strategy: str = "", pipeline_config_ref: str = ""):
     """Check if a cached run exists for a pipeline+bundle combo and return it.
 
     Sprint 12 Task 5: accepts ``pipeline_config_ref`` (admin resource
@@ -3694,6 +3736,7 @@ async def slot_cache_check(ticker: str, pipeline: str = "", bundle: str = "", st
 
     Returns {cached: true, vis, stats, total_runs, run_index} or {cached: false}.
     """
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     if not pipeline:
         return JSONResponse({"cached": False})
@@ -3821,9 +3864,10 @@ async def slot_cache_check(ticker: str, pipeline: str = "", bundle: str = "", st
 # --- Intelligence Run History (Sprint 33.17) ---
 
 
-@app.get("/api/intel-runs/{ticker}")
-async def intel_runs(ticker: str):
+@app.get("/api/intel-runs/{doc_id}")
+async def intel_runs(doc_id: str):
     """List all logged Intelligence pipeline runs for a ticker."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     run_dir = _intel_run_log._run_dir(ticker)
     if not run_dir.exists():
@@ -3852,9 +3896,10 @@ async def intel_runs(ticker: str):
     })
 
 
-@app.get("/api/intel-runs/{ticker}/{index}")
-async def intel_run_detail(ticker: str, index: int):
+@app.get("/api/intel-runs/{doc_id}/{index}")
+async def intel_run_detail(doc_id: str, index: int):
     """Load a specific Intelligence pipeline run by index."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
 
     run_dir = _intel_run_log._run_dir(ticker)
@@ -3935,18 +3980,20 @@ async def purge_cache(request: Request):
 # --- Impact Q&A Run History ---
 
 
-@app.get("/api/impact-qa-runs/{ticker}")
-async def impact_qa_runs(ticker: str):
+@app.get("/api/impact-qa-runs/{doc_id}")
+async def impact_qa_runs(doc_id: str):
     """List all logged Impact Q&A runs for a ticker."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     cfg_key = "impact_qa"
     runs = _impact_qa_run_log.list_runs(ticker, cfg_key)
     return JSONResponse({"runs": runs, "total": len(runs), "config_key": cfg_key})
 
 
-@app.get("/api/impact-qa-runs/{ticker}/{index}")
-async def impact_qa_run_detail(ticker: str, index: int):
+@app.get("/api/impact-qa-runs/{doc_id}/{index}")
+async def impact_qa_run_detail(doc_id: str, index: int):
     """Load a specific Impact Q&A run by index (0 = newest)."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     cfg_key = "impact_qa"
     run_data = _impact_qa_run_log.load_run(ticker, cfg_key, index)
@@ -4010,16 +4057,17 @@ async def bundle_predicates():
     })
 
 
-@app.get("/api/document/text/{ticker}")
-async def get_document_text(ticker: str):
+@app.get("/api/document/text/{doc_id}")
+async def get_document_text(doc_id: str):
     """Return cached truncated 10-K text for evidence review (Sprint 39.3)."""
+    ticker = doc_id  # Wave A wire-format shim
     ticker = ticker.upper()
     with _cache_lock:
         cached = _kg_cache.get(ticker)
     if not cached or not cached.get("text"):
         return JSONResponse({"error": "No cached text. Run extraction first."}, status_code=404)
     text = cached["text"]
-    return JSONResponse({"ticker": ticker, "text": text, "length": len(text)})
+    return JSONResponse({"doc_id": ticker, "text": text, "length": len(text)})
 
 
 @app.post("/api/feedback/false_positive")
@@ -4934,7 +4982,7 @@ async def auto_discover_tp(request: Request):
     # template is missing placeholders.
     _admin_prompt = _admin_prompt_or_none("kg-quality-comparison")
     _prompt_context = {
-        "ticker": ticker,
+        "doc_id": ticker,
         "num_entities": len(nodes),
         "num_relationships": len(edges),
         "entity_lines_body": chr(10).join(entity_lines[:500]),
@@ -6066,7 +6114,7 @@ async def run_comparison(
     _fin_doc_ctx = _FCP.build_document_context(
         {
             "company": _company,
-            "ticker": ticker,
+            "doc_id": ticker,
             "source": "SEC 10-K",
             "filing_date": sec_doc.filing_date,
             "cik": sec_doc.cik or "",
@@ -6087,7 +6135,7 @@ async def run_comparison(
                 "filing_date": sec_doc.filing_date,
                 "accession_number": sec_doc.accession_number,
                 "company_name": _company,
-                "ticker": ticker,
+                "doc_id": ticker,
                 "size_kb": size_kb,
             },
         },
@@ -6284,7 +6332,7 @@ async def run_comparison(
         # Domain-agnostic: keys match bundle.document_seed_facts[].source_field.
         _doc_metadata = {
             "company_name": _company,
-            "ticker": ticker,
+            "doc_id": ticker,
             "cik": sec_doc.cik or "",
             "accession_number": sec_doc.accession_number or "",
             "filing_date": sec_doc.filing_date or "",
@@ -7089,7 +7137,7 @@ async def _run_kgen_refresh(
             logger.exception("Corpus fetch failed for %s", ticker)
             yield sse_event("error", {
                 "step": "kgenskills", "pipeline": "kgenskills",
-                "ticker": cfe.ticker,
+                "doc_id": cfe.doc_id,
                 "reason": cfe.reason,
                 "message": cfe.actionable_hint,
                 "attempted": cfe.attempted,
@@ -7157,7 +7205,7 @@ async def _run_kgen_refresh(
     # Sprint 102: Build document metadata for seed fact resolution.
     _refresh_doc_metadata = {
         "company_name": info.get("name", ticker),
-        "ticker": ticker,
+        "doc_id": ticker,
         "cik": sec_doc.cik or "",
         "accession_number": sec_doc.accession_number or "",
         "filing_date": sec_doc.filing_date or "",
@@ -7335,7 +7383,7 @@ async def run_single_refresh(
             logger.exception("Corpus fetch failed for %s", ticker)
             yield sse_event("error", {
                 "step": pipeline, "pipeline": pipeline,
-                "ticker": cfe.ticker,
+                "doc_id": cfe.doc_id,
                 "reason": cfe.reason,
                 "message": cfe.actionable_hint,
                 "attempted": cfe.attempted,
@@ -7839,7 +7887,7 @@ async def _run_clinical_comparison(
             logger.exception("Live clinical fetch failed for %s", nct_id)
             yield sse_event("error", {
                 "step": "resolve_ticker",
-                "ticker": cfe.ticker,
+                "doc_id": cfe.doc_id,
                 "reason": cfe.reason,
                 "message": cfe.actionable_hint,
                 "attempted": cfe.attempted,
@@ -7917,7 +7965,7 @@ async def _run_clinical_comparison(
             "filing_date": "",
             "accession_number": nct_id,
             "company_name": trial_title,
-            "ticker": nct_id,
+            "doc_id": nct_id,
             "size_kb": round(size_kb, 1),
             "sponsor": nct_metadata.get("sponsor", ""),
             "phase": nct_metadata.get("phase", ""),
@@ -8628,7 +8676,7 @@ async def _warm_cache_from_disk(ticker: str, domain: str = "financial") -> dict 
         "kgs_kg": kgs_kg,
         "text": demo_text,
         "raw_html": raw_html,
-        "info": {"ticker": ticker, "domain": domain},
+        "info": {"doc_id": ticker, "domain": domain},
         "corpus_kb": corpus_kb,
         "actual_kb": actual_kb,
     }
@@ -8709,9 +8757,9 @@ async def run_intelligence(
             import json as _json
             gold_data = _json.loads(gold_path.read_text())
             trial_title = gold_data.get("trial_title", ticker)
-            info = {"name": trial_title, "domain": "clinical", "ticker": ticker}
+            info = {"name": trial_title, "domain": "clinical", "doc_id": ticker}
         else:
-            info = {"name": ticker, "domain": "clinical", "ticker": ticker}
+            info = {"name": ticker, "domain": "clinical", "doc_id": ticker}
             gold_data = None
     else:
         info = await asyncio.to_thread(resolve_ticker, ticker)
@@ -8822,7 +8870,7 @@ async def run_intelligence(
                     "filing_date": sec_doc.filing_date,
                     "accession_number": sec_doc.accession_number,
                     "company_name": info.get("name", "") or sec_doc.company_name or ticker,
-                    "ticker": ticker,
+                    "doc_id": ticker,
                     "size_kb": size_kb,
                 },
             })
@@ -9073,7 +9121,7 @@ async def run_intelligence(
             # Sprint 102: Build metadata dict for document seeding
             _sec_doc_metadata = {
                 "company_name": info.get("name", ""),
-                "ticker": ticker,
+                "doc_id": ticker,
                 "cik": getattr(sec_doc, "cik", "") or "",
                 "accession_number": getattr(sec_doc, "accession_number", "") or "",
                 "filing_date": getattr(sec_doc, "filing_date", "") or "",

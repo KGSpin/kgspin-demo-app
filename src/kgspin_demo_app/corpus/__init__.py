@@ -45,20 +45,23 @@ class CorpusFetchError(Exception):
     Legacy — Sprint 09 landers use ``kgspin_interface.FetcherError``
     and ``FetcherNotFoundError`` directly. Kept here only as a
     compatibility shim for any remaining call sites.
+
+    Wave A: ``doc_id`` replaces the pre-Wave-A ``ticker`` field; the
+    identifier is domain-neutral now (SEC tickers, NCT ids, etc.).
     """
 
     def __init__(
         self,
-        ticker: str,
+        doc_id: str,
         reason: str,
         actionable_hint: str,
         attempted: list[str] | None = None,
     ) -> None:
-        self.ticker = ticker
+        self.doc_id = doc_id
         self.reason = reason
         self.actionable_hint = actionable_hint
         self.attempted = attempted or []
-        super().__init__(f"[{ticker}] {reason}: {actionable_hint}")
+        super().__init__(f"[{doc_id}] {reason}: {actionable_hint}")
 
 
 __all__ = ["CorpusFetchError", "ProviderConfigurationError"]
