@@ -869,17 +869,17 @@ def _prompt_version_hash(
 def _build_pipeline_cache_keys(
     bundle_path, patterns_path, corpus_kb: float, model: str,
     bundle_name: str = "", domain_id: str = "",
+    pipeline_id: str | None = None,
 ) -> dict:
     """Build cache config keys for all three extraction pipelines.
 
     Returns {"gemini": str, "modular": str, "kgen": str}.
 
-    Sprint 118: All keys include a readable ``dom=`` segment when a domain
-    version is selected, so cached runs can be queried by domain version
-    across all pipelines (e.g. "all v12 extracts including LLMs").
-
-    Sprint 86: KGSpin cache key includes ``bid`` (bundle_id) so
-    different strategy × linguistic combinations produce separate caches.
+    The kgen ``bid`` always includes ``pipeline_id`` when one is supplied,
+    so different KGSpin strategies (discovery-deep, fan-out, discovery-rapid)
+    on the same bundle land in separate cache entries. Without this, strategy
+    selection becomes a no-op after the first run — the cache serves the
+    first strategy's KG for every subsequent selection.
     """
     gem_pv = _prompt_version_hash(
         "gemini_extractor", "GeminiKGExtractor", bundle_path, patterns_path, model,
@@ -887,12 +887,12 @@ def _build_pipeline_cache_keys(
     mod_pv = _prompt_version_hash(
         "gemini_aligned_extractor", "GeminiAlignedExtractor", bundle_path, patterns_path, model,
     )
-    # Sprint 86: Include bundle_id as opaque discriminator for KGSpin.
-    # No parsing of bundle_id is permitted — treat as black box (VP Eng mandate).
     kgen_kwargs = {"corpus_kb": corpus_kb}
     if bundle_name:
-        kgen_kwargs["bid"] = bundle_name
-    # Sprint 118: Include domain_id as readable segment in LLM cache keys.
+        bid = bundle_name
+        if pipeline_id and f"_p={pipeline_id}" not in bid:
+            bid = f"{bid}_p={pipeline_id}"
+        kgen_kwargs["bid"] = bid
     gem_kwargs = {"corpus_kb": corpus_kb, "model": model, "pv": gem_pv, "cv": DEMO_CACHE_VERSION}
     mod_kwargs = {"corpus_kb": corpus_kb, "model": model, "pv": mod_pv, "cv": DEMO_CACHE_VERSION}
     if domain_id:
@@ -2843,6 +2843,7 @@ async def slot_cache_check(doc_id: str, pipeline: str = "", bundle: str = "", st
     cfg_keys = _build_pipeline_cache_keys(
         bundle_path, _patterns, corpus_kb, DEFAULT_GEMINI_MODEL,
         bundle_name=bundle_name, domain_id=bundle if _slot_is_split else "",
+        pipeline_id=pipeline_id,
     )
     cfg_key = cfg_keys.get(cache_pipeline, "")
     if not cfg_key:
@@ -4653,6 +4654,7 @@ async def run_comparison(
     _cfg_keys = _build_pipeline_cache_keys(
         _llm_bundle_path, _llm_patterns_path, corpus_kb, model,
         bundle_name=_kgen_bid, domain_id=bundle_name if _is_split else "",
+        pipeline_id=pipeline_id,
     )
     _gem_cfg_hash = _cfg_keys["gemini"]
     _cfg_hash = _gem_cfg_hash  # alias for backwards compat in _kg_cache
@@ -5561,11 +5563,12 @@ async def _run_kgen_refresh(
         })
         yield sse_event("done", {"total_duration_ms": 0})
         return
-    # Sprint 118: Use split bundle ID for cache key when using split bundles
     if bundle_name and pipeline_id and DOMAIN_BUNDLES_DIR.is_dir() and (DOMAIN_BUNDLES_DIR / bundle_name).is_dir():
         _bid = _split_bundle_id(bundle_name, pipeline_id)
     else:
         _bid = bundle_name or BUNDLE_PATH.name
+        if pipeline_id and f"_p={pipeline_id}" not in _bid:
+            _bid = f"{_bid}_p={pipeline_id}"
     _kgen_cfg_hash = _kgen_run_log.config_key(
         "kgen", corpus_kb=corpus_kb, bid=_bid,
     )
@@ -5761,11 +5764,12 @@ async def _run_kgen_refresh(
     await asyncio.sleep(0)
 
     # Log to disk cache
-    # Sprint 118: Use split bundle ID when applicable
     if bundle_name and pipeline_id and DOMAIN_BUNDLES_DIR.is_dir() and (DOMAIN_BUNDLES_DIR / bundle_name).is_dir():
         _log_bid = _split_bundle_id(bundle_name, pipeline_id)
     else:
         _log_bid = bundle_name or BUNDLE_PATH.name
+        if pipeline_id and f"_p={pipeline_id}" not in _log_bid:
+            _log_bid = f"{_log_bid}_p={pipeline_id}"
     _kgen_cfg_hash = _kgen_run_log.config_key(
         "kgen", corpus_kb=cached.get('corpus_kb', corpus_kb), bid=_log_bid,
     )
