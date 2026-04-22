@@ -420,10 +420,21 @@ DEFAULT_CORPUS_KB = 0  # Sprint 80: Full document is default (CEO directive)
 VALID_CHUNK_SIZES = {3000, 10000, 30000, 50000, 0, 1, 6, 12, 24}
 DEFAULT_CHUNK_SIZE = 30000
 
-# Sprint 33.18: Model selection with pricing (per 1M tokens)
+# Model selection with pricing (per 1M tokens).
+# Wave 3 follow-up: Gemini 3.x preview models added 2026-04-22. All 3.x
+# variants are Preview (no GA tier yet); pricing is not published on the
+# aistudio pricing page, so the dollar figures are placeholders marked
+# with "preview_pricing: true". Surface them in the UI as "(preview)"
+# so operators understand the model tier — and rotate GA pricing in when
+# Google publishes it.
 GEMINI_MODEL_PRICING = {
-    "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40, "label": "2.5 Flash Lite"},
-    "gemini-2.5-flash":      {"input": 0.30, "output": 2.50, "label": "2.5 Flash"},
+    "gemini-2.5-flash-lite":        {"input": 0.10, "output": 0.40, "label": "2.5 Flash Lite"},
+    "gemini-2.5-flash":             {"input": 0.30, "output": 2.50, "label": "2.5 Flash"},
+    # Gemini 3.x — Preview, pricing TBD. See
+    # https://ai.google.dev/gemini-api/docs/changelog (Mar/Apr 2026 entries).
+    "gemini-3-flash-preview":       {"input": 0.30, "output": 2.50, "label": "3 Flash (preview)",       "preview_pricing": True},
+    "gemini-3.1-flash-lite-preview": {"input": 0.10, "output": 0.40, "label": "3.1 Flash Lite (preview)", "preview_pricing": True},
+    "gemini-3.1-pro-preview":       {"input": 1.25, "output": 10.00, "label": "3.1 Pro (preview)",      "preview_pricing": True},
 }
 VALID_GEMINI_MODELS = set(GEMINI_MODEL_PRICING.keys())
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
@@ -7294,6 +7305,18 @@ async def run_single_refresh(
             except asyncio.TimeoutError:
                 yield ": heartbeat\n\n"
                 await asyncio.sleep(0)
+            except Exception:
+                # The task completed with an exception. If we don't catch it
+                # here, the bare exception escapes the async generator,
+                # starlette severs the SSE stream mid-response
+                # (ERR_INCOMPLETE_CHUNKED_ENCODING in the browser), and our
+                # structured failure handling below — which CACHES the
+                # failure and YIELDS a proper SSE error event so the UI can
+                # render the red "Failed to generate" overlay — never runs.
+                # Swallow here and fall through to ``gemini_task.result()``
+                # below, which re-raises inside an explicit try/except that
+                # handles the failure end-to-end.
+                break
             if await request.is_disconnected():
                 gemini_task.cancel()
                 return
