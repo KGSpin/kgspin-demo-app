@@ -813,8 +813,26 @@ class GeminiRunLog:
         analysis: Optional[dict] = None,
         cache_version: str = "",
         bundle_version: str = "",
-    ) -> Path:
-        """Log a completed run to disk. Returns file path."""
+    ) -> Optional[Path]:
+        """Log a completed run to disk. Returns file path, or None if the
+        run was empty (guard against cache pollution from errored runs).
+        """
+        # Cache-pollution guard: a run that produced zero entities AND zero
+        # relationships is almost certainly an errored / partial run — the
+        # backend raised mid-stream and the outer handler swallowed the
+        # error. Persisting an empty payload leaves a stale entry that
+        # renders as blank on replay (Sprint W3 follow-up bug #2). Skip.
+        entity_count = len(kg.get("entities", []) or [])
+        relationship_count = len(kg.get("relationships", []) or [])
+        if entity_count == 0 and relationship_count == 0:
+            logger.warning(
+                "Refusing to log empty run (ticker=%s cfg=%s model=%s "
+                "elapsed=%.1fs tokens=%d) — likely an errored extraction. "
+                "Check upstream traceback.",
+                ticker.upper(), cfg_hash, model, elapsed_seconds, total_tokens,
+            )
+            return None
+
         run_dir = self._run_dir(ticker)
         run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -829,8 +847,8 @@ class GeminiRunLog:
             "model": model,
             "total_tokens": total_tokens,
             "elapsed_seconds": round(elapsed_seconds, 2),
-            "entity_count": len(kg.get("entities", [])),
-            "relationship_count": len(kg.get("relationships", [])),
+            "entity_count": entity_count,
+            "relationship_count": relationship_count,
             "kg": kg,
             "analysis": analysis,
             "demo_cache_version": cache_version,
