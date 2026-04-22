@@ -4989,6 +4989,18 @@ function switchDomain(domain) {
 
     // Clear existing graphs (Task 5b: graph refresh on domain change)
     clearAllGraphs();
+
+    // Reset per-pipeline run-state globals so pager arrows / cached lookups
+    // don't fire stale `/api/gemini-runs/<prev-ticker>/<idx>` calls after
+    // the domain changed. Without this, switching financial → clinical
+    // re-runs the pager against the prior ticker and surfaces 422s in
+    // the console (stale ticker + NaN index from the in-flight
+    // `currentIndex` math).
+    [gemRunState, modRunState, kgenRunState, intelRunState].forEach(s => {
+        s.ticker = null;
+        s.currentIndex = 0;
+        s.totalRuns = 0;
+    });
 }
 
 function clearAllGraphs() {

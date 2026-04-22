@@ -290,14 +290,77 @@ def _fetch_newsapi_articles(query: str, limit: int = 5) -> list[dict]:
     return results
 
 
-def _try_corpus_fetch(ticker: str):
-    """Sprint 10: read the most-recent landed artifact via admin's
-    ``ResourceRegistryClient``.
+def _auto_land_corpus(
+    *, ticker: str, domain: str, source: str, identifier_key: str,
+    normalized_id: str, is_clinical: bool,
+):
+    """In-process lander invocation: fetch + register when admin has no
+    artifact. Returns the ``FetchResult``-like pointer/metadata pair on
+    success, or raises to let the caller surface the error.
 
-    Returns an EdgarDocument-shaped adapter on hit so the downstream
-    extraction pipeline is unchanged. Raises ``CorpusFetchError`` when
-    no registered document matches the identifier; SSE handlers catch
-    it and surface a "Corpus Missing — click Refresh" hint to the UI.
+    Mirrors the SecLander / ClinicalLander CLI entry points in their
+    ``main()`` functions but skips the subprocess boundary so the demo
+    can self-bootstrap on first Run. Requires ``EDGAR_IDENTITY`` for
+    the SEC path (the lander raises ``FetcherError`` on missing creds,
+    and that propagates with an actionable message).
+    """
+    from datetime import datetime as _dt
+    from kgspin_demo_app.registry_http import HttpResourceRegistryClient
+    from kgspin_interface.resources import CorpusDocumentMetadata
+
+    if is_clinical:
+        from kgspin_demo_app.landers.clinical import ClinicalLander
+        lander = ClinicalLander()
+        fetch_identifier = {"nct": normalized_id}
+    else:
+        from kgspin_demo_app.landers.sec import SecLander
+        lander = SecLander()
+        fetch_identifier = {"ticker": normalized_id, "form": "10-K"}
+
+    result = lander.fetch(
+        domain=domain, source=source, identifier=fetch_identifier,
+    )
+
+    extras = result.metadata or {}
+    register_identifier = dict(fetch_identifier)
+    doc_meta = CorpusDocumentMetadata(
+        domain=domain,
+        source=source,
+        identifier=register_identifier,
+        fetch_timestamp=_dt.fromisoformat(
+            extras.get("fetch_timestamp_utc", _dt.utcnow().isoformat() + "Z")
+            .replace("Z", "+00:00")
+        ),
+        mime_type=extras.get("mime_type", "text/html"),
+        bytes_written=extras.get("bytes_written"),
+        etag=extras.get("etag"),
+        source_url=extras.get("source_url"),
+        source_extras={
+            k: v for k, v in extras.items()
+            if k not in {"bytes_written", "etag", "source_url", "mime_type"}
+        },
+    )
+
+    client = HttpResourceRegistryClient()
+    client.register_corpus_document(
+        metadata=doc_meta, pointer=result.pointer,
+        actor=f"auto_land:{source}",
+    )
+    return doc_meta, result.pointer
+
+
+def _try_corpus_fetch(ticker: str):
+    """Resolve a landed corpus artifact for ``ticker`` via admin.
+
+    On admin miss, auto-invoke the appropriate lander (SEC for tickers,
+    ClinicalLander for NCT ids), register the fetched artifact, and
+    retry. This makes first-run extraction self-bootstrapping — the
+    operator doesn't need a separate "Refresh Local Corpus" click.
+
+    Raises ``CorpusFetchError`` only when both the admin lookup AND the
+    auto-land path fail. The error carries the real upstream reason
+    (e.g. ``EDGAR_IDENTITY not set``) rather than a generic not-found
+    message so the UI can surface a useful failure state.
     """
     is_clinical = ticker.startswith("NCT")
     if is_clinical:
@@ -308,35 +371,71 @@ def _try_corpus_fetch(ticker: str):
         normalized_id = ticker.upper()
     attempted = [source]
 
-    client = _get_registry_client()
-    candidates = client.list(ResourceKind.CORPUS_DOCUMENT, domain=domain, source=source)
-    matches = [
-        r for r in candidates
-        if (r.metadata or {}).get("identifier", {}).get(identifier_key) == normalized_id
-    ]
-
-    if matches:
+    def _read_from_admin() -> Any:
+        client = _get_registry_client()
+        candidates = client.list(
+            ResourceKind.CORPUS_DOCUMENT, domain=domain, source=source,
+        )
+        matches = [
+            r for r in candidates
+            if (r.metadata or {}).get("identifier", {}).get(identifier_key) == normalized_id
+        ]
+        if not matches:
+            return None
         matches.sort(
             key=lambda r: (r.metadata or {}).get("fetch_timestamp", ""),
             reverse=True,
         )
         latest = matches[0]
         pointer = client.resolve_pointer(latest.id)
+        raw_bytes = _read_pointer_bytes(pointer)
+        return _adapt_to_sec_doc_shape(raw_bytes, latest.metadata or {}, ticker)
+
+    # 1. Existing artifact in admin?
+    try:
+        existing = _read_from_admin()
+        if existing is not None:
+            return existing
+    except CorpusFetchError as cfe:
+        # Re-raise with ticker on the envelope.
+        raise CorpusFetchError(
+            ticker=ticker, reason=cfe.reason,
+            actionable_hint=cfe.actionable_hint,
+            attempted=attempted + cfe.attempted,
+        )
+
+    # 2. Auto-land: invoke the real lander in-process.
+    logger.info(
+        "[AUTO_LAND] admin has no %s/%s artifact for %s — running lander in-process",
+        domain, source, ticker,
+    )
+    try:
+        _auto_land_corpus(
+            ticker=ticker, domain=domain, source=source,
+            identifier_key=identifier_key, normalized_id=normalized_id,
+            is_clinical=is_clinical,
+        )
+    except Exception as exc:
+        logger.warning("[AUTO_LAND] failed for %s: %s", ticker, exc)
+        auto_land_error = str(exc)
+        auto_land_class = type(exc).__name__
+    else:
+        # 2b. Post-land retry.
         try:
-            raw_bytes = _read_pointer_bytes(pointer)
+            refreshed = _read_from_admin()
+            if refreshed is not None:
+                logger.info("[AUTO_LAND] registered + loaded %s", ticker)
+                return refreshed
         except CorpusFetchError as cfe:
-            # Re-raise with the correct ticker on the envelope.
             raise CorpusFetchError(
-                ticker=ticker,
-                reason=cfe.reason,
+                ticker=ticker, reason=cfe.reason,
                 actionable_hint=cfe.actionable_hint,
                 attempted=attempted + cfe.attempted,
             )
-        return _adapt_to_sec_doc_shape(raw_bytes, latest.metadata or {}, ticker)
+        auto_land_error = "post-land lookup found no artifact"
+        auto_land_class = "MissingArtifact"
 
-    # Last-resort fixture fallback for offline CI (tests/fixtures/corpus/<ticker>.html).
-    # Preserved per Sprint 10 plan; the legacy ``_corpus_create_provider`` factory
-    # was retired in Sprint 09 so we instantiate ``MockDocumentFetcher`` directly.
+    # 3. Offline fixture fallback (tests/fixtures/corpus/<ticker>.html).
     attempted.append("demo_mock_fixture")
     try:
         from kgspin_demo_app.corpus.mock_provider import MockDocumentFetcher
@@ -356,22 +455,20 @@ def _try_corpus_fetch(ticker: str):
             loaded_from_cache=True,
         )
     except Exception:
-        # Fixture miss is expected in most runs; fall through to actionable error.
         pass
 
+    # 4. Everything failed. Surface the real auto-land error, not a generic hint.
     if is_clinical:
         hint = (
-            f"No landed artifact for {ticker}. Run:\n"
-            f"  uv run kgspin-demo-lander-clinical --nct {ticker}\n"
-            f"...then re-run extraction. Or click 'Refresh Local Corpus' in the UI."
+            f"Could not fetch {ticker} from ClinicalTrials.gov.\n"
+            f"Auto-land attempt raised {auto_land_class}: {auto_land_error}"
         )
     else:
         hint = (
-            f"No landed artifact for {ticker}. Run:\n"
-            f"  uv run kgspin-demo-lander-sec --ticker {ticker}\n"
-            f"...then re-run extraction. Or click 'Refresh Local Corpus' in the UI. "
-            f"(EDGAR_IDENTITY env var required for the lander — an email works, "
-            f"e.g. EDGAR_IDENTITY='you@example.com'.)"
+            f"Could not fetch {ticker} from SEC EDGAR.\n"
+            f"Auto-land attempt raised {auto_land_class}: {auto_land_error}\n"
+            f"If the error mentions EDGAR_IDENTITY: set the env var to an "
+            f"email (e.g. EDGAR_IDENTITY='you@example.com') and restart the demo."
         )
     raise CorpusFetchError(
         ticker=ticker,
