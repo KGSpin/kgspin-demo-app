@@ -7969,9 +7969,12 @@ def _run_agentic_flash(
             registry_client=registry_client,
         )
         elapsed = time.time() - t0
-        logger.info(f"[AGENTIC_FLASH] complete elapsed={elapsed:.2f}s")
+        tokens = getattr(result.provenance, "tokens_used", 0) or 0
+        logger.info(
+            f"[AGENTIC_FLASH] complete elapsed={elapsed:.2f}s tokens={tokens}"
+        )
         kg = result.to_dict()
-        return kg, 0, elapsed, 0, False
+        return kg, tokens, elapsed, 0, False
     except Exception:
         logger.exception("Agentic Flash run_pipeline failed")
         raise
@@ -8032,9 +8035,15 @@ def _run_agentic_analyst(
             registry_client=registry_client,
         )
         elapsed = time.time() - t0
-        logger.info(f"[AGENTIC_ANALYST] complete elapsed={elapsed:.2f}s")
+        tokens = getattr(result.provenance, "tokens_used", 0) or 0
+        logger.info(
+            f"[AGENTIC_ANALYST] complete elapsed={elapsed:.2f}s tokens={tokens}"
+        )
         kg = result.to_dict()
-        return kg, 0, 0, elapsed, 0
+        # (h_tokens, l_tokens) split isn't surfaced by the extractor yet;
+        # report the aggregate as h_tokens, 0 as l_tokens, matching the
+        # existing SSE event builder contract.
+        return kg, tokens, 0, elapsed, 0
     except Exception:
         logger.exception("Agentic Analyst run_pipeline failed")
         raise
