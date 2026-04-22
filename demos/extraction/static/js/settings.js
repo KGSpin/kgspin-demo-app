@@ -104,5 +104,11 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Wave E — settings.js action registrations
+registerAction('toggle-settings-panel', () => toggleSettingsPanel());
+registerAction('sync-model-setting', () => syncModelSetting());
+registerAction('sync-corpus-setting', () => syncCorpusSetting());
+registerAction('update-bundle-id', () => updateBundleId());
+
 // --- Per-Graph Run ---
 

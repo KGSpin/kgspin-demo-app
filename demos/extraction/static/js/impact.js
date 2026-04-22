@@ -764,5 +764,12 @@ function askAgenticQuestion() {
     });
 }
 
+// Wave E — impact.js action registrations
+registerAction('switch-impact-subtab', (el) => switchImpactSubTab(el.dataset.subtab));
+registerAction('start-impact', () => startImpact());
+registerAction('navigate-qa-run', (el) => navigateQARun(+el.dataset.dir));
+registerAction('ask-agentic-question', () => askAgenticQuestion());
+
+
 // --- Legend Filtering (Sprint 90 Task 9, refactored Sprint 91b: per-pipeline) ---
 

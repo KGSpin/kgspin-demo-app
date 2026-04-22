@@ -2572,5 +2572,17 @@ async function runSlotQA() {
     }
 }
 
+// Wave E — compare-runner.js action registrations
+registerAction('start-comparison', () => startComparison());
+registerAction('run-slot-auto-flag', (el) => runSlotAutoFlag(+el.dataset.slot));
+registerAction('run-slot-discover-tp', (el) => runSlotDiscoverTP(+el.dataset.slot));
+registerAction('refresh-analysis', () => refreshAnalysis());
+registerAction('run-slot-analysis', () => runSlotAnalysis());
+registerAction('run-slot-qa', () => runSlotQA());
+registerAction('run-auto-flag', () => runAutoFlag());
+registerAction('load-stored-feedback', () => loadStoredFeedback());
+registerAction('bulk-retract-all', () => bulkRetractAll());
+
+
 // --- Document Explorer (Sprint 90: per-node click from graph) ---
 

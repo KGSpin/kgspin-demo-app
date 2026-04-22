@@ -85,6 +85,10 @@ function switchDomain(domain) {
 }
 
 
+// Wave E — domain-switch.js action registrations
+registerAction('switch-domain', (el) => switchDomain(el.dataset.domain));
+
+
 // --- compare.html lines 5006-5016: clearAllGraphs ---
 function clearAllGraphs() {
     // Clear KGSpin graph

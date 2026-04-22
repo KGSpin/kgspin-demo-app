@@ -1420,8 +1420,8 @@ body {
     <div class="controls">
         <!-- Sprint 77 Task 5a: Domain selector pills -->
         <div id="domain-selector" style="display:inline-flex; gap:0; border:1px solid #3a3a5e; border-radius:6px; overflow:hidden; margin-right:4px;">
-            <button class="domain-pill active" data-domain="financial" onclick="switchDomain('financial')" style="background:#1a2a3a; border:none; color:#7cb3ff; padding:8px 12px; font-size:12px; cursor:pointer; font-weight:600;">Financial</button>
-            <button class="domain-pill" data-domain="clinical" onclick="switchDomain('clinical')" style="background:#0f0f23; border:none; border-left:1px solid #3a3a5e; color:#888; padding:8px 12px; font-size:12px; cursor:pointer;">Clinical</button>
+            <button class="domain-pill active" data-domain="financial" data-action="switch-domain" data-domain="financial" style="background:#1a2a3a; border:none; color:#7cb3ff; padding:8px 12px; font-size:12px; cursor:pointer; font-weight:600;">Financial</button>
+            <button class="domain-pill" data-domain="clinical" data-action="switch-domain" data-domain="clinical" style="background:#0f0f23; border:none; border-left:1px solid #3a3a5e; color:#888; padding:8px 12px; font-size:12px; cursor:pointer;">Clinical</button>
         </div>
         <!-- Sprint 90: Corpus, model, strategy, linguistic selectors hidden — still functional for API calls -->
         <select id="corpus-kb-select" title="Corpus size limit" style="display:none;">
@@ -1437,9 +1437,9 @@ body {
             <option value="gemini-3.1-flash-lite-preview">3.1 Flash Lite (preview)</option>
             <option value="gemini-3.1-pro-preview">3.1 Pro (preview)</option>
         </select>
-        <select id="strategy-select" title="Extraction strategy" style="display:none;" onchange="updateBundleId()">
+        <select id="strategy-select" title="Extraction strategy" style="display:none;" data-change-action="update-bundle-id">
         </select>
-        <select id="linguistic-select" title="Linguistic schema version" style="display:none;" onchange="updateBundleId()">
+        <select id="linguistic-select" title="Linguistic schema version" style="display:none;" data-change-action="update-bundle-id">
         </select>
         <input type="hidden" id="bundle-select" value="">
         <!-- Financial: ticker input -->
@@ -1449,9 +1449,9 @@ body {
         <select id="trial-select" title="Clinical trial" style="display:none; background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:8px 10px; border-radius:6px; font-size:13px; max-width:280px;">
         </select>
         <span id="clinical-badge" style="display:none; background:#2a1a2a; color:#d4a5d4; border:1px solid #5a3a5a; padding:4px 8px; border-radius:4px; font-size:11px; font-style:italic;">calibration in progress</span>
-        <button id="run-comparison-btn" onclick="startComparison()" title="Fetch document for the ticker" style="background:#1a2a1a; border:1px solid #3a5a3a; color:#5ED68A; padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer;">Go</button>
+        <button id="run-comparison-btn" data-action="start-comparison" title="Fetch document for the ticker" style="background:#1a2a1a; border:1px solid #3a5a3a; color:#5ED68A; padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer;">Go</button>
         <!-- Sprint 90: Settings gear icon -->
-        <button id="settings-btn" onclick="toggleSettingsPanel()" title="Settings" style="background:#0f0f23; border:1px solid #3a3a5e; color:#888; padding:8px 10px; border-radius:6px; font-size:16px; cursor:pointer; line-height:1;">&#9881;</button>
+        <button id="settings-btn" data-action="toggle-settings-panel" title="Settings" style="background:#0f0f23; border:1px solid #3a3a5e; color:#888; padding:8px 10px; border-radius:6px; font-size:16px; cursor:pointer; line-height:1;">&#9881;</button>
         <span id="status"></span>
     </div>
     <!-- Sprint 90: Settings popover -->
@@ -1459,7 +1459,7 @@ body {
         <div style="font-weight:600; color:#ccc; margin-bottom:12px;">Settings</div>
         <div style="margin-bottom:10px;">
             <label style="color:#888; font-size:12px; display:block; margin-bottom:4px;">LLM Model</label>
-            <select id="settings-model-select" title="Gemini model for all LLM calls" onchange="syncModelSetting()" style="background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:6px 8px; border-radius:4px; font-size:12px; width:100%;">
+            <select id="settings-model-select" title="Gemini model for all LLM calls" data-change-action="sync-model-setting" style="background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:6px 8px; border-radius:4px; font-size:12px; width:100%;">
                 <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
                 <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash</option>
                 <option value="gemini-3-flash-preview">Gemini 3 Flash (preview)</option>
@@ -1469,21 +1469,21 @@ body {
         </div>
         <div style="margin-bottom:10px;">
             <label style="color:#888; font-size:12px; display:block; margin-bottom:4px;">Corpus Size</label>
-            <select id="settings-corpus-select" onchange="syncCorpusSetting()" style="background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:6px 8px; border-radius:4px; font-size:12px; width:100%;">
+            <select id="settings-corpus-select" data-change-action="sync-corpus-setting" style="background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:6px 8px; border-radius:4px; font-size:12px; width:100%;">
                 <option value="0" selected>Full Document</option>
                 <option value="100">100 KB</option>
                 <option value="200">200 KB</option>
                 <option value="500">500 KB</option>
             </select>
         </div>
-        <button onclick="purgeCache()" style="background:#2a1a1a; border:1px solid #5a3a3a; color:#ff6b6b; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer; width:100%; margin-top:4px;">Clear Cache</button>
+        <button data-action="purge-cache" style="background:#2a1a1a; border:1px solid #5a3a3a; color:#ff6b6b; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer; width:100%; margin-top:4px;">Clear Cache</button>
     </div>
 </div>
 
 <!-- Tab Bar — Sprint 90: Simplified to Compare + Agentic Q&A -->
 <div id="tab-bar">
-    <button class="tab active" data-tab="compare" onclick="switchTab('compare')">Compare</button>
-    <button class="tab" data-tab="flags" onclick="switchTab('flags')">Flags</button>
+    <button class="tab active" data-tab="compare" data-action="switch-tab" data-tab="compare">Compare</button>
+    <button class="tab" data-tab="flags" data-action="switch-tab" data-tab="flags">Flags</button>
 </div>
 
 <!-- ======================== TAB: KGSpin vs LLM ======================== -->
@@ -1520,7 +1520,7 @@ body {
             All three pipelines target the <strong>same schema</strong> — only the entity types and relationship types listed below are valid.
             Entities outside this schema are <span style="color:#FF4444;">noise</span>.
             Click <strong style="color:#5B9FE6;">?</strong> on each LLM panel to view the exact prompt.
-            <a href="#" id="schema-toggle" onclick="toggleSchema(); return false;" style="color:#5B9FE6; text-decoration:none; margin-left:4px;">Show target schema &darr;</a>
+            <a href="#" id="schema-toggle" data-action="toggle-schema" style="color:#5B9FE6; text-decoration:none; margin-left:4px;">Show target schema &darr;</a>
             <div id="schema-details" style="display:none; margin-top:8px; padding:10px; background:#0f0f23; border:1px solid #2a2a4e; border-radius:6px;">
                 <div style="display:flex; gap:24px; flex-wrap:wrap;">
                     <div style="flex:1; min-width:220px;">
@@ -1552,8 +1552,8 @@ body {
             <!-- Sprint 91: 3 configurable graph slots -->
             <div class="graph-panel" id="slot-0-panel">
                 <div class="graph-header">
-                    <button class="expand-btn" onclick="openExpandModal(0)" title="Expand to full screen">&#x26F6;</button>
-                    <select class="slot-pipeline-select" id="slot-0-pipeline" onchange="onSlotPipelineChange(0)">
+                    <button class="expand-btn" data-action="open-expand-modal" data-slot="0" title="Expand to full screen">&#x26F6;</button>
+                    <select class="slot-pipeline-select" id="slot-0-pipeline" data-change-action="slot-pipeline-change" data-slot="0">
                         <option value="">— Select Pipeline —</option>
                         <optgroup label="Discovery (0 tokens)">
                             <option value="discovery_rapid">Rapid Discovery</option>
@@ -1567,35 +1567,35 @@ body {
                             <option value="agentic_analyst">Agentic Analyst</option>
                         </optgroup>
                     </select>
-                    <select class="slot-bundle-select" id="slot-0-bundle" onchange="onSlotBundleChange(0)" style="display:none;">
+                    <select class="slot-bundle-select" id="slot-0-bundle" data-change-action="slot-bundle-change" data-slot="0" style="display:none;">
                         <option value="">— Select Bundle —</option>
                     </select>
-                    <button class="slot-help-btn" onclick="openSlotHelp(0)" title="Pipeline help" style="background:none;border:1px solid #3a3a5e;color:#5B9FE6;cursor:pointer;padding:1px 7px;border-radius:50%;font-size:11px;margin-left:4px;">?</button>
+                    <button class="slot-help-btn" data-action="open-slot-help" data-slot="0" title="Pipeline help" style="background:none;border:1px solid #3a3a5e;color:#5B9FE6;cursor:pointer;padding:1px 7px;border-radius:50%;font-size:11px;margin-left:4px;">?</button>
                     <span class="slot-subtitle" id="slot-0-subtitle"></span>
-                    <button class="panel-run-btn" id="slot-0-run" onclick="runSlot(0)" title="Run extraction" style="margin-left:auto; display:none;">&#9654; Run</button>
+                    <button class="panel-run-btn" id="slot-0-run" data-action="run-slot" data-slot="0" title="Run extraction" style="margin-left:auto; display:none;">&#9654; Run</button>
                 </div>
                 <div class="graph-stats" id="slot-0-stats"></div>
                 <div class="slot-history" id="slot-0-history" style="display:none; padding:2px 8px; background:#0d0d1a; border-bottom:1px solid #1a1a2e; font-size:11px; color:#888;">
-                    <button onclick="slotPrevRun(0)" id="slot-0-prev" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>&laquo; Prev</button>
+                    <button data-action="slot-prev-run" data-slot="0" id="slot-0-prev" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>&laquo; Prev</button>
                     <span id="slot-0-run-label" style="margin:0 6px;">Run 1/1</span>
-                    <button onclick="slotNextRun(0)" id="slot-0-next" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>Next &raquo;</button>
+                    <button data-action="slot-next-run" data-slot="0" id="slot-0-next" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>Next &raquo;</button>
                 </div>
                 <div class="panel-progress" id="slot-0-progress" style="display:none;">
                     <div class="panel-progress-label"><div class="spinner"></div> <span id="slot-0-progress-label">Starting...</span></div>
                     <div class="panel-progress-bar-track"><div class="panel-progress-bar" id="slot-0-progress-bar"></div></div>
                 </div>
                 <div class="graph-toolbar" id="slot-0-toolbar" style="display:none;">
-                    <button onclick="graphFit('slot-0')" title="Fit to view">&#8862;</button>
-                    <button onclick="graphZoomIn('slot-0')" title="Zoom in">+</button>
-                    <button onclick="graphZoomOut('slot-0')" title="Zoom out">&minus;</button>
-                    <button id="slot-0-physics-btn" onclick="graphTogglePhysics('slot-0')" title="Toggle physics" class="active">&#9889;</button>
-                    <button id="slot-0-disconnected-btn" onclick="graphToggleDisconnected('slot-0')" title="Show disconnected entities">&#9678;</button>
+                    <button data-action="graph-fit" data-graph-id="slot-0" title="Fit to view">&#8862;</button>
+                    <button data-action="graph-zoom-in" data-graph-id="slot-0" title="Zoom in">+</button>
+                    <button data-action="graph-zoom-out" data-graph-id="slot-0" title="Zoom out">&minus;</button>
+                    <button id="slot-0-physics-btn" data-action="graph-toggle-physics" data-graph-id="slot-0" title="Toggle physics" class="active">&#9889;</button>
+                    <button id="slot-0-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="slot-0" title="Show disconnected entities">&#9678;</button>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <input id="slot-0-search" type="text" placeholder="Search nodes..." oninput="graphSearch('slot-0', this.value)" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:110px;">
+                    <input id="slot-0-search" type="text" placeholder="Search nodes..." data-input-action="graph-search" data-graph-id="slot-0" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:110px;">
                     <span id="slot-0-search-count" style="font-size:10px;color:#888;margin-left:2px;"></span>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <button class="discover-btn fp" id="slot-0-discover-fp" onclick="runSlotAutoFlag(0)" title="LLM discovers potential false positives">Discover FPs</button>
-                    <button class="discover-btn tp" id="slot-0-discover-tp" onclick="runSlotDiscoverTP(0)" title="LLM selects highest-quality extractions as gold data">Find Gold</button>
+                    <button class="discover-btn fp" id="slot-0-discover-fp" data-action="run-slot-auto-flag" data-slot="0" title="LLM discovers potential false positives">Discover FPs</button>
+                    <button class="discover-btn tp" id="slot-0-discover-tp" data-action="run-slot-discover-tp" data-slot="0" title="LLM selects highest-quality extractions as gold data">Find Gold</button>
                     <span class="discover-status" id="slot-0-discover-status"></span>
                 </div>
                 <div class="graph-container" id="slot-0-graph">
@@ -1606,8 +1606,8 @@ body {
             </div>
             <div class="graph-panel" id="slot-1-panel">
                 <div class="graph-header">
-                    <button class="expand-btn" onclick="openExpandModal(1)" title="Expand to full screen">&#x26F6;</button>
-                    <select class="slot-pipeline-select" id="slot-1-pipeline" onchange="onSlotPipelineChange(1)">
+                    <button class="expand-btn" data-action="open-expand-modal" data-slot="1" title="Expand to full screen">&#x26F6;</button>
+                    <select class="slot-pipeline-select" id="slot-1-pipeline" data-change-action="slot-pipeline-change" data-slot="1">
                         <option value="">— Select Pipeline —</option>
                         <optgroup label="Discovery (0 tokens)">
                             <option value="discovery_rapid">Rapid Discovery</option>
@@ -1621,35 +1621,35 @@ body {
                             <option value="agentic_analyst">Agentic Analyst</option>
                         </optgroup>
                     </select>
-                    <select class="slot-bundle-select" id="slot-1-bundle" onchange="onSlotBundleChange(1)" style="display:none;">
+                    <select class="slot-bundle-select" id="slot-1-bundle" data-change-action="slot-bundle-change" data-slot="1" style="display:none;">
                         <option value="">— Select Bundle —</option>
                     </select>
-                    <button class="slot-help-btn" onclick="openSlotHelp(1)" title="Pipeline help" style="background:none;border:1px solid #3a3a5e;color:#5B9FE6;cursor:pointer;padding:1px 7px;border-radius:50%;font-size:11px;margin-left:4px;">?</button>
+                    <button class="slot-help-btn" data-action="open-slot-help" data-slot="1" title="Pipeline help" style="background:none;border:1px solid #3a3a5e;color:#5B9FE6;cursor:pointer;padding:1px 7px;border-radius:50%;font-size:11px;margin-left:4px;">?</button>
                     <span class="slot-subtitle" id="slot-1-subtitle"></span>
-                    <button class="panel-run-btn" id="slot-1-run" onclick="runSlot(1)" title="Run extraction" style="margin-left:auto; display:none;">&#9654; Run</button>
+                    <button class="panel-run-btn" id="slot-1-run" data-action="run-slot" data-slot="1" title="Run extraction" style="margin-left:auto; display:none;">&#9654; Run</button>
                 </div>
                 <div class="graph-stats" id="slot-1-stats"></div>
                 <div class="slot-history" id="slot-1-history" style="display:none; padding:2px 8px; background:#0d0d1a; border-bottom:1px solid #1a1a2e; font-size:11px; color:#888;">
-                    <button onclick="slotPrevRun(1)" id="slot-1-prev" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>&laquo; Prev</button>
+                    <button data-action="slot-prev-run" data-slot="1" id="slot-1-prev" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>&laquo; Prev</button>
                     <span id="slot-1-run-label" style="margin:0 6px;">Run 1/1</span>
-                    <button onclick="slotNextRun(1)" id="slot-1-next" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>Next &raquo;</button>
+                    <button data-action="slot-next-run" data-slot="1" id="slot-1-next" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>Next &raquo;</button>
                 </div>
                 <div class="panel-progress" id="slot-1-progress" style="display:none;">
                     <div class="panel-progress-label"><div class="spinner"></div> <span id="slot-1-progress-label">Starting...</span></div>
                     <div class="panel-progress-bar-track"><div class="panel-progress-bar" id="slot-1-progress-bar"></div></div>
                 </div>
                 <div class="graph-toolbar" id="slot-1-toolbar" style="display:none;">
-                    <button onclick="graphFit('slot-1')" title="Fit to view">&#8862;</button>
-                    <button onclick="graphZoomIn('slot-1')" title="Zoom in">+</button>
-                    <button onclick="graphZoomOut('slot-1')" title="Zoom out">&minus;</button>
-                    <button id="slot-1-physics-btn" onclick="graphTogglePhysics('slot-1')" title="Toggle physics" class="active">&#9889;</button>
-                    <button id="slot-1-disconnected-btn" onclick="graphToggleDisconnected('slot-1')" title="Show disconnected entities">&#9678;</button>
+                    <button data-action="graph-fit" data-graph-id="slot-1" title="Fit to view">&#8862;</button>
+                    <button data-action="graph-zoom-in" data-graph-id="slot-1" title="Zoom in">+</button>
+                    <button data-action="graph-zoom-out" data-graph-id="slot-1" title="Zoom out">&minus;</button>
+                    <button id="slot-1-physics-btn" data-action="graph-toggle-physics" data-graph-id="slot-1" title="Toggle physics" class="active">&#9889;</button>
+                    <button id="slot-1-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="slot-1" title="Show disconnected entities">&#9678;</button>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <input id="slot-1-search" type="text" placeholder="Search nodes..." oninput="graphSearch('slot-1', this.value)" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:110px;">
+                    <input id="slot-1-search" type="text" placeholder="Search nodes..." data-input-action="graph-search" data-graph-id="slot-1" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:110px;">
                     <span id="slot-1-search-count" style="font-size:10px;color:#888;margin-left:2px;"></span>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <button class="discover-btn fp" id="slot-1-discover-fp" onclick="runSlotAutoFlag(1)" title="LLM discovers potential false positives">Discover FPs</button>
-                    <button class="discover-btn tp" id="slot-1-discover-tp" onclick="runSlotDiscoverTP(1)" title="LLM selects highest-quality extractions as gold data">Find Gold</button>
+                    <button class="discover-btn fp" id="slot-1-discover-fp" data-action="run-slot-auto-flag" data-slot="1" title="LLM discovers potential false positives">Discover FPs</button>
+                    <button class="discover-btn tp" id="slot-1-discover-tp" data-action="run-slot-discover-tp" data-slot="1" title="LLM selects highest-quality extractions as gold data">Find Gold</button>
                     <span class="discover-status" id="slot-1-discover-status"></span>
                 </div>
                 <div class="graph-container" id="slot-1-graph">
@@ -1660,8 +1660,8 @@ body {
             </div>
             <div class="graph-panel" id="slot-2-panel">
                 <div class="graph-header">
-                    <button class="expand-btn" onclick="openExpandModal(2)" title="Expand to full screen">&#x26F6;</button>
-                    <select class="slot-pipeline-select" id="slot-2-pipeline" onchange="onSlotPipelineChange(2)">
+                    <button class="expand-btn" data-action="open-expand-modal" data-slot="2" title="Expand to full screen">&#x26F6;</button>
+                    <select class="slot-pipeline-select" id="slot-2-pipeline" data-change-action="slot-pipeline-change" data-slot="2">
                         <option value="">— Select Pipeline —</option>
                         <optgroup label="Discovery (0 tokens)">
                             <option value="discovery_rapid">Rapid Discovery</option>
@@ -1675,35 +1675,35 @@ body {
                             <option value="agentic_analyst">Agentic Analyst</option>
                         </optgroup>
                     </select>
-                    <select class="slot-bundle-select" id="slot-2-bundle" onchange="onSlotBundleChange(2)" style="display:none;">
+                    <select class="slot-bundle-select" id="slot-2-bundle" data-change-action="slot-bundle-change" data-slot="2" style="display:none;">
                         <option value="">— Select Bundle —</option>
                     </select>
-                    <button class="slot-help-btn" onclick="openSlotHelp(2)" title="Pipeline help" style="background:none;border:1px solid #3a3a5e;color:#5B9FE6;cursor:pointer;padding:1px 7px;border-radius:50%;font-size:11px;margin-left:4px;">?</button>
+                    <button class="slot-help-btn" data-action="open-slot-help" data-slot="2" title="Pipeline help" style="background:none;border:1px solid #3a3a5e;color:#5B9FE6;cursor:pointer;padding:1px 7px;border-radius:50%;font-size:11px;margin-left:4px;">?</button>
                     <span class="slot-subtitle" id="slot-2-subtitle"></span>
-                    <button class="panel-run-btn" id="slot-2-run" onclick="runSlot(2)" title="Run extraction" style="margin-left:auto; display:none;">&#9654; Run</button>
+                    <button class="panel-run-btn" id="slot-2-run" data-action="run-slot" data-slot="2" title="Run extraction" style="margin-left:auto; display:none;">&#9654; Run</button>
                 </div>
                 <div class="graph-stats" id="slot-2-stats"></div>
                 <div class="slot-history" id="slot-2-history" style="display:none; padding:2px 8px; background:#0d0d1a; border-bottom:1px solid #1a1a2e; font-size:11px; color:#888;">
-                    <button onclick="slotPrevRun(2)" id="slot-2-prev" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>&laquo; Prev</button>
+                    <button data-action="slot-prev-run" data-slot="2" id="slot-2-prev" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>&laquo; Prev</button>
                     <span id="slot-2-run-label" style="margin:0 6px;">Run 1/1</span>
-                    <button onclick="slotNextRun(2)" id="slot-2-next" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>Next &raquo;</button>
+                    <button data-action="slot-next-run" data-slot="2" id="slot-2-next" style="background:none;border:none;color:#5B9FE6;cursor:pointer;font-size:11px;" disabled>Next &raquo;</button>
                 </div>
                 <div class="panel-progress" id="slot-2-progress" style="display:none;">
                     <div class="panel-progress-label"><div class="spinner"></div> <span id="slot-2-progress-label">Starting...</span></div>
                     <div class="panel-progress-bar-track"><div class="panel-progress-bar" id="slot-2-progress-bar"></div></div>
                 </div>
                 <div class="graph-toolbar" id="slot-2-toolbar" style="display:none;">
-                    <button onclick="graphFit('slot-2')" title="Fit to view">&#8862;</button>
-                    <button onclick="graphZoomIn('slot-2')" title="Zoom in">+</button>
-                    <button onclick="graphZoomOut('slot-2')" title="Zoom out">&minus;</button>
-                    <button id="slot-2-physics-btn" onclick="graphTogglePhysics('slot-2')" title="Toggle physics" class="active">&#9889;</button>
-                    <button id="slot-2-disconnected-btn" onclick="graphToggleDisconnected('slot-2')" title="Show disconnected entities">&#9678;</button>
+                    <button data-action="graph-fit" data-graph-id="slot-2" title="Fit to view">&#8862;</button>
+                    <button data-action="graph-zoom-in" data-graph-id="slot-2" title="Zoom in">+</button>
+                    <button data-action="graph-zoom-out" data-graph-id="slot-2" title="Zoom out">&minus;</button>
+                    <button id="slot-2-physics-btn" data-action="graph-toggle-physics" data-graph-id="slot-2" title="Toggle physics" class="active">&#9889;</button>
+                    <button id="slot-2-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="slot-2" title="Show disconnected entities">&#9678;</button>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <input id="slot-2-search" type="text" placeholder="Search nodes..." oninput="graphSearch('slot-2', this.value)" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:110px;">
+                    <input id="slot-2-search" type="text" placeholder="Search nodes..." data-input-action="graph-search" data-graph-id="slot-2" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:110px;">
                     <span id="slot-2-search-count" style="font-size:10px;color:#888;margin-left:2px;"></span>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <button class="discover-btn fp" id="slot-2-discover-fp" onclick="runSlotAutoFlag(2)" title="LLM discovers potential false positives">Discover FPs</button>
-                    <button class="discover-btn tp" id="slot-2-discover-tp" onclick="runSlotDiscoverTP(2)" title="LLM selects highest-quality extractions as gold data">Find Gold</button>
+                    <button class="discover-btn fp" id="slot-2-discover-fp" data-action="run-slot-auto-flag" data-slot="2" title="LLM discovers potential false positives">Discover FPs</button>
+                    <button class="discover-btn tp" id="slot-2-discover-tp" data-action="run-slot-discover-tp" data-slot="2" title="LLM selects highest-quality extractions as gold data">Find Gold</button>
                     <span class="discover-status" id="slot-2-discover-status"></span>
                 </div>
                 <div class="graph-container" id="slot-2-graph">
@@ -1792,7 +1792,7 @@ body {
             <div id="analysis-action" style="display:none; margin-top:20px;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                     <h3 style="margin:0; color:#ccc;">Qualitative Assessment <small style="color:#888">(by Gemini)</small></h3>
-                    <button id="analysis-refresh" onclick="refreshAnalysis()" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#aaa; padding:4px 10px; border-radius:4px; font-size:12px; cursor:pointer;">&#x21bb; Analyze</button>
+                    <button id="analysis-refresh" data-action="refresh-analysis" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#aaa; padding:4px 10px; border-radius:4px; font-size:12px; cursor:pointer;">&#x21bb; Analyze</button>
                 </div>
             </div>
             <div id="qualitative-analysis" style="display:none;">
@@ -1804,7 +1804,7 @@ body {
         <div id="slot-analysis-section" style="margin-top:24px; padding:20px; background:#0f0f23; border:1px solid #2a2a4e; border-radius:10px;">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <h3 style="margin:0; color:#ccc; font-size:15px;">Analysis &amp; Variability</h3>
-                <button id="analyze-btn" onclick="runSlotAnalysis()" disabled title="Load at least 2 graphs to analyze" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#5B9FE6; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">&#9654; Analyze</button>
+                <button id="analyze-btn" data-action="run-slot-analysis" disabled title="Load at least 2 graphs to analyze" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#5B9FE6; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">&#9654; Analyze</button>
                 <span id="analyze-status" style="color:#888; font-size:11px;"></span>
             </div>
             <div id="slot-analysis-content">
@@ -1816,7 +1816,7 @@ body {
         <div id="slot-qa-section" style="margin-top:24px; padding:20px; background:#0f0f23; border:1px solid #2a2a4e; border-radius:10px;">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <h3 style="margin:0; color:#ccc; font-size:15px;">Agentic Q&amp;A Comparison</h3>
-                <button id="qa-btn" onclick="runSlotQA()" disabled title="Load at least 2 graphs to run Q&A" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#9B59B6; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">&#9654; Run Q&amp;A</button>
+                <button id="qa-btn" data-action="run-slot-qa" disabled title="Load at least 2 graphs to run Q&A" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#9B59B6; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">&#9654; Run Q&amp;A</button>
                 <span id="qa-status" style="color:#888; font-size:11px;"></span>
             </div>
             <div id="slot-qa-content">
@@ -1831,7 +1831,7 @@ body {
     <div style="padding:16px; border-bottom:1px solid #2a2a4e;">
         <div style="display:flex; align-items:center; justify-content:space-between;">
             <h3 id="doc-explorer-title" style="margin:0; color:#ccc; font-size:14px;">Evidence</h3>
-            <button onclick="closeDocExplorer()" style="background:none; border:none; color:#888; font-size:18px; cursor:pointer;">&times;</button>
+            <button data-action="close-doc-explorer" style="background:none; border:none; color:#888; font-size:18px; cursor:pointer;">&times;</button>
         </div>
         <div id="doc-explorer-subtitle" style="color:#888; font-size:11px; margin-top:4px;"></div>
     </div>
@@ -1855,8 +1855,8 @@ body {
             </select>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:16px;">
-            <input type="text" id="agentic-question-input" placeholder="Ask a question about the extracted data..." style="flex:1; background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:10px 14px; border-radius:6px; font-size:13px;" onkeypress="if(event.key==='Enter')askAgenticQuestion()">
-            <button onclick="askAgenticQuestion()" style="background:#1a2a3a; border:1px solid #3a5a7a; color:#5B9FE6; padding:10px 16px; border-radius:6px; font-size:13px; cursor:pointer;">Ask</button>
+            <input type="text" id="agentic-question-input" placeholder="Ask a question about the extracted data..." style="flex:1; background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:10px 14px; border-radius:6px; font-size:13px;" data-enter-action="ask-agentic-question">
+            <button data-action="ask-agentic-question" style="background:#1a2a3a; border:1px solid #3a5a7a; color:#5B9FE6; padding:10px 16px; border-radius:6px; font-size:13px; cursor:pointer;">Ask</button>
         </div>
         <div id="agentic-results" style="display:flex; flex-direction:column; gap:12px;">
             <div style="color:#555; font-style:italic;">No questions asked yet. Enter a ticker in Compare, run an extraction, then ask questions here.</div>
@@ -1871,7 +1871,7 @@ body {
         <h3>Document Explorer</h3>
         <p>Explore document metadata, provenance, and lineage. Ingest filings and publications, discover entities across corpora, and build a unified multi-source knowledge graph.</p>
         <p style="color:#555; font-size:13px; margin-top:8px;">Enter a ticker above to begin</p>
-        <button class="tab-run-btn" onclick="startIntelligence()" id="intel-run-btn">Run Intelligence</button>
+        <button class="tab-run-btn" data-action="start-intelligence" id="intel-run-btn">Run Intelligence</button>
         <p style="color:#5a5a5a; font-size:10px; margin-top:8px; font-style:italic;">Live news feed provided by NewsAPI.org. Content not filtered by KGSpin.</p>
     </div>
 
@@ -1905,17 +1905,17 @@ body {
                         <div class="graph-stats" id="intelligence-stats"></div>
                     </div>
                     <div class="graph-toolbar" id="intelligence-toolbar" style="display:none;">
-                        <button onclick="graphFit('intelligence')" title="Fit to view">&#8862;</button>
-                        <button onclick="graphZoomIn('intelligence')" title="Zoom in">+</button>
-                        <button onclick="graphZoomOut('intelligence')" title="Zoom out">&minus;</button>
-                        <button id="intelligence-physics-btn" onclick="graphTogglePhysics('intelligence')" title="Toggle physics" class="active">&#9889;</button>
-                        <button id="intelligence-disconnected-btn" onclick="graphToggleDisconnected('intelligence')" title="Show disconnected entities">&#9678;</button>
+                        <button data-action="graph-fit" data-graph-id="intelligence" title="Fit to view">&#8862;</button>
+                        <button data-action="graph-zoom-in" data-graph-id="intelligence" title="Zoom in">+</button>
+                        <button data-action="graph-zoom-out" data-graph-id="intelligence" title="Zoom out">&minus;</button>
+                        <button id="intelligence-physics-btn" data-action="graph-toggle-physics" data-graph-id="intelligence" title="Toggle physics" class="active">&#9889;</button>
+                        <button id="intelligence-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="intelligence" title="Show disconnected entities">&#9678;</button>
                     </div>
                     <div class="gemini-history-bar" id="intel-history" style="display:none;">
-                        <button class="history-nav" id="intel-prev" onclick="intelPrevRun()">&larr;</button>
+                        <button class="history-nav" id="intel-prev" data-action="intel-prev-run">&larr;</button>
                         <span class="history-label" id="intel-run-label">Run 1 of 1</span>
-                        <button class="history-nav" id="intel-next" onclick="intelNextRun()">&rarr;</button>
-                        <button class="history-refresh" id="intel-refresh" onclick="intelRefresh()">&#x21bb; Refresh</button>
+                        <button class="history-nav" id="intel-next" data-action="intel-next-run">&rarr;</button>
+                        <button class="history-refresh" id="intel-refresh" data-action="intel-refresh">&#x21bb; Refresh</button>
                         <span class="history-meta" id="intel-run-meta"></span>
                     </div>
                     <div class="graph-container" id="intelligence-graph">
@@ -1934,9 +1934,9 @@ body {
 
     <!-- Sub-tab bar (shown when KGSpin data exists) -->
     <div class="impact-subtab-bar" id="impact-subtab-bar" style="display:none;">
-        <button class="impact-subtab active" data-subtab="reproducibility" onclick="switchImpactSubTab('reproducibility')">Reproducibility</button>
-        <button class="impact-subtab" data-subtab="lineage" onclick="switchImpactSubTab('lineage')">Data Lineage</button>
-        <button class="impact-subtab" data-subtab="agentic" onclick="switchImpactSubTab('agentic')">Agentic Q&amp;A</button>
+        <button class="impact-subtab active" data-subtab="reproducibility" data-action="switch-impact-subtab" data-subtab="reproducibility">Reproducibility</button>
+        <button class="impact-subtab" data-subtab="lineage" data-action="switch-impact-subtab" data-subtab="lineage">Data Lineage</button>
+        <button class="impact-subtab" data-subtab="agentic" data-action="switch-impact-subtab" data-subtab="agentic">Agentic Q&amp;A</button>
     </div>
 
     <!-- Welcome (shown when no data loaded) -->
@@ -2003,16 +2003,16 @@ body {
     <div id="impact-sub-agentic" class="impact-subtab-content">
         <div id="agentic-welcome" style="padding:0 16px;">
             <p style="color:#888; font-size:13px; margin:0 0 12px;">Compare LLM answers <strong>with</strong> KG context vs <strong>without</strong>.</p>
-            <button class="tab-run-btn" onclick="startImpact()" id="impact-run-btn">Run Impact Analysis</button>
+            <button class="tab-run-btn" data-action="start-impact" id="impact-run-btn">Run Impact Analysis</button>
         </div>
         <div id="agentic-run-nav" style="display:none; padding:4px 16px; align-items:center; gap:12px;">
-            <button class="tab-run-btn" onclick="startImpact()" id="impact-refresh-btn" style="padding:4px 12px; font-size:12px;">
+            <button class="tab-run-btn" data-action="start-impact" id="impact-refresh-btn" style="padding:4px 12px; font-size:12px;">
                 Refresh (New Run)
             </button>
             <span id="agentic-run-label" style="color:#888; font-size:12px;"></span>
             <div style="margin-left:auto; display:flex; gap:4px;">
-                <button class="run-nav-btn" id="agentic-prev-btn" onclick="navigateQARun(-1)" disabled>&laquo; Prev</button>
-                <button class="run-nav-btn" id="agentic-next-btn" onclick="navigateQARun(1)" disabled>Next &raquo;</button>
+                <button class="run-nav-btn" id="agentic-prev-btn" data-action="navigate-qa-run" data-dir="-1" disabled>&laquo; Prev</button>
+                <button class="run-nav-btn" id="agentic-next-btn" data-action="navigate-qa-run" data-dir="1" disabled>Next &raquo;</button>
             </div>
         </div>
         <div class="timeline-section" id="impact-timeline">
@@ -2031,7 +2031,7 @@ body {
     <div style="padding:20px;max-width:900px;margin:0 auto;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <h2 style="margin:0;font-size:20px;color:#E0E0E0;">Flag Explorer</h2>
-            <button onclick="bulkRetractAll()" style="padding:4px 12px;background:#3a2020;color:#ff6b6b;border:1px solid #5a3030;border-radius:4px;cursor:pointer;font-size:11px;" title="Retract all saved feedback for the current document">Retract All Saved</button>
+            <button data-action="bulk-retract-all" style="padding:4px 12px;background:#3a2020;color:#ff6b6b;border:1px solid #5a3030;border-radius:4px;cursor:pointer;font-size:11px;" title="Retract all saved feedback for the current document">Retract All Saved</button>
         </div>
 
         <div style="margin-bottom:24px;">
@@ -2058,7 +2058,7 @@ body {
         <div style="margin-bottom:24px;">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
                 <h3 style="margin:0;font-size:15px;color:#FF8C00;">AI Auto-Flagged (Pending Review)</h3>
-                <button id="auto-flag-btn" onclick="runAutoFlag()" style="padding:4px 12px;background:#3a2a15;color:#FF8C00;border:1px solid #5a4a20;border-radius:4px;cursor:pointer;font-size:12px;">Auto-Detect Errors</button>
+                <button id="auto-flag-btn" data-action="run-auto-flag" style="padding:4px 12px;background:#3a2a15;color:#FF8C00;border:1px solid #5a4a20;border-radius:4px;cursor:pointer;font-size:12px;">Auto-Detect Errors</button>
                 <span id="auto-flag-status" style="font-size:11px;color:#888;"></span>
             </div>
             <div id="flag-list-auto" style="display:flex;flex-direction:column;gap:6px;">
@@ -2072,7 +2072,7 @@ body {
         <div style="margin-bottom:16px;">
             <label style="font-size:12px;color:#aaa;margin-right:8px;">Filter by document:</label>
             <input type="text" id="stored-feedback-doc-filter" placeholder="All documents" style="padding:4px 8px;background:#1a1a2e;color:#ddd;border:1px solid #3a3a5e;border-radius:4px;font-size:12px;width:150px;">
-            <button onclick="loadStoredFeedback()" style="padding:4px 10px;background:#2a3a2a;color:#4DD4C0;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;margin-left:6px;">Refresh</button>
+            <button data-action="load-stored-feedback" style="padding:4px 10px;background:#2a3a2a;color:#4DD4C0;border:1px solid #3a5a3a;border-radius:4px;cursor:pointer;font-size:11px;margin-left:6px;">Refresh</button>
         </div>
 
         <div style="margin-bottom:24px;">
@@ -2095,17 +2095,17 @@ body {
 <div id="detail-panel">
     <div class="detail-header">
         <h3 id="detail-title">Details</h3>
-        <button class="detail-close-btn" onclick="closeDetailPanel()">&times;</button>
+        <button class="detail-close-btn" data-action="close-detail-panel">&times;</button>
     </div>
     <div class="detail-body" id="detail-body"></div>
 </div>
 
 <!-- Prompt Template Modal -->
-<div id="prompt-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closePromptModal()">
+<div id="prompt-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-prompt-modal">
     <div class="prompt-modal-dialog">
         <h3 id="prompt-modal-title">LLM Prompt Template</h3>
         <pre id="prompt-modal-content">Loading...</pre>
-        <button class="modal-close-btn" onclick="closePromptModal()">Close</button>
+        <button class="modal-close-btn" data-action="close-prompt-modal">Close</button>
     </div>
 </div>
 
@@ -2113,25 +2113,25 @@ body {
 <div id="expand-modal">
     <div class="modal-header">
         <h3 id="expand-modal-title">Graph</h3>
-        <button class="modal-close" onclick="closeExpandModal()" title="Close">&times;</button>
+        <button class="modal-close" data-action="close-expand-modal" title="Close">&times;</button>
     </div>
     <div class="modal-tabs">
-        <button class="modal-tab active" onclick="switchModalTab('graph')">Graph</button>
-        <button class="modal-tab" onclick="switchModalTab('explorer')">Explorer</button>
-        <button class="modal-tab" onclick="switchModalTab('lineage')">Lineage</button>
-        <button class="modal-tab" onclick="switchModalTab('why')">Why</button>
-        <button class="modal-tab" onclick="switchModalTab('data')">Data</button>
+        <button class="modal-tab active" data-action="switch-modal-tab" data-modal-tab="graph">Graph</button>
+        <button class="modal-tab" data-action="switch-modal-tab" data-modal-tab="explorer">Explorer</button>
+        <button class="modal-tab" data-action="switch-modal-tab" data-modal-tab="lineage">Lineage</button>
+        <button class="modal-tab" data-action="switch-modal-tab" data-modal-tab="why">Why</button>
+        <button class="modal-tab" data-action="switch-modal-tab" data-modal-tab="data">Data</button>
     </div>
     <div class="modal-body">
         <div class="modal-tab-content active" id="modal-graph-content">
             <div class="graph-toolbar" id="modal-graph-toolbar">
-                <button onclick="graphFit('modal-graph')" title="Fit to view">&#8862;</button>
-                <button onclick="graphZoomIn('modal-graph')" title="Zoom in">+</button>
-                <button onclick="graphZoomOut('modal-graph')" title="Zoom out">&minus;</button>
-                <button id="modal-graph-physics-btn" onclick="graphTogglePhysics('modal-graph')" title="Toggle physics" class="active">&#9889;</button>
-                <button id="modal-graph-disconnected-btn" onclick="graphToggleDisconnected('modal-graph')" title="Show disconnected entities">&#9678;</button>
+                <button data-action="graph-fit" data-graph-id="modal-graph" title="Fit to view">&#8862;</button>
+                <button data-action="graph-zoom-in" data-graph-id="modal-graph" title="Zoom in">+</button>
+                <button data-action="graph-zoom-out" data-graph-id="modal-graph" title="Zoom out">&minus;</button>
+                <button id="modal-graph-physics-btn" data-action="graph-toggle-physics" data-graph-id="modal-graph" title="Toggle physics" class="active">&#9889;</button>
+                <button id="modal-graph-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="modal-graph" title="Show disconnected entities">&#9678;</button>
                 <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                <input id="modal-graph-search" type="text" placeholder="Search nodes..." oninput="graphSearch('modal-graph', this.value)" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:140px;">
+                <input id="modal-graph-search" type="text" placeholder="Search nodes..." data-input-action="graph-search" data-graph-id="modal-graph" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:140px;">
                 <span id="modal-graph-search-count" style="font-size:10px;color:#888;margin-left:2px;"></span>
             </div>
             <div id="modal-graph-container" style="width:100%; height:calc(100% - 80px); min-height:500px;"></div>
@@ -2147,19 +2147,19 @@ body {
                     </div>
                     <div id="modal-intel-article-list" style="flex:1; overflow-y:auto; padding:4px;"></div>
                     <div style="padding:8px 14px; border-top:1px solid #2a2a4e;">
-                        <button id="modal-intel-run-btn" onclick="runModalIntelligence()" style="background:#1a2a1a; border:1px solid #3a5a3a; color:#5ED68A; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer; width:100%;">&#9654; Run Intelligence</button>
+                        <button id="modal-intel-run-btn" data-action="run-modal-intelligence" style="background:#1a2a1a; border:1px solid #3a5a3a; color:#5ED68A; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer; width:100%;">&#9654; Run Intelligence</button>
                         <p style="color:#5a5a5a; font-size:9px; margin:6px 0 0; font-style:italic; text-align:center;">Live feed: NewsAPI.org. Not filtered by KGSpin.</p>
                     </div>
                 </div>
                 <div style="flex:1; background:#0f0f23; position:relative; display:flex; flex-direction:column;">
                     <div class="graph-toolbar" id="modal-explorer-toolbar" style="display:none;">
-                        <button onclick="graphFit('modal-explorer')" title="Fit to view">&#8862;</button>
-                        <button onclick="graphZoomIn('modal-explorer')" title="Zoom in">+</button>
-                        <button onclick="graphZoomOut('modal-explorer')" title="Zoom out">&minus;</button>
-                        <button id="modal-explorer-physics-btn" onclick="graphTogglePhysics('modal-explorer')" title="Toggle physics" class="active">&#9889;</button>
-                        <button id="modal-explorer-disconnected-btn" onclick="graphToggleDisconnected('modal-explorer')" title="Show disconnected entities">&#9678;</button>
+                        <button data-action="graph-fit" data-graph-id="modal-explorer" title="Fit to view">&#8862;</button>
+                        <button data-action="graph-zoom-in" data-graph-id="modal-explorer" title="Zoom in">+</button>
+                        <button data-action="graph-zoom-out" data-graph-id="modal-explorer" title="Zoom out">&minus;</button>
+                        <button id="modal-explorer-physics-btn" data-action="graph-toggle-physics" data-graph-id="modal-explorer" title="Toggle physics" class="active">&#9889;</button>
+                        <button id="modal-explorer-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="modal-explorer" title="Show disconnected entities">&#9678;</button>
                         <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                        <input id="modal-explorer-search" type="text" placeholder="Search nodes..." oninput="graphSearch('modal-explorer', this.value)" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:140px;">
+                        <input id="modal-explorer-search" type="text" placeholder="Search nodes..." data-input-action="graph-search" data-graph-id="modal-explorer" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:140px;">
                         <span id="modal-explorer-search-count" style="font-size:10px;color:#888;margin-left:2px;"></span>
                     </div>
                     <div id="modal-intel-graph" style="flex:1; min-height:400px;">
@@ -2191,13 +2191,13 @@ body {
                     </div>
                 </div>
                 <div class="graph-toolbar" id="modal-lineage-toolbar">
-                    <button onclick="graphFit('modal-lineage')" title="Fit to view">&#8862;</button>
-                    <button onclick="graphZoomIn('modal-lineage')" title="Zoom in">+</button>
-                    <button onclick="graphZoomOut('modal-lineage')" title="Zoom out">&minus;</button>
-                    <button id="modal-lineage-physics-btn" onclick="graphTogglePhysics('modal-lineage')" title="Toggle physics" class="active">&#9889;</button>
-                    <button id="modal-lineage-disconnected-btn" onclick="graphToggleDisconnected('modal-lineage')" title="Show disconnected entities">&#9678;</button>
+                    <button data-action="graph-fit" data-graph-id="modal-lineage" title="Fit to view">&#8862;</button>
+                    <button data-action="graph-zoom-in" data-graph-id="modal-lineage" title="Zoom in">+</button>
+                    <button data-action="graph-zoom-out" data-graph-id="modal-lineage" title="Zoom out">&minus;</button>
+                    <button id="modal-lineage-physics-btn" data-action="graph-toggle-physics" data-graph-id="modal-lineage" title="Toggle physics" class="active">&#9889;</button>
+                    <button id="modal-lineage-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="modal-lineage" title="Show disconnected entities">&#9678;</button>
                     <span style="border-left:1px solid #555;height:16px;margin:0 4px;"></span>
-                    <input id="modal-lineage-search" type="text" placeholder="Search nodes..." oninput="graphSearch('modal-lineage', this.value)" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:140px;">
+                    <input id="modal-lineage-search" type="text" placeholder="Search nodes..." data-input-action="graph-search" data-graph-id="modal-lineage" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;width:140px;">
                     <span id="modal-lineage-search-count" style="font-size:10px;color:#888;margin-left:2px;"></span>
                 </div>
                 <div class="lineage-split" style="height:calc(100vh - 320px);">
@@ -2231,7 +2231,7 @@ body {
                 <p style="margin:0 0 12px; color:#8b949e; font-size:12px;">Ask a question about the extracted knowledge graph. The graph source is locked to this slot's pipeline.</p>
                 <div style="display:flex; gap:8px; margin-bottom:16px;">
                     <textarea id="modal-wtm-question-input" rows="2" style="flex:1; font-size:13px; color:#c9d1d9; background:#0d0d1a; border:1px solid #30363d; border-left:3px solid #58a6ff; border-radius:8px; padding:10px 12px; resize:vertical; font-family:inherit;" placeholder="Type a question about the extracted knowledge graph..."></textarea>
-                    <button id="modal-wtm-run-btn" onclick="triggerModalWhyThisMatters()" style="padding:8px 16px; background:#238636; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; white-space:nowrap; align-self:flex-start;">Ask</button>
+                    <button id="modal-wtm-run-btn" data-action="trigger-modal-why-this-matters" style="padding:8px 16px; background:#238636; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; white-space:nowrap; align-self:flex-start;">Ask</button>
                 </div>
                 <div id="modal-wtm-answers" style="display:none; grid-template-columns:1fr 1fr; gap:16px;">
                     <div style="background:#0d1117; border:1px solid #238636; border-radius:8px; padding:16px;">
@@ -2250,9 +2250,9 @@ body {
         <div class="modal-tab-content" id="modal-data-content">
             <div style="padding:0 20px 20px;">
                 <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
-                    <input id="modal-data-filter" type="text" placeholder="Filter entities & relationships..." oninput="filterModalData()" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;flex:1;min-width:200px;">
-                    <label style="color:#aaa;font-size:12px;cursor:pointer;"><input type="checkbox" id="modal-data-show-ents" checked onchange="filterModalData()"> Entities</label>
-                    <label style="color:#aaa;font-size:12px;cursor:pointer;"><input type="checkbox" id="modal-data-show-rels" checked onchange="filterModalData()"> Relationships</label>
+                    <input id="modal-data-filter" type="text" placeholder="Filter entities & relationships..." data-input-action="filter-modal-data" style="background:#0f0f23;border:1px solid #3a3a5e;color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;flex:1;min-width:200px;">
+                    <label style="color:#aaa;font-size:12px;cursor:pointer;"><input type="checkbox" id="modal-data-show-ents" checked data-change-action="filter-modal-data"> Entities</label>
+                    <label style="color:#aaa;font-size:12px;cursor:pointer;"><input type="checkbox" id="modal-data-show-rels" checked data-change-action="filter-modal-data"> Relationships</label>
                     <span id="modal-data-counts" style="color:#888;font-size:11px;"></span>
                 </div>
                 <div id="modal-data-table-container" style="overflow-y:auto; height:calc(100vh - 200px);">
@@ -2264,7 +2264,7 @@ body {
 </div>
 
 <!-- Purge Cache Modal (Sprint 33.17 — WI-5) -->
-<div id="purge-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closePurgeModal()">
+<div id="purge-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-purge-modal">
     <div class="modal-dialog">
         <h3>Purge Cache</h3>
         <label><input type="checkbox" value="kgen" checked> KGSpin</label>
@@ -2274,43 +2274,43 @@ body {
         <label><input type="checkbox" value="impact_qa" checked> Impact Q&A Runs</label>
         <label><input type="checkbox" value="memory" checked> In-Memory Cache</label>
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closePurgeModal()">Cancel</button>
-            <button class="modal-purge" onclick="executePurge()">Purge Selected</button>
+            <button class="modal-cancel" data-action="close-purge-modal">Cancel</button>
+            <button class="modal-purge" data-action="execute-purge">Purge Selected</button>
         </div>
     </div>
 </div>
 
 <!-- Sprint 39 (PRD-042): HITL False Positive Modal -->
-<div id="fp-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeFPModal()">
+<div id="fp-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-fp-modal">
     <div class="modal-dialog" style="max-width:480px;">
         <h3 style="color:#ff6b6b;">Flag as Incorrect (False Positive)</h3>
         <div id="fp-extraction-summary" style="font-size:12px;color:#aaa;margin-bottom:12px;padding:8px;background:#0f1629;border-radius:6px;"></div>
         <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Reason (select at least one):</label>
         <div id="fp-reasons" style="margin-bottom:12px;">
             <label style="display:block;padding:6px 8px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:13px;color:#fff;">
-                <input type="checkbox" value="wrong_subject" onchange="updateFPSubmitState()" style="margin-right:8px;"> Wrong Subject
+                <input type="checkbox" value="wrong_subject" data-change-action="update-fp-submit-state" style="margin-right:8px;"> Wrong Subject
             </label>
             <label style="display:block;padding:6px 8px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:13px;color:#fff;">
-                <input type="checkbox" value="wrong_object" onchange="updateFPSubmitState()" style="margin-right:8px;"> Wrong Object
+                <input type="checkbox" value="wrong_object" data-change-action="update-fp-submit-state" style="margin-right:8px;"> Wrong Object
             </label>
             <label style="display:block;padding:6px 8px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:13px;color:#fff;">
-                <input type="checkbox" value="wrong_direction" onchange="updateFPSubmitState()" style="margin-right:8px;"> Wrong Direction
+                <input type="checkbox" value="wrong_direction" data-change-action="update-fp-submit-state" style="margin-right:8px;"> Wrong Direction
             </label>
             <label style="display:block;padding:6px 8px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:13px;color:#fff;">
-                <input type="checkbox" value="invalid_relationship" onchange="updateFPSubmitState()" style="margin-right:8px;"> Invalid Relationship
+                <input type="checkbox" value="invalid_relationship" data-change-action="update-fp-submit-state" style="margin-right:8px;"> Invalid Relationship
             </label>
         </div>
         <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Details (optional):</label>
         <textarea id="fp-reason-detail" rows="2" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closeFPModal()">Cancel</button>
-            <button id="fp-submit-btn" onclick="submitFalsePositive()" style="background:#5a2a2a;color:#ff6b6b;" disabled>Flag as Incorrect</button>
+            <button class="modal-cancel" data-action="close-fp-modal">Cancel</button>
+            <button id="fp-submit-btn" data-action="submit-false-positive" style="background:#5a2a2a;color:#ff6b6b;" disabled>Flag as Incorrect</button>
         </div>
     </div>
 </div>
 
 <!-- Sprint 39 (PRD-042): HITL False Negative Modal -->
-<div id="fn-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeFNModal()">
+<div id="fn-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-fn-modal">
     <div class="modal-dialog" style="max-width:520px;">
         <h3 style="color:#d4a017;">Save to Gold Dataset (Confirm Missed Extraction)</h3>
         <div id="fn-extraction-summary" style="font-size:12px;color:#aaa;margin-bottom:12px;padding:8px;background:#0f1629;border-radius:6px;"></div>
@@ -2320,42 +2320,42 @@ body {
         </select>
         <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Evidence — highlight text below to confirm <span style="color:#ff6b6b;">*</span></label>
         <div id="fn-chunk-viewer" style="padding:10px;background:#0f1629;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;color:#ddd;margin-bottom:4px;max-height:150px;overflow-y:auto;user-select:text;cursor:text;line-height:1.5;"></div>
-        <button onclick="openDocViewer()" style="padding:4px 10px;background:#1a1a2e;color:#5B9FE6;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;margin-bottom:8px;">View Full Document &rarr;</button>
+        <button data-action="open-doc-viewer" style="padding:4px 10px;background:#1a1a2e;color:#5B9FE6;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;font-size:11px;margin-bottom:8px;">View Full Document &rarr;</button>
         <div id="fn-selected-evidence" style="padding:8px;background:#2a3017;border:1px solid #4a5027;border-radius:6px;font-size:12px;color:#d4a017;margin-bottom:8px;min-height:32px;">
             <em style="color:#888;">No text selected. Highlight supporting text above.</em>
         </div>
         <input type="hidden" id="fn-evidence-confirmed" value="">
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closeFNModal()">Cancel</button>
-            <button id="fn-submit-btn" onclick="submitFalseNegative()" style="background:#3a3017;color:#d4a017;font-weight:600;" disabled>Save to Gold Dataset</button>
+            <button class="modal-cancel" data-action="close-fn-modal">Cancel</button>
+            <button id="fn-submit-btn" data-action="submit-false-negative" style="background:#3a3017;color:#d4a017;font-weight:600;" disabled>Save to Gold Dataset</button>
         </div>
     </div>
 </div>
 
 <!-- Sprint 39: Entity-level False Positive Modal -->
-<div id="entity-fp-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeEntityFPModal()">
+<div id="entity-fp-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-entity-fp-modal">
     <div class="modal-dialog" style="max-width:480px;">
         <h3 style="color:#ff6b6b;">Flag Entity as Incorrect</h3>
         <div id="entity-fp-summary" style="font-size:12px;color:#aaa;margin-bottom:12px;padding:8px;background:#0f1629;border-radius:6px;"></div>
         <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Reason (select at least one):</label>
         <div id="entity-fp-reasons" style="margin-bottom:12px;">
             <label style="display:block;padding:6px 8px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:13px;color:#fff;">
-                <input type="checkbox" value="wrong_entity_type" onchange="updateEntityFPSubmitState()" style="margin-right:8px;"> Wrong Entity Type
+                <input type="checkbox" value="wrong_entity_type" data-change-action="update-entity-fp-submit-state" style="margin-right:8px;"> Wrong Entity Type
             </label>
             <label style="display:block;padding:6px 8px;background:#1a1a2e;border:1px solid #3a3a5e;border-radius:6px;cursor:pointer;font-size:13px;color:#fff;">
-                <input type="checkbox" value="not_a_proper_noun" onchange="updateEntityFPSubmitState()" style="margin-right:8px;"> Not a Proper Noun
+                <input type="checkbox" value="not_a_proper_noun" data-change-action="update-entity-fp-submit-state" style="margin-right:8px;"> Not a Proper Noun
             </label>
         </div>
         <div id="entity-fp-corrected-type-row" style="display:none;margin-bottom:12px;">
             <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Corrected Type (required):</label>
-            <select id="entity-fp-corrected-type" onchange="updateEntityFPSubmitState()" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;">
+            <select id="entity-fp-corrected-type" data-change-action="update-entity-fp-submit-state" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;">
                 <option value="">-- Select corrected type --</option>
                 <option value="DO_NOT_EXTRACT">DO_NOT_EXTRACT (suppress this entity)</option>
             </select>
         </div>
         <div id="entity-fp-noun-action-row" style="display:none;margin-bottom:12px;">
             <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Action (required):</label>
-            <select id="entity-fp-noun-action" onchange="updateEntityFPSubmitState()" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;">
+            <select id="entity-fp-noun-action" data-change-action="update-entity-fp-submit-state" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;">
                 <option value="">-- Select action --</option>
                 <option value="do_not_extract">Do Not Extract (noise, generic term — stoplist)</option>
                 <option value="resolvable_descriptor">Resolvable Descriptor (role/title that refers to a specific person)</option>
@@ -2364,14 +2364,14 @@ body {
         <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Details (optional):</label>
         <textarea id="entity-fp-reason-detail" rows="2" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closeEntityFPModal()">Cancel</button>
-            <button id="entity-fp-submit-btn" onclick="submitEntityFP()" style="background:#5a2a2a;color:#ff6b6b;" disabled>Flag Entity</button>
+            <button class="modal-cancel" data-action="close-entity-fp-modal">Cancel</button>
+            <button id="entity-fp-submit-btn" data-action="submit-entity-fp" style="background:#5a2a2a;color:#ff6b6b;" disabled>Flag Entity</button>
         </div>
     </div>
 </div>
 
 <!-- Sprint 39.3: Entity-level FN Modal for LLM pipelines -->
-<div id="entity-fn-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeEntityFNModal()">
+<div id="entity-fn-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-entity-fn-modal">
     <div class="modal-dialog" style="max-width:480px;">
         <h3 style="color:#d4a017;">Save Entity to Gold Dataset</h3>
         <div id="entity-fn-summary" style="font-size:12px;color:#aaa;margin-bottom:12px;padding:8px;background:#0f1629;border-radius:6px;"></div>
@@ -2380,25 +2380,25 @@ body {
         <label style="display:block;margin-bottom:4px;color:#ccc;font-size:13px;">Notes (optional):</label>
         <textarea id="entity-fn-notes" rows="2" style="width:100%;padding:8px;background:#1a1a2e;color:#fff;border:1px solid #3a3a5e;border-radius:6px;font-size:13px;resize:vertical;"></textarea>
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closeEntityFNModal()">Cancel</button>
-            <button id="entity-fn-submit-btn" onclick="submitEntityFN()" style="background:#3a3017;color:#d4a017;font-weight:600;">Save to Gold Dataset</button>
+            <button class="modal-cancel" data-action="close-entity-fn-modal">Cancel</button>
+            <button id="entity-fn-submit-btn" data-action="submit-entity-fn" style="background:#3a3017;color:#d4a017;font-weight:600;">Save to Gold Dataset</button>
         </div>
     </div>
 </div>
 
 <!-- Sprint 39.3: Full 10-K Document Viewer Modal -->
-<div id="doc-viewer-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeDocViewer()">
+<div id="doc-viewer-modal" class="modal-overlay" style="display:none;" data-close-on-backdrop="close-doc-viewer">
     <div class="modal-dialog" style="max-width:900px;max-height:85vh;display:flex;flex-direction:column;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
             <h3 style="color:#5B9FE6;margin:0;">Source Document</h3>
-            <button onclick="closeDocViewer()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;">&times;</button>
+            <button data-action="close-doc-viewer" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer;">&times;</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
             <input id="doc-search-input" type="text" placeholder="Search in document..."
                 style="flex:1;padding:8px;background:#0f0f23;border:1px solid #3a3a5e;color:#fff;border-radius:6px;font-size:13px;"
-                oninput="docSearchDebounced()">
-            <button onclick="docSearchPrev()" style="padding:4px 10px;background:#2a2a4e;color:#ccc;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;">&#9650;</button>
-            <button onclick="docSearchNext()" style="padding:4px 10px;background:#2a2a4e;color:#ccc;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;">&#9660;</button>
+                data-input-action="doc-search-debounced">
+            <button data-action="doc-search-prev" style="padding:4px 10px;background:#2a2a4e;color:#ccc;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;">&#9650;</button>
+            <button data-action="doc-search-next" style="padding:4px 10px;background:#2a2a4e;color:#ccc;border:1px solid #3a3a5e;border-radius:4px;cursor:pointer;">&#9660;</button>
             <span id="doc-search-count" style="font-size:12px;color:#888;align-self:center;min-width:60px;"></span>
         </div>
         <div style="font-size:11px;color:#888;margin-bottom:6px;">Highlight text below to select evidence for the gold dataset entry.</div>
@@ -2407,8 +2407,8 @@ body {
             <em style="color:#888;">No text selected. Highlight evidence text above.</em>
         </div>
         <div class="modal-actions" style="margin-top:8px;">
-            <button class="modal-cancel" onclick="closeDocViewer()">Cancel</button>
-            <button id="doc-viewer-confirm-btn" onclick="confirmDocViewerSelection()" style="background:#3a3017;color:#d4a017;font-weight:600;" disabled>Use Selected Evidence</button>
+            <button class="modal-cancel" data-action="close-doc-viewer">Cancel</button>
+            <button id="doc-viewer-confirm-btn" data-action="confirm-doc-viewer-selection" style="background:#3a3017;color:#d4a017;font-weight:600;" disabled>Use Selected Evidence</button>
         </div>
     </div>
 </div>

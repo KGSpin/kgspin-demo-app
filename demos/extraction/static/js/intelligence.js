@@ -318,6 +318,13 @@ function filterBySource(articleIdx) {
     }));
 }
 
+// Wave E — intelligence.js action registrations
+registerAction('intel-refresh', () => intelRefresh());
+registerAction('start-intelligence', () => startIntelligence());
+registerAction('intel-prev-run', () => intelPrevRun());
+registerAction('intel-next-run', () => intelNextRun());
+
+
 // ============================================================
 // Tab 3: Graph Impact — Data Lineage
 // ============================================================

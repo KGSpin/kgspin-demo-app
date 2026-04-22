@@ -1552,4 +1552,37 @@ function getConfidenceFloor() {
     }
 })();
 
+// Wave E — graph.js action registrations
+registerAction('graph-fit', (el) => graphFit(el.dataset.graphId));
+registerAction('graph-zoom-in', (el) => graphZoomIn(el.dataset.graphId));
+registerAction('graph-zoom-out', (el) => graphZoomOut(el.dataset.graphId));
+registerAction('graph-toggle-physics', (el) => graphTogglePhysics(el.dataset.graphId));
+registerAction('graph-toggle-disconnected', (el) => graphToggleDisconnected(el.dataset.graphId));
+registerAction('graph-search', (el) => graphSearch(el.dataset.graphId, el.value));
+
+registerAction('close-detail-panel', () => closeDetailPanel());
+registerAction('close-doc-explorer', () => closeDocExplorer());
+
+// HITL edge modals
+registerAction('close-fp-modal', () => closeFPModal());
+registerAction('submit-false-positive', () => submitFalsePositive());
+registerAction('update-fp-submit-state', () => updateFPSubmitState());
+registerAction('close-fn-modal', () => closeFNModal());
+registerAction('submit-false-negative', () => submitFalseNegative());
+registerAction('open-doc-viewer', () => openDocViewer());
+
+// HITL entity modals
+registerAction('close-entity-fp-modal', () => closeEntityFPModal());
+registerAction('submit-entity-fp', () => submitEntityFP());
+registerAction('update-entity-fp-submit-state', () => updateEntityFPSubmitState());
+registerAction('close-entity-fn-modal', () => closeEntityFNModal());
+registerAction('submit-entity-fn', () => submitEntityFN());
+
+// Doc viewer
+registerAction('close-doc-viewer', () => closeDocViewer());
+registerAction('doc-search-debounced', () => docSearchDebounced());
+registerAction('doc-search-prev', () => docSearchPrev());
+registerAction('doc-search-next', () => docSearchNext());
+registerAction('confirm-doc-viewer-selection', () => confirmDocViewerSelection());
+
 

@@ -3,6 +3,48 @@
 // share global lexical scope across <script> tags. Function decls
 // at top-level become window properties (used by inline on*= attrs).
 
+// ============================================================
+// Wave E — event delegation registry
+// Replaces inline on*= attributes. Handlers register themselves
+// via registerAction('kebab-name', (el, event) => ...). Markup
+// opts in via data-action / data-change-action / data-input-action
+// / data-enter-action. Modal overlays use data-close-on-backdrop.
+// ============================================================
+const __actionHandlers = {};
+function registerAction(name, handler) {
+    __actionHandlers[name] = handler;
+}
+function __dispatchAction(name, el, event) {
+    const handler = __actionHandlers[name];
+    if (handler) handler(el, event);
+}
+document.addEventListener('click', (e) => {
+    const backdrop = e.target.closest('[data-close-on-backdrop]');
+    if (backdrop && e.target === backdrop) {
+        __dispatchAction(backdrop.dataset.closeOnBackdrop, backdrop, e);
+        return;
+    }
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    __dispatchAction(el.dataset.action, el, e);
+});
+document.addEventListener('change', (e) => {
+    const el = e.target.closest('[data-change-action]');
+    if (!el) return;
+    __dispatchAction(el.dataset.changeAction, el, e);
+});
+document.addEventListener('input', (e) => {
+    const el = e.target.closest('[data-input-action]');
+    if (!el) return;
+    __dispatchAction(el.dataset.inputAction, el, e);
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const el = e.target.closest('[data-enter-action]');
+    if (!el) return;
+    __dispatchAction(el.dataset.enterAction, el, e);
+});
+
 // --- compare.html lines 2420-2479: MODEL_PRICING + cost helpers + tooltip DOMContentLoaded ---
 // ============================================================
 // Sprint 33.18: Model pricing table and cost helpers
@@ -670,6 +712,15 @@ function switchTab(tabName) {
         loadStoredFeedback();
     }
 }
+
+
+// Wave E — state.js action registrations
+registerAction('switch-tab', (el) => switchTab(el.dataset.tab));
+registerAction('purge-cache', () => purgeCache());
+registerAction('close-purge-modal', () => closePurgeModal());
+registerAction('execute-purge', () => executePurge());
+registerAction('toggle-schema', (_el, e) => { e.preventDefault(); toggleSchema(); });
+registerAction('close-prompt-modal', () => closePromptModal());
 
 
 // --- compare.html lines 5570-5642: addTimelineStep + updateStepState + updateStepProgress + completeStep ---

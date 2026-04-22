@@ -1344,6 +1344,21 @@ function runModalIntelligence() {
     });
 }
 
+// Wave E — slots.js action registrations
+registerAction('open-expand-modal', (el) => openExpandModal(+el.dataset.slot));
+registerAction('close-expand-modal', () => closeExpandModal());
+registerAction('slot-pipeline-change', (el) => onSlotPipelineChange(+el.dataset.slot));
+registerAction('slot-bundle-change', (el) => onSlotBundleChange(+el.dataset.slot));
+registerAction('open-slot-help', (el) => openSlotHelp(+el.dataset.slot));
+registerAction('run-slot', (el) => runSlot(+el.dataset.slot));
+registerAction('slot-prev-run', (el) => slotPrevRun(+el.dataset.slot));
+registerAction('slot-next-run', (el) => slotNextRun(+el.dataset.slot));
+registerAction('switch-modal-tab', (el) => switchModalTab(el.dataset.modalTab));
+registerAction('filter-modal-data', () => filterModalData());
+registerAction('trigger-modal-why-this-matters', () => triggerModalWhyThisMatters());
+registerAction('run-modal-intelligence', () => runModalIntelligence());
+
+
 // ============================================================
 // Sprint 91b: Restored Analysis — Componentized Renderers
 // ============================================================
