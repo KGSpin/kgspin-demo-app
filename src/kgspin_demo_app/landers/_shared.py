@@ -155,12 +155,10 @@ def require_env_var(name: str, *, hint: str = "") -> str:
 def sha256_file(path: Path) -> str:
     """SHA-256 hex digest of a file's raw bytes.
 
-    Note: ``kgspin_interface.hashing.sha256_hex`` was suggested by the
-    core team but serializes through canonical JSON first (per
-    ADR-036) — that helper is for hashing JSON-serializable metadata,
-    not raw file content. We use stdlib ``hashlib`` for the file bytes
-    and flag the discrepancy in Sprint 07's dev report so the core team
-    can clarify the intended helper for content hashing.
+    Note: ``kgspin_interface.hashing.sha256_hex`` serializes through
+    canonical JSON first — that helper is for hashing JSON-serializable
+    metadata, not raw file content. We use stdlib ``hashlib`` for the
+    file bytes.
     """
     h = hashlib.sha256()
     with open(path, "rb") as fh:

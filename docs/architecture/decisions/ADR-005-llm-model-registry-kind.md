@@ -123,7 +123,7 @@ returns the full field set.
 
 ### 4. Archetypes seed files
 
-Initial content for `kgspin-archetypes/llm_model/`:
+Initial content for `kgspin-blueprint/llm_model/`:
 
 - `gemini-2.5-flash.yaml`
 - `gemini-2.5-flash-lite.yaml`
@@ -165,10 +165,10 @@ Store LLM models as `ResourceKind.PLUGIN` records with pricing in
 - **Why rejected:** VP Eng BLOCKER on the Sprint 12 plan review.
   Structural problem that only gets worse with more providers.
 
-### Alternative 2: Demo-owned `llm_models.yaml` in kgspin-archetypes
+### Alternative 2: Demo-owned `llm_models.yaml` in kgspin-blueprint
 
-Skip the admin registry entirely; ship a YAML file in archetypes
-that demo reads directly.
+Skip the admin registry entirely; ship a YAML file in the blueprint
+repo that demo reads directly.
 
 - **Pros:** cheapest path — no interface change, no admin endpoint,
   archetypes hosts the file.
@@ -254,8 +254,8 @@ This ADR is cross-repo. It's not ACCEPTED until:
   proposes revisions) and targets the kind + metadata for 0.7.0.
 - **kgspin-admin** team acks the endpoint set + `sync archetypes`
   extension for a forthcoming sprint (post-interface-0.7.0).
-- **kgspin-archetypes** team acks hosting the `llm_model/` directory
-  (raised in the 2026-04-20 archetypes handover memo).
+- **kgspin-blueprint** team acks hosting the `llm_model/` directory
+  (raised in the 2026-04-20 blueprint handover memo).
 - **CEO** green-lights the cross-repo sequencing (this ADR is the
   trigger for CTO to route to the other repos).
 

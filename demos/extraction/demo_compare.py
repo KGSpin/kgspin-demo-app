@@ -5545,8 +5545,8 @@ async def _run_kgen_refresh(
     with _cache_lock:
         cached = _kg_cache.get(ticker)
 
-    # INIT-001 Sprint 02: log + surface any failure during early bundle
-    # resolution, before _run_kgenskills is ever scheduled.
+    # Log + surface any failure during early bundle resolution,
+    # before _run_kgenskills is ever scheduled.
     try:
         bundle = _get_bundle(bundle_name)
     except Exception as e:
@@ -7087,11 +7087,8 @@ async def run_intelligence(
     await asyncio.sleep(0)
     t0 = time.time()
 
-    # Sprint 06 Task 2: news fetching now goes through the canonical
+    # News fetching goes through the canonical
     # kgspin-plugin-news-financial NewsApiProvider via _fetch_newsapi_articles.
-    # Pre-Sprint-06 the code imported from `kgenskills.data_sources.*` which
-    # was the OLD monolithic package removed in the kgspin-core split — those
-    # imports silently failed and the Explorer tab showed zero articles.
 
     news_warning: str | None = None  # ProviderConfigurationError surface for the SSE stream
 
@@ -7271,7 +7268,7 @@ async def run_intelligence(
         return all_kgs
 
     if not cached_kgs_kg:
-        # --- Sprint 33.14c: Non-cached path — full SEC extraction via _run_kgenskills ---
+        # Non-cached path: full SEC extraction via _run_kgenskills.
         # Uses the SAME code path as the Compare tab to guarantee identical results.
         # No chunk budget truncation — processes ALL ~150 SEC chunks.
 
