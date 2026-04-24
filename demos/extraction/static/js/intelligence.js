@@ -115,6 +115,12 @@ function startIntelligence() {
     if (typeof window.resetIntelSourceFilters === 'function') {
         window.resetIntelSourceFilters();
     }
+    if (typeof window.resetIntelSparkline === 'function') {
+        window.resetIntelSparkline();
+    }
+    if (typeof window.resetIntelScrubber === 'function') {
+        window.resetIntelScrubber();
+    }
 
     document.getElementById('status').textContent = 'Running intelligence...';
     document.getElementById('intel-run-btn').disabled = true;
@@ -207,6 +213,11 @@ function startIntelligence() {
         // source.origin present in the final graph).
         if (typeof window.renderIntelSourceFilters === 'function') {
             window.renderIntelSourceFilters();
+        }
+        // Wave J (MH #6): scrubber reads the final DataSets' source_refs,
+        // indexes earliest-article_index per node/edge, and enables replay.
+        if (typeof window.wireIntelScrubber === 'function') {
+            window.wireIntelScrubber();
         }
         // Sprint 33.17 (WI-4): Intelligence history bar
         if (typeof d.total_runs === 'number' && d.total_runs > 0) {

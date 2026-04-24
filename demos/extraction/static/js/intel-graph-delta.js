@@ -28,7 +28,9 @@
 
     function applyDelta(delta) {
         window.__intelDeltaLog.push(delta);
-        const article = document.getElementById(`intel-article-${delta.article_index + 1}`);
+        // Wave J commit 5: article_index 0 = SEC filing (anchored at t=0),
+        // 1+i = news article i. Matches the `article_extracted` convention.
+        const article = document.getElementById(`intel-article-${delta.article_index}`);
         if (article) {
             const statusEl = article.querySelector('.intel-article-status');
             if (statusEl) {

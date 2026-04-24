@@ -8522,7 +8522,33 @@ async def run_intelligence(
         # Wave J (MH #5): emit `graph_delta` SSE per article so the frontend
         # can animate additions incrementally. `kg_ready` still fires as the
         # final-state checkpoint (backward compat mandatory).
+        #
+        # article_index convention matches the existing `article_extracted`
+        # events: 0 = SEC filing (anchored at t=0), 1+i = news article i
+        # (ordered by fetched_at ascending).
+        # Phase C.0: Synthetic delta for the SEC filing. Present at t=0 so
+        # the scrubber (commit 5) can replay filings → news in order, and
+        # the sparkline starts with the filing baseline.
         kgs_kg = sec_kg
+        if sec_kg.get("entities") or sec_kg.get("relationships"):
+            filing_delta = _compute_graph_delta(
+                {"entities": [], "relationships": []},
+                sec_kg,
+                admission_tokens=admission_tokens,
+            )
+            yield sse_event("graph_delta", _graph_delta_payload(
+                article_index=0,
+                news_source_type="sec_filing",
+                news_article={"title": f"{ticker} 10-K", "source_name": "SEC"},
+                overlay_sref=filing_source_ref_dict,
+                added_entities=filing_delta["added_entities"],
+                added_relationships=filing_delta["added_relationships"],
+                bridges_created=[],
+                spokes_promoted=[],
+                kgs_kg=kgs_kg,
+            ))
+            await asyncio.sleep(0)
+
         for i, akg in enumerate(article_kgs):
             overlay_sref = None
             news_source_type = ""
@@ -8554,7 +8580,7 @@ async def run_intelligence(
             spokes_by_article.append(bridge_result.get("spokes_promoted", []))
             delta = _compute_graph_delta(before_kg_snapshot, kgs_kg, admission_tokens=admission_tokens)
             yield sse_event("graph_delta", _graph_delta_payload(
-                article_index=i,
+                article_index=i + 1,
                 news_source_type=news_source_type,
                 news_article=news_article,
                 overlay_sref=overlay_sref,
@@ -8684,7 +8710,27 @@ async def run_intelligence(
 
         # Merge: cached SEC KG + all per-article news KGs.
         # Wave J: provenance-preserving merge + bridge creation + graph_delta per article.
+        # article_index 0 = SEC filing baseline, 1+i = news article i.
         kgs_kg = cached_kgs_kg
+        if cached_kgs_kg.get("entities") or cached_kgs_kg.get("relationships"):
+            filing_delta = _compute_graph_delta(
+                {"entities": [], "relationships": []},
+                cached_kgs_kg,
+                admission_tokens=admission_tokens,
+            )
+            yield sse_event("graph_delta", _graph_delta_payload(
+                article_index=0,
+                news_source_type="sec_filing",
+                news_article={"title": f"{ticker} 10-K", "source_name": "SEC"},
+                overlay_sref=filing_source_ref_dict,
+                added_entities=filing_delta["added_entities"],
+                added_relationships=filing_delta["added_relationships"],
+                bridges_created=[],
+                spokes_promoted=[],
+                kgs_kg=kgs_kg,
+            ))
+            await asyncio.sleep(0)
+
         for i, akg in enumerate(article_kgs):
             overlay_sref = None
             news_source_type = ""
@@ -8716,7 +8762,7 @@ async def run_intelligence(
             spokes_by_article.append(bridge_result.get("spokes_promoted", []))
             delta = _compute_graph_delta(before_kg_snapshot, kgs_kg, admission_tokens=admission_tokens)
             yield sse_event("graph_delta", _graph_delta_payload(
-                article_index=i,
+                article_index=i + 1,
                 news_source_type=news_source_type,
                 news_article=news_article,
                 overlay_sref=overlay_sref,
