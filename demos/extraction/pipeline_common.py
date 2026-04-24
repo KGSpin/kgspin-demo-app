@@ -10,6 +10,7 @@ import html
 import os
 import re
 import sys
+import threading
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -22,21 +23,29 @@ DATA_LAKE_ROOT = PROJECT_ROOT / "data" / "corpus"
 OUTPUT_ROOT = PROJECT_ROOT / "output"
 
 
-# --- Known tickers (shared across demos) ---
+# --- Hub-registry ticker resolution (Wave J / PRD-056 v2 MH, commit 6) ---
+#
+# `KNOWN_TICKERS` (a hardcoded dict of 11 tickers) was retired here. The
+# hub registry at admin's GET /registry/hubs is the source of truth. The
+# admin endpoint scans every domain's `hubs:` section and returns rows
+# with canonical_name, ticker, aliases, domain, source_bundles.
+#
+# Behavior on admin unreachable: raise `AdminServiceUnreachableError`.
+# No silent fallback — PRD-056 v2 explicitly says "DELETED" for the dict.
+# The edgartools fallback remains for ad-hoc tickers not in the registry
+# (i.e. admin is reachable but doesn't know the ticker — not a silent
+# fallback for unreachability).
 
-KNOWN_TICKERS = {
-    "JNJ": {"name": "Johnson & Johnson", "domain": "healthcare"},
-    "PFE": {"name": "Pfizer Inc.", "domain": "healthcare"},
-    "UNH": {"name": "UnitedHealth Group", "domain": "healthcare"},
-    "ABT": {"name": "Abbott Laboratories", "domain": "healthcare"},
-    "AAPL": {"name": "Apple Inc.", "domain": "technology"},
-    "MSFT": {"name": "Microsoft Corporation", "domain": "technology"},
-    "GOOGL": {"name": "Alphabet Inc.", "domain": "technology"},
-    "AMD": {"name": "Advanced Micro Devices, Inc.", "domain": "technology"},
-    "NVDA": {"name": "NVIDIA Corporation", "domain": "technology"},
-    "JPM": {"name": "JPMorgan Chase & Co.", "domain": "financial"},
-    "GS": {"name": "Goldman Sachs Group", "domain": "financial"},
-}
+# Domains scanned in `resolve_ticker` when the caller didn't specify one.
+# Order matters: the first domain that matches wins. Financial first because
+# most demo runs are against SEC 10-Ks; clinical next for biotech hubs.
+_TICKER_LOOKUP_DOMAINS: tuple[str, ...] = ("financial", "clinical")
+
+# In-process ticker → info cache. One-shot per process (admin-side TTL
+# covers freshness). The lock protects reads + writes from concurrent
+# requests in the uvicorn thread pool.
+_ticker_registry_cache: dict[str, dict] = {}
+_ticker_registry_cache_lock = threading.Lock()
 
 # Coreference tokens that GLiNER commonly extracts as ORGANIZATION entities.
 # These are pronouns/references, not real entity names, and should be filtered.
@@ -424,25 +433,129 @@ def looks_like_proper_noun(text: str) -> bool:
 # --- Ticker Resolution ---
 
 
+def _fetch_hub_registry_rows(domain: str) -> list[dict]:
+    """Sync GET ``{admin}/registry/hubs?domain=<domain>``.
+
+    Returns the raw ``hubs`` list (dicts). Raises
+    ``AdminServiceUnreachableError`` on network failure — Wave J /
+    PRD-056 v2 retired the hardcoded KNOWN_TICKERS silent fallback.
+    """
+    import json as _json
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    from kgspin_core.registry_client import AdminServiceUnreachableError
+
+    qs = urllib.parse.urlencode({"domain": domain})
+    admin_base = _admin_url()
+    url = f"{admin_base}/registry/hubs?{qs}"
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            payload = _json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        # 4xx = "admin up but the endpoint doesn't have this domain" (e.g.
+        # blueprint hasn't shipped clinical hubs yet). Return empty — NOT a
+        # silent fallback for unreachability. 5xx = admin malfunction, also
+        # non-fatal here (callers can still resolve via edgartools fallback).
+        if 400 <= exc.code < 600:
+            return []
+        raise AdminServiceUnreachableError(
+            operation="resolve_ticker",
+            admin_url=admin_base,
+            cause=exc,
+        ) from exc
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        raise AdminServiceUnreachableError(
+            operation="resolve_ticker",
+            admin_url=admin_base,
+            cause=exc,
+        ) from exc
+    rows = payload.get("hubs") if isinstance(payload, dict) else payload
+    if not isinstance(rows, list):
+        return []
+    return [r for r in rows if isinstance(r, dict)]
+
+
+def _resolve_via_hub_registry(ticker: str) -> dict | None:
+    """Look up ``ticker`` in the hub registry across ``_TICKER_LOOKUP_DOMAINS``.
+
+    Returns ``{name, domain, ticker}`` on first-domain match, else ``None``.
+    Re-raises ``AdminServiceUnreachableError`` — callers that want a soft
+    admin-down behavior wrap this explicitly.
+    """
+    ticker = ticker.upper()
+    with _ticker_registry_cache_lock:
+        if ticker in _ticker_registry_cache:
+            return _ticker_registry_cache[ticker]
+    for domain in _TICKER_LOOKUP_DOMAINS:
+        hubs = _fetch_hub_registry_rows(domain)  # raises if admin is down
+        for row in hubs:
+            row_ticker = (row.get("ticker") or "").upper()
+            if row_ticker and row_ticker == ticker:
+                info = {
+                    "name": row.get("canonical_name") or ticker,
+                    "domain": domain,
+                    "ticker": ticker,
+                }
+                with _ticker_registry_cache_lock:
+                    _ticker_registry_cache[ticker] = info
+                return info
+            aliases = row.get("aliases") or []
+            if ticker in {(a or "").upper() for a in aliases}:
+                info = {
+                    "name": row.get("canonical_name") or ticker,
+                    "domain": domain,
+                    "ticker": ticker,
+                }
+                with _ticker_registry_cache_lock:
+                    _ticker_registry_cache[ticker] = info
+                return info
+    return None
+
+
+def list_registered_tickers(domain: str = "financial") -> list[str]:
+    """List tickers registered in admin's hub registry for ``domain``.
+
+    Sorted ASC. Raises ``AdminServiceUnreachableError`` if admin is down —
+    overnight batch jobs treat admin as a hard dependency.
+    """
+    hubs = _fetch_hub_registry_rows(domain)
+    return sorted({
+        (h.get("ticker") or "").upper()
+        for h in hubs if h.get("ticker")
+    })
+
+
 def resolve_ticker(ticker: str, company_name: str | None = None) -> dict:
-    """Resolve ticker to company info dict with name, domain, ticker, data_path."""
+    """Resolve ticker to ``{name, domain, ticker, data_path}`` info dict.
+
+    Lookup order:
+      1. If ``company_name`` is provided → use it verbatim (caller override).
+      2. Hub registry (``/registry/hubs`` for financial + clinical domains).
+      3. edgartools → SEC EDGAR company lookup (ad-hoc tickers not yet
+         registered as hubs).
+      4. Last-resort echo (``name=ticker``) when edgartools also fails.
+
+    Wave J / PRD-056 v2 retired the hardcoded KNOWN_TICKERS dict here.
+    """
     ticker = ticker.upper()
 
     if company_name:
         info = {"name": company_name, "domain": "financial", "ticker": ticker}
-    elif ticker in KNOWN_TICKERS:
-        info = {**KNOWN_TICKERS[ticker], "ticker": ticker}
     else:
-        try:
-            import edgar
+        info = _resolve_via_hub_registry(ticker)  # raises on admin-unreachable
+        if info is None:
+            try:
+                import edgar
 
-            identity = os.environ.get("EDGAR_IDENTITY", "")
-            if identity:
-                edgar.set_identity(identity)
-            company = edgar.Company(ticker)
-            info = {"name": company.name, "domain": "financial", "ticker": ticker}
-        except Exception:
-            info = {"name": ticker, "domain": "financial", "ticker": ticker}
+                identity = os.environ.get("EDGAR_IDENTITY", "")
+                if identity:
+                    edgar.set_identity(identity)
+                company = edgar.Company(ticker)
+                info = {"name": company.name, "domain": "financial", "ticker": ticker}
+            except Exception:
+                info = {"name": ticker, "domain": "financial", "ticker": ticker}
 
     # Sprint 33: Hierarchical data path within the data lake
     info["data_path"] = DATA_LAKE_ROOT / info["domain"] / "sec_edgar" / ticker

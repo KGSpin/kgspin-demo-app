@@ -60,7 +60,6 @@ logger.info(f"Demo debug log: {_demo_log_path}")
 
 # Import shared pipeline logic
 from pipeline_common import (  # noqa: E402
-    KNOWN_TICKERS,
     BUNDLE_PATH,
     PATTERNS_PATH,
     DATA_LAKE_ROOT,
@@ -70,10 +69,12 @@ from pipeline_common import (  # noqa: E402
     list_bundles,
     list_bundle_options,
     list_available_pipelines,
+    list_registered_tickers,
     resolve_bundle_path,
     resolve_domain_bundle_path,
     resolve_domain_yaml_path,
     resolve_ticker,
+    _fetch_hub_registry_rows,
     html_to_text,
     strip_ixbrl,
     select_content_chunks,
@@ -1200,9 +1201,29 @@ async def index():
 
 @app.get("/api/tickers")
 async def list_tickers():
-    return JSONResponse(
-        {k: v["name"] for k, v in KNOWN_TICKERS.items()}
-    )
+    """List tickers known to the admin hub registry (financial + clinical).
+
+    Wave J / PRD-056 v2: retired the KNOWN_TICKERS dict; admin is the
+    source of truth. On admin-unreachable returns 503 + an operator
+    message (no silent fallback per PRD directive).
+    """
+    from kgspin_core.registry_client import AdminServiceUnreachableError
+    mapping: dict[str, str] = {}
+    try:
+        for domain in ("financial", "clinical"):
+            for row in _fetch_hub_registry_rows(domain):
+                t = (row.get("ticker") or "").upper()
+                if t:
+                    mapping[t] = row.get("canonical_name") or t
+    except AdminServiceUnreachableError as exc:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "admin_unreachable",
+                "message": str(exc),
+            },
+        )
+    return JSONResponse(mapping)
 
 
 @app.get("/api/slots")

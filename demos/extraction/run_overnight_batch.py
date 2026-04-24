@@ -49,7 +49,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from pipeline_common import (
-    KNOWN_TICKERS,
+    list_registered_tickers,
     resolve_ticker,
     DOMAIN_YAMLS_DIR,
     DOMAIN_BUNDLES_DIR,
@@ -59,8 +59,17 @@ from pipeline_common import (
     PATTERNS_PATH,
 )
 
-# All available tickers with local EDGAR data
-ALL_TICKERS = list(KNOWN_TICKERS.keys())
+
+# Wave J: sourced from admin's hub registry (financial + clinical) —
+# KNOWN_TICKERS dict retired per PRD-056 v2. Admin must be up.
+def _all_tickers() -> list[str]:
+    tickers: set[str] = set()
+    for domain in ("financial", "clinical"):
+        tickers.update(list_registered_tickers(domain))
+    return sorted(tickers)
+
+
+ALL_TICKERS = _all_tickers()
 
 # Pipeline definitions — Wave 3 canonical names (hyphen form for admin).
 KGSPIN_PIPELINES = ["fan-out", "discovery-rapid", "discovery-deep"]

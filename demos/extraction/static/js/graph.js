@@ -1154,6 +1154,10 @@ function showNodeDetail(pipeline, nodeId) {
             </div>`;
     }
 
+    // Wave J (MH #8): conflict-stack drilldown for merged KGs.
+    const sourceStackHtml = (typeof window.buildSourceStack === 'function')
+        ? window.buildSourceStack(meta) : '';
+
     document.getElementById('detail-title').textContent = meta.text;
     document.getElementById('detail-body').innerHTML = `
         <div class="detail-row">
@@ -1169,6 +1173,7 @@ function showNodeDetail(pipeline, nodeId) {
             <div class="detail-label">Mentions</div>
             <div class="detail-value">${meta.mention_count}</div>
         </div>
+        ${sourceStackHtml}
         ${connectionsHtml}
         ${buildAutoFlagAlert(pipeline, 'node', nodeId)}
         ${buildEntityFeedbackButton(pipeline, nodeId)}
@@ -1257,12 +1262,19 @@ function showEdgeDetail(pipeline, edgeId) {
             </div>`;
     }
 
+    // Wave J (MH #8): bridge badge + source stack on edge detail.
+    const bridgeBadgeHtml = (typeof window.buildBridgeBadge === 'function')
+        ? window.buildBridgeBadge(meta) : '';
+    const sourceStackHtml = (typeof window.buildSourceStack === 'function')
+        ? window.buildSourceStack(meta) : '';
+
     document.getElementById('detail-title').textContent = meta.predicate;
     document.getElementById('detail-body').innerHTML = `
         <div class="detail-row">
             <div class="detail-label">Relationship</div>
             <div class="detail-type-badge" style="background:${color}22; color:${color}; border:1px solid ${color}44">${meta.predicate}</div>
         </div>
+        ${bridgeBadgeHtml}
         <div class="detail-row">
             <div class="detail-label">Confidence</div>
             <div class="detail-value">${(meta.confidence * 100).toFixed(0)}%</div>
@@ -1281,6 +1293,7 @@ function showEdgeDetail(pipeline, edgeId) {
                 <li data-action="navigate-to-node" data-pipeline="${pipeline}" data-node-id="${meta.object_id}" title="Click to view entity">${objName}${canonBadge(objCanonical)}</li>
             </ul>
         </div>
+        ${sourceStackHtml}
         ${evidenceHtml}
         ${buildAutoFlagAlert(pipeline, 'edge', edgeId)}
         ${buildFeedbackButton(pipeline, edgeId)}

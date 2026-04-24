@@ -60,7 +60,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from pipeline_common import (
-    KNOWN_TICKERS,
+    list_registered_tickers,
     resolve_ticker,
     resolve_domain_bundle_path,
     resolve_domain_yaml_path,
@@ -68,7 +68,16 @@ from pipeline_common import (
     PATTERNS_PATH,
 )
 
-ALL_TICKERS = list(KNOWN_TICKERS.keys())
+# Wave J: sourced from admin's hub registry (financial + clinical) instead
+# of the retired KNOWN_TICKERS dict. Admin must be up when this script runs.
+def _all_tickers() -> list[str]:
+    tickers: set[str] = set()
+    for domain in ("financial", "clinical"):
+        tickers.update(list_registered_tickers(domain))
+    return sorted(tickers)
+
+
+ALL_TICKERS = _all_tickers()
 KGSPIN_STRATEGIES = ["emergent", "structural", "base"]
 
 # ── Logging ──────────────────────────────────────────────────────────────────
