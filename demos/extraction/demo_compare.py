@@ -5047,6 +5047,12 @@ def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
                 "confidence": ent.get("confidence", 0),
                 "mention_count": 1,
                 "sources": set(),
+                # Wave J (PRD-056 v2 MH #3): list-shaped SourceRef provenance,
+                # deduped by (kind, origin, article_id) for border/badge logic.
+                "source_refs": [],
+                "source_refs_seen": set(),
+                "source_kinds": set(),
+                "source_origins": set(),
             }
         else:
             nodes_map[key]["mention_count"] += 1
@@ -5056,6 +5062,19 @@ def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
         nodes_map[key]["sources"].add(
             ent.get("evidence", {}).get("source_document", "unknown")
         )
+        # Wave J: carry the full SourceRef list forward for filter + badge rendering.
+        for sref in (ent.get("sources") or []):
+            if not isinstance(sref, dict):
+                continue
+            srk = (sref.get("kind"), sref.get("origin"), sref.get("article_id"))
+            if srk in nodes_map[key]["source_refs_seen"]:
+                continue
+            nodes_map[key]["source_refs_seen"].add(srk)
+            nodes_map[key]["source_refs"].append(sref)
+            if sref.get("kind"):
+                nodes_map[key]["source_kinds"].add(sref["kind"])
+            if sref.get("origin"):
+                nodes_map[key]["source_origins"].add(sref["origin"])
         # Sprint 33 (VP R1): Capture canonical_id for Global Identity badge
         if ent.get("canonical_id") and not nodes_map[key].get("canonical_id"):
             nodes_map[key]["canonical_id"] = ent["canonical_id"]
@@ -5066,33 +5085,71 @@ def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
     for idx, (key, data) in enumerate(nodes_map.items()):
         node_id_map[key] = idx
         color = TYPE_COLORS.get(data["entity_type"], DEFAULT_COLOR)
+
+        # Wave J (MH #3): node-border styling keyed on source-kind union.
+        # - news-only → dashed border + outlet badge suffix in label
+        # - filing+news (hybrid) → solid border + "+N news" counter suffix
+        # - filing-only → solid border, no suffix (baseline)
+        source_kinds = data.get("source_kinds") or set()
+        source_origins = sorted(data.get("source_origins") or set())
+        is_news_only = bool(source_kinds) and "news_article" in source_kinds and "filing" not in source_kinds
+        is_hybrid = "news_article" in source_kinds and "filing" in source_kinds
+        news_count = sum(
+            1 for s in (data.get("source_refs") or []) if s.get("kind") == "news_article"
+        )
+
         label = data["text"][:30]
+        if is_news_only and source_origins:
+            # Outlet badge suffix (keep compact: just the first outlet name).
+            label = f"{label}  [{source_origins[0]}]"
+        elif is_hybrid and news_count > 0:
+            label = f"{label}  (+{news_count} news)"
+
         size = max(15, min(50, 10 + data["mention_count"] * 3))
-        tooltip = (
-            f"{data['text']}\n"
-            f"Type: {data['entity_type']}\n"
-            f"Mentions: {data['mention_count']}\n"
-            f"Confidence: {data['confidence']:.2f}"
-        )
-        vis_nodes.append(
-            {
-                "id": idx,
-                "label": label,
-                "title": tooltip,
-                "color": {"background": color, "border": "#FFFFFF"},
-                "borderWidth": 2,
-                "size": size,
-                "font": {"size": 12, "color": "#FFFFFF"},
-                "metadata": {
-                    "text": data["text"],
-                    "entity_type": data["entity_type"],
-                    "confidence": data["confidence"],
-                    "mention_count": data["mention_count"],
-                    "canonical_id": data.get("canonical_id"),
-                    "sources": sorted(data.get("sources", set())),
-                },
-            }
-        )
+        tooltip_parts = [
+            data["text"],
+            f"Type: {data['entity_type']}",
+            f"Mentions: {data['mention_count']}",
+            f"Confidence: {data['confidence']:.2f}",
+        ]
+        if source_origins:
+            tooltip_parts.append(f"Sources: {', '.join(source_origins)}")
+        if is_news_only:
+            tooltip_parts.append("News-only mention")
+        elif is_hybrid:
+            tooltip_parts.append(f"Hybrid (filing + {news_count} news)")
+        tooltip = "\n".join(tooltip_parts)
+
+        node_dict = {
+            "id": idx,
+            "label": label,
+            "title": tooltip,
+            "color": {"background": color, "border": "#FFFFFF"},
+            "borderWidth": 2,
+            "size": size,
+            "font": {"size": 12, "color": "#FFFFFF"},
+            "metadata": {
+                "text": data["text"],
+                "entity_type": data["entity_type"],
+                "confidence": data["confidence"],
+                "mention_count": data["mention_count"],
+                "canonical_id": data.get("canonical_id"),
+                "sources": sorted(data.get("sources", set())),
+                # Wave J: full SourceRef list + origin/kind unions
+                "source_refs": list(data.get("source_refs") or []),
+                "source_kinds": sorted(source_kinds),
+                "source_origins": source_origins,
+                "source_style": (
+                    "news_only" if is_news_only
+                    else "hybrid" if is_hybrid
+                    else "filing_only"
+                ),
+            },
+        }
+        if is_news_only:
+            # vis-network: dashed border via shapeProperties + borderDashes.
+            node_dict["shapeProperties"] = {"borderDashes": [4, 4]}
+        vis_nodes.append(node_dict)
 
     # Collect relationships
     for rel in kg.get("relationships", []):
@@ -5163,14 +5220,34 @@ def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
         if is_structural:
             edge_color = "#C49A6C"  # Bronze — distinct from all rel_colors
 
+        # Wave J (MH #3): bridge-edge styling — double-weight stroke, distinct
+        # color so cross-hub bridges stand out against spoke edges.
+        rel_kind = rel.get("kind") or "spoke"
+        is_bridge = rel_kind == "bridge"
+        edge_source_refs = [s for s in (rel.get("sources") or []) if isinstance(s, dict)]
+        edge_source_kinds = sorted({s.get("kind") for s in edge_source_refs if s.get("kind")})
+        edge_source_origins = sorted({s.get("origin") for s in edge_source_refs if s.get("origin")})
+        if is_bridge:
+            edge_color = "#E67E5B"
+            width = 4
+            edge_label_final = f"{edge_label}  ⇌"  # subtle bridge marker
+            # Append bridge provenance to tooltip.
+            tooltip = f"[bridge] {tooltip}"
+            if edge_source_origins:
+                tooltip += f"\nSources: {', '.join(edge_source_origins)}"
+        else:
+            width = 1
+            edge_label_final = edge_label
+
         edges.append(
             {
                 "from": src_id,
                 "to": tgt_id,
-                "label": edge_label,
+                "label": edge_label_final,
                 "title": tooltip,
                 "arrows": "to",
                 "dashes": [6, 3] if is_structural else False,
+                "width": width,
                 "font": {
                     "size": 10,
                     "align": "middle",
@@ -5193,6 +5270,14 @@ def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
                     "chunk_id": ev_chunk_id,
                     # Sprint 39 D3: Aggregated evidence from merged duplicate triples
                     "additional_evidence_texts": additional_ev_texts,
+                    # Wave J: bridge / provenance metadata for rendering + filters
+                    "kind": rel_kind,
+                    "is_bridge": is_bridge,
+                    "source_refs": edge_source_refs,
+                    "source_kinds": edge_source_kinds,
+                    "source_origins": edge_source_origins,
+                    "subject_hub_ref": rel.get("subject_hub_ref"),
+                    "object_hub_ref": rel.get("object_hub_ref"),
                 },
             }
         )

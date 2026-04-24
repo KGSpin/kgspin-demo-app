@@ -112,6 +112,9 @@ function startIntelligence() {
     if (typeof window.resetIntelDeltaState === 'function') {
         window.resetIntelDeltaState();
     }
+    if (typeof window.resetIntelSourceFilters === 'function') {
+        window.resetIntelSourceFilters();
+    }
 
     document.getElementById('status').textContent = 'Running intelligence...';
     document.getElementById('intel-run-btn').disabled = true;
@@ -200,6 +203,11 @@ function startIntelligence() {
         const d = JSON.parse(e.data);
         state.intelligence.kg = d;
         renderGraph('intelligence', d.vis, d.stats);
+        // Wave J (MH #4): per-source filter row (one checkbox per distinct
+        // source.origin present in the final graph).
+        if (typeof window.renderIntelSourceFilters === 'function') {
+            window.renderIntelSourceFilters();
+        }
         // Sprint 33.17 (WI-4): Intelligence history bar
         if (typeof d.total_runs === 'number' && d.total_runs > 0) {
             intelRunState.docId = state.docId;
