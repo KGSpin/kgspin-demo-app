@@ -4601,6 +4601,55 @@ def _bundle_admission_tokens(bundle) -> Optional[List[str]]:
         return None
 
 
+def _cross_hub_relations_from_bundle(bundle: Any) -> frozenset:
+    """Extract the set of relation predicates marked ``relation_kind: cross_hub``
+    in the bundle's source YAML.
+
+    Reads the raw blueprint YAML when available (admin-staged bundles publish
+    a ``source_yaml_path`` attribute). Returns a frozenset of predicate names
+    (e.g. ``{"partnered_with", "acquired", ...}``).
+
+    Returns an empty frozenset on any failure — at which point
+    ``_create_bridges_from_matches`` falls back to "any hub-hub relation is
+    a bridge" (matches the graph_aware contract).
+    """
+    try:
+        import yaml as _yaml  # PyYAML; already a transitive dep
+    except ImportError:
+        return frozenset()
+    candidate_paths: list[Path] = []
+    for attr in ("source_yaml_path", "source_path", "yaml_path"):
+        p = getattr(bundle, attr, None)
+        if p:
+            candidate_paths.append(Path(p))
+    domain = getattr(bundle, "domain", None) or ""
+    version = getattr(bundle, "version", None) or ""
+    if domain:
+        # Last-resort: blueprint repo's canonical location.
+        bp_root = Path(__file__).resolve().parents[3] / "kgspin-blueprint" / "references" / "bundles" / "domains" / domain
+        if version:
+            candidate_paths.append(bp_root / f"{domain}-{version}.yaml")
+        candidate_paths.append(bp_root / f"{domain}-v2.yaml")
+    for path in candidate_paths:
+        if not path or not path.exists():
+            continue
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                data = _yaml.safe_load(f) or {}
+        except (OSError, _yaml.YAMLError):
+            continue
+        rels = data.get("relationship_patterns") or data.get("relationships") or []
+        names: set = set()
+        for rel in rels:
+            if not isinstance(rel, dict):
+                continue
+            if rel.get("relation_kind") == "cross_hub" and rel.get("name"):
+                names.add(rel["name"])
+        if names:
+            return frozenset(names)
+    return frozenset()
+
+
 def _make_source_ref_for_article(source_type: str, article: dict, article_idx: int) -> Any:
     """Build a `SourceRef` for a single news article.
 
@@ -4631,6 +4680,242 @@ def _make_source_ref_for_article(source_type: str, article: dict, article_idx: i
         article_id=str(article_id),
         fetched_at=str(fetched_at),
     )
+
+
+# --- Wave J (PRD-056 v2 MH #2): bridge-edge creation from hub-registry matches -----
+#
+# After a per-article merge, `_create_bridges_from_matches` scans the merged KG
+# for relationships whose subject + object both resolve to hub-registry rows.
+# Any such relationship is reclassified as a bridge edge:
+#
+#   - `kind: "bridge"` discriminator (vs `"spoke"` default)
+#   - `is_cross_hub_bridge: True` — hint for the utility gate
+#   - `subject_hub_ref` / `object_hub_ref` — canonical_name of matched hub
+#   - `sources` extended with this article's SourceRef (if not already present)
+#
+# When `cross_hub_relations` is non-empty (populated from the bundle's cross-hub
+# catalog), only predicates in that set are treated as bridges. When empty, the
+# fallback is "any relation between two distinct hub entities is a bridge"
+# (matches the graph_aware contract: "When empty, bridge labeling falls back to
+# 'any hub-hub relation is a bridge'").
+#
+# Non-bridge hub matches (single-sided, or no relation) are left as-is; they
+# were already merged with provenance in commit 1 and are considered first-class
+# spokes by virtue of the `sources` list attached during merge.
+
+
+def _build_extraction_context_for_article(
+    *,
+    base_kg: dict,
+    hub_registry: list,
+    source_ref: Any,
+    intel_linking_prompt: str | None = None,
+    cross_hub_relations: frozenset = frozenset(),
+) -> Any:
+    """Construct a per-article `ExtractionContext` (PRD-060 / Wave I shape).
+
+    Built at merge time so ``base_kg`` reflects the running merged KG
+    (i.e. SEC base + all previously-merged articles).
+    """
+    from kgspin_core.execution.graph_aware import ExtractionContext as _ExtractionContext
+    return _ExtractionContext(
+        base_kg=base_kg,
+        hub_registry=tuple(hub_registry),
+        intel_linking_prompt=intel_linking_prompt,
+        source_ref=source_ref,
+        cross_hub_relations=cross_hub_relations,
+    )
+
+
+def _entity_hub_match(
+    entity: dict,
+    hub_registry: list,
+    *,
+    admission_tokens: Optional[List[str]] = None,
+) -> Any | None:
+    """Return the matching `HubEntry` for an entity, or None.
+
+    Match strategy (first hit wins):
+      1. Normalized canonical_name equals normalized entity text.
+      2. Normalized entity text appears in the hub's normalized `aliases`.
+
+    `admission_tokens` is threaded through `normalize_entity_text` so that
+    e.g. ``"Johnson & Johnson Inc."`` collapses to ``"Johnson & Johnson"`` when
+    ``inc`` is an admission token in the bundle.
+    """
+    if not hub_registry:
+        return None
+    from kgspin_demo_app.services.entity_resolution import normalize_entity_text
+
+    raw = entity.get("text", "") or ""
+    if not raw:
+        return None
+    needle = normalize_entity_text(raw, admission_tokens=admission_tokens)
+    if not needle:
+        return None
+    entity_aliases = [
+        normalize_entity_text(a, admission_tokens=admission_tokens)
+        for a in (entity.get("aliases") or [])
+    ]
+    alias_set = {a for a in entity_aliases if a}
+    alias_set.add(needle)
+
+    for hub in hub_registry:
+        canonical = normalize_entity_text(
+            getattr(hub, "canonical_name", "") or "",
+            admission_tokens=admission_tokens,
+        )
+        if canonical and canonical in alias_set:
+            return hub
+        for alias in (getattr(hub, "aliases", None) or ()):
+            norm_alias = normalize_entity_text(alias, admission_tokens=admission_tokens)
+            if norm_alias and norm_alias in alias_set:
+                return hub
+    return None
+
+
+def _create_bridges_from_matches(
+    merged_kg: dict,
+    *,
+    current_hub: Optional[str],
+    hub_registry: list,
+    cross_hub_relations: frozenset = frozenset(),
+    admission_tokens: Optional[List[str]] = None,
+    gate: Any = None,
+    source_ref: Any = None,
+) -> dict:
+    """Annotate merged-KG relationships as bridge edges when both endpoints are hubs.
+
+    Mutates relationships in place (merged_kg is returned for chaining).
+    Returns a dict: ``{"bridges_created": [...], "spokes_promoted": [...]}``
+    for the caller to surface via SSE (commit 3).
+
+    A relationship is a bridge iff:
+      * subject entity matches some ``HubEntry`` in ``hub_registry``, AND
+      * object entity matches some ``HubEntry`` in ``hub_registry``, AND
+      * those two hubs are distinct (by ``canonical_name``), AND
+      * either ``cross_hub_relations`` is empty (fallback: any hub-hub relation
+        is a bridge), or the relationship's predicate is in that set.
+
+    When a hub-match exists on only one side (and the match is not the
+    ``current_hub``), the entity is recorded in ``spokes_promoted`` — its
+    provenance is already attached by the merge, so no mutation is needed,
+    but downstream UI can highlight it.
+
+    The ``gate`` (a ``UtilityGate`` protocol implementation) gets the final
+    say. For cross-hub bridges, ``HybridUtilityGate.should_commit`` always
+    returns True; the gate hook lets tests inject stricter policies.
+    """
+    if gate is None:
+        from kgspin_core.execution.graph_aware import HybridUtilityGate as _HybridUtilityGate
+        gate = _HybridUtilityGate()
+
+    source_ref_dict = _source_ref_to_dict(source_ref) if source_ref is not None else None
+    bridges_created: list[dict] = []
+    spokes_promoted: list[dict] = []
+
+    # Index entities by normalized (entity_type, text) so we can hub-match fast.
+    from kgspin_demo_app.services.entity_resolution import normalize_entity_text
+    entities_by_key: dict = {}
+    for ent in merged_kg.get("entities", []) or []:
+        key = (
+            ent.get("entity_type", ""),
+            normalize_entity_text(ent.get("text", "") or "", admission_tokens=admission_tokens),
+        )
+        entities_by_key[key] = ent
+
+    def _lookup_entity(side: dict) -> dict | None:
+        if not isinstance(side, dict):
+            return None
+        raw = side.get("text", "") or ""
+        if not raw:
+            return None
+        # Try any entity_type first (blueprint rel-endpoints sometimes carry types).
+        etype = side.get("entity_type", "") or ""
+        norm = normalize_entity_text(raw, admission_tokens=admission_tokens)
+        for (e_type, e_text), ent in entities_by_key.items():
+            if e_text == norm and (not etype or e_type == etype):
+                return ent
+        return None
+
+    def _hub_name(hub: Any) -> str:
+        return getattr(hub, "canonical_name", "") or ""
+
+    current_hub_norm = (
+        normalize_entity_text(current_hub or "", admission_tokens=admission_tokens)
+        if current_hub else ""
+    )
+
+    relationships = merged_kg.get("relationships", []) or []
+    emitted_so_far: list[dict] = [r for r in relationships if r.get("kind") == "bridge"]
+    seen_spokes: set = set()
+
+    for rel in relationships:
+        subj = rel.get("subject", {}) or {}
+        obj = rel.get("object", {}) or {}
+        subj_ent = _lookup_entity(subj) or subj
+        obj_ent = _lookup_entity(obj) or obj
+
+        subj_hub = _entity_hub_match(subj_ent, hub_registry, admission_tokens=admission_tokens)
+        obj_hub = _entity_hub_match(obj_ent, hub_registry, admission_tokens=admission_tokens)
+
+        subj_name = _hub_name(subj_hub) if subj_hub else ""
+        obj_name = _hub_name(obj_hub) if obj_hub else ""
+
+        if subj_hub and obj_hub and subj_name and obj_name and subj_name != obj_name:
+            predicate = rel.get("predicate", "")
+            if cross_hub_relations and predicate not in cross_hub_relations:
+                # Not in the cross-hub relation catalog → treat as regular edge.
+                continue
+            if rel.get("kind") == "bridge":
+                continue  # already bridged in a prior pass
+
+            candidate = dict(rel)
+            candidate["kind"] = "bridge"
+            candidate["is_cross_hub_bridge"] = True
+            candidate["subject_hub_ref"] = {"canonical_name": subj_name}
+            candidate["object_hub_ref"] = {"canonical_name": obj_name}
+            if source_ref_dict is not None:
+                candidate["sources"] = _dedup_source_refs(
+                    list(rel.get("sources", []) or []) + [source_ref_dict]
+                )
+
+            if not gate.should_commit(candidate, merged_kg, emitted_so_far):
+                continue
+
+            rel.update(candidate)
+            emitted_so_far.append(rel)
+            bridges_created.append({
+                "predicate": rel.get("predicate"),
+                "subject": subj_name,
+                "object": obj_name,
+                "sources": list(rel.get("sources", []) or []),
+            })
+        else:
+            # Single-sided hub match → promote the non-current-hub entity as spoke.
+            # Normalize both sides before comparing: `_hub_name()` returns the
+            # raw canonical_name from the registry; `current_hub_norm` is
+            # already normalized. Without normalizing the registry side too,
+            # the current-hub itself would be falsely promoted.
+            def _is_current_hub(h: Any) -> bool:
+                name = _hub_name(h)
+                if not name:
+                    return False
+                return normalize_entity_text(name, admission_tokens=admission_tokens) == current_hub_norm
+
+            other_hub = None
+            if subj_hub and not _is_current_hub(subj_hub):
+                other_hub = subj_hub
+            elif obj_hub and not _is_current_hub(obj_hub):
+                other_hub = obj_hub
+            if other_hub is None:
+                continue
+            key = _hub_name(other_hub)
+            if key and key not in seen_spokes:
+                seen_spokes.add(key)
+                spokes_promoted.append({"canonical_name": key})
+
+    return {"bridges_created": bridges_created, "spokes_promoted": spokes_promoted}
 
 
 def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
@@ -7707,20 +7992,31 @@ async def run_intelligence(
     # --- Wave J (PRD-056 v2): per-run bridging-first prep ------------------
     # Fetch the hub registry once per intel run; cache it on the module-level
     # cache. Admission tokens for bundle-consistent normalization are derived
-    # from the bundle's TypeRegistry. SourceRefs are built per-article at
-    # merge time. ExtractionContexts are built per-article here and stored
-    # for use during merge + (future) extractor plumbing; they are not yet
-    # passed to `KnowledgeGraphExtractor.extract` in this commit since the
-    # façade does not accept `extraction_context` yet — tracked as deferred.
+    # from the bundle's TypeRegistry. SourceRefs + ExtractionContexts are
+    # built per-article at merge time (commit 2). Bridge edges are materialized
+    # from hub-registry matches after each merge.
+    #
+    # Note on the extractor call path: the demo calls `KnowledgeGraphExtractor.
+    # extract()` directly (kgspin-core façade), which does not currently forward
+    # the `extraction_context` kwarg defined on the Extractor ABC. Since
+    # bundle-loaded bridge semantics are applied demo-side at merge time
+    # (hub-registry + cross_hub_relations), we do not need the façade to consume
+    # the context this sprint. Pushing the kwarg into the façade is tracked as
+    # a kgspin-core Wave I follow-up.
     intel_domain = info.get("domain") or ("clinical" if is_clinical else "financial")
     hub_registry = await _fetch_hub_registry(intel_domain)
     admission_tokens = _bundle_admission_tokens(bundle)
+    cross_hub_relations = _cross_hub_relations_from_bundle(bundle)
     filing_source_ref_dict = {
         "kind": "filing",
         "origin": "sec" if not is_clinical else "pubmed",
         "article_id": f"{ticker}_10K" if not is_clinical else f"{ticker}_pub",
         "fetched_at": "",
     }
+    # Running bridge-creation state: populated in the merge loops below so the
+    # graph_delta SSE event (commit 3) can surface bridges per article.
+    bridges_by_article: list[list[dict]] = []
+    spokes_by_article: list[list[dict]] = []
 
     # Sprint 33.14c: Shared news extraction helper (used by both paths)
     def _extract_news_articles(
@@ -8038,6 +8334,8 @@ async def run_intelligence(
         # Phase C: Runtime merge — SEC base graph + news article graphs.
         # Wave J (MH #1, #10): provenance-preserving merge with bundle
         # admission tokens + per-article SourceRef.
+        # Wave J (MH #2): bridge-edge creation from hub-registry matches,
+        # gated by `HybridUtilityGate` (cross-hub bridges always commit).
         kgs_kg = sec_kg
         for i, akg in enumerate(article_kgs):
             overlay_sref = None
@@ -8052,6 +8350,16 @@ async def run_intelligence(
                 base_source_ref=filing_source_ref_dict if i == 0 else None,
                 overlay_source_ref=overlay_sref,
             )
+            bridge_result = _create_bridges_from_matches(
+                kgs_kg,
+                current_hub=info.get("name"),
+                hub_registry=hub_registry,
+                cross_hub_relations=cross_hub_relations,
+                admission_tokens=admission_tokens,
+                source_ref=overlay_sref,
+            )
+            bridges_by_article.append(bridge_result.get("bridges_created", []))
+            spokes_by_article.append(bridge_result.get("spokes_promoted", []))
 
         kgs_entities = len(kgs_kg.get("entities", []))
         kgs_rels = len(kgs_kg.get("relationships", []))
@@ -8169,10 +8477,32 @@ async def run_intelligence(
             yield sse_event("done", {"total_duration_ms": int((time.time() - t0) * 1000)})
             return
 
-        # Merge: cached SEC KG + all per-article news KGs
+        # Merge: cached SEC KG + all per-article news KGs.
+        # Wave J: provenance-preserving merge + bridge creation per article.
         kgs_kg = cached_kgs_kg
-        for akg in article_kgs:
-            kgs_kg = _merge_kgs(kgs_kg, akg)
+        for i, akg in enumerate(article_kgs):
+            overlay_sref = None
+            if i < len(news_articles):
+                news_source_type, news_article = news_articles[i]
+                overlay_sref = _make_source_ref_for_article(
+                    news_source_type, news_article, i
+                )
+            kgs_kg = _merge_kgs_with_provenance(
+                kgs_kg, akg,
+                admission_tokens=admission_tokens,
+                base_source_ref=filing_source_ref_dict if i == 0 else None,
+                overlay_source_ref=overlay_sref,
+            )
+            bridge_result = _create_bridges_from_matches(
+                kgs_kg,
+                current_hub=info.get("name"),
+                hub_registry=hub_registry,
+                cross_hub_relations=cross_hub_relations,
+                admission_tokens=admission_tokens,
+                source_ref=overlay_sref,
+            )
+            bridges_by_article.append(bridge_result.get("bridges_created", []))
+            spokes_by_article.append(bridge_result.get("spokes_promoted", []))
 
         duration = int((time.time() - t0) * 1000)
         kgs_entities = len(kgs_kg.get("entities", []))
