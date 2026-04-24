@@ -178,16 +178,34 @@ def _adapt_to_sec_doc_shape(raw_bytes: bytes, metadata: dict, ticker: str):
     shaped namespace the demo's downstream ``_parse_and_chunk`` + cache
     code expects. Extracted from the former ``_corpus_doc_to_sec_shape``
     so Task 2's news reader can share the decoding convention.
+
+    Defect 1 (2026-04-24): `company_name` resolution now prefers the
+    post-Wave-A SEC lander keys (`company_name_as_filed` at top of
+    `source_extras`, then nested `company.canonical_name`). The legacy
+    `company_name` key stays in the fallback chain for older cached
+    documents. The ticker-echo only fires when every source-of-truth
+    key is absent.
     """
     from types import SimpleNamespace
     identifier = metadata.get("identifier") or {}
     source_extras = metadata.get("source_extras") or {}
+    company_extras = (source_extras.get("company") or {}) if isinstance(
+        source_extras.get("company"), dict
+    ) else {}
     text = raw_bytes.decode("utf-8", errors="ignore")
+    resolved_company_name = (
+        source_extras.get("company_name_as_filed")
+        or company_extras.get("canonical_name")
+        or source_extras.get("company_name")        # legacy pre-Wave-A cache
+        or identifier.get("ticker")
+        or ticker
+    )
     return SimpleNamespace(
         raw_html=text,
-        company_name=source_extras.get("company_name") or identifier.get("ticker") or ticker,
-        cik=source_extras.get("cik", ""),
-        accession_number=source_extras.get("accession_number", ""),
+        company_name=resolved_company_name,
+        cik=source_extras.get("cik", "") or company_extras.get("cik", ""),
+        accession_number=source_extras.get("accession_number", "")
+            or source_extras.get("accession", ""),
         filing_date=source_extras.get("filing_date", ""),
         fiscal_year_end=source_extras.get("fiscal_year_end", ""),
         source_path=(metadata.get("source_url") or ""),
@@ -5454,6 +5472,21 @@ async def run_comparison(
     # -- Start KGSpin --
     kgs_t0 = time.time()
 
+    # Defect 1 (2026-04-24): Build document metadata once so every
+    # extractor-dispatch path (zero-LLM + agentic) can pass it as the
+    # H-module resolver's ``company_name`` override. Without this, the
+    # agentic pipelines fall back to an ALL-CAPS regex that misses
+    # mixed-case filers (UnitedHealth Group, Apple Inc., NVIDIA
+    # Corporation, etc.) and the coref map becomes we → UNKNOWN.
+    _doc_metadata = {
+        "company_name": _company,
+        "doc_id": ticker,
+        "cik": (sec_doc.cik if sec_doc else "") or "",
+        "accession_number": (sec_doc.accession_number if sec_doc else "") or "",
+        "filing_date": (sec_doc.filing_date if sec_doc else "") or "",
+        "fiscal_year_end": (sec_doc.fiscal_year_end if sec_doc else "") or "",
+    }
+
     # Unified progress queue: (pipeline, chunk_idx, total, metric_value)
     progress_queue = asyncio.Queue()
 
@@ -5562,15 +5595,8 @@ async def run_comparison(
         )
         await asyncio.sleep(0)
         # Sprint 102: Build document metadata dict for seed fact resolution.
-        # Domain-agnostic: keys match bundle.document_seed_facts[].source_field.
-        _doc_metadata = {
-            "company_name": _company,
-            "doc_id": ticker,
-            "cik": sec_doc.cik or "",
-            "accession_number": sec_doc.accession_number or "",
-            "filing_date": sec_doc.filing_date or "",
-            "fiscal_year_end": sec_doc.fiscal_year_end or "",
-        }
+        # Defect 1 (2026-04-24): `_doc_metadata` is now built unconditionally
+        # above so every pipeline dispatch path (kgen + agentic) can pass it.
         kgs_task = asyncio.create_task(
             asyncio.to_thread(
                 _run_kgenskills, demo_text, info["name"], ticker, bundle,
@@ -5672,6 +5698,7 @@ async def run_comparison(
                 _llm_bundle_path,
                 _llm_patterns_path,
                 llm_alias=llm_alias,
+                document_metadata=_doc_metadata,
             )
         )
 
@@ -5765,6 +5792,7 @@ async def run_comparison(
                 _llm_bundle_path,
                 _llm_patterns_path,
                 llm_alias=llm_alias,
+                document_metadata=_doc_metadata,
             )
         )
 
@@ -6691,6 +6719,7 @@ async def run_single_refresh(
                 None if llm_alias else model,
                 bundle_path=_llm_bundle_path, patterns_path=_llm_patterns_path,
                 llm_alias=llm_alias,
+                document_metadata=_refresh_doc_metadata,
             )
         )
 
@@ -6849,6 +6878,7 @@ async def run_single_refresh(
                 _cancel_event, _chunk_size, None if llm_alias else model,
                 bundle_path=_llm_bundle_path, patterns_path=_llm_patterns_path,
                 llm_alias=llm_alias,
+                document_metadata=_refresh_doc_metadata,
             )
         )
 
@@ -7265,6 +7295,13 @@ async def _run_clinical_comparison(
     kgs_t0 = time.time()
     kgen_task = None
 
+    # Defect 1 (2026-04-24): clinical doc_metadata for self-reference
+    # resolution. Trial name doubles as the main_entity override.
+    _clinical_doc_metadata = {
+        "company_name": trial_title,
+        "doc_id": nct_id,
+    }
+
     if kgen_from_log:
         yield sse_event("step_complete", _cached_step_event("kgenskills", "kgenskills", "kgen", nct_id, _cfg_keys["kgen"]))
         await asyncio.sleep(0)
@@ -7323,6 +7360,7 @@ async def _run_clinical_comparison(
                 corpus_text, trial_title, f"{nct_id}_clinical",
                 None if llm_alias else model, clinical_bundle_path, _clinical_patterns,
                 llm_alias=llm_alias,
+                document_metadata=_clinical_doc_metadata,
             )
         )
     else:
@@ -7354,6 +7392,7 @@ async def _run_clinical_comparison(
                 chunk_size, None if llm_alias else model,
                 clinical_bundle_path, _clinical_patterns,
                 llm_alias=llm_alias,
+                document_metadata=_clinical_doc_metadata,
             )
         )
 

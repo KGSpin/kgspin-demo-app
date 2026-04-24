@@ -39,11 +39,16 @@ def _run_clinical_gemini_full_shot(
     llm_alias: str | None = None,
     llm_provider: str | None = None,
     llm_model: str | None = None,
+    document_metadata: dict | None = None,
 ) -> tuple:
     """Run ``agentic-flash`` against the clinical bundle (single-prompt LLM).
 
     Wave 3: same dispatch path as :func:`extraction.agentic._run_agentic_flash`;
     the clinical bundle carries the clinical entity types. No bundle mutation.
+
+    Defect 1 (2026-04-24): ``document_metadata`` forwards through
+    ``run_pipeline`` so clinical self-references (trial names, sponsors)
+    resolve against ClinicalTrials.gov metadata when available.
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
     from kgspin_demo_app.llm_backend import resolve_llm_backend
@@ -70,6 +75,7 @@ def _run_clinical_gemini_full_shot(
             backend=backend,
             pipeline_config_ref=_pipeline_ref("agentic_flash"),
             registry_client=registry_client,
+            document_metadata=document_metadata,
         )
         elapsed = time.time() - t0
         return result.to_dict(), 0, elapsed, 0, False
@@ -90,6 +96,7 @@ def _run_clinical_modular(
     llm_alias: str | None = None,
     llm_provider: str | None = None,
     llm_model: str | None = None,
+    document_metadata: dict | None = None,
 ) -> tuple:
     """Run ``agentic-analyst`` against the clinical bundle (multi-stage LLM).
 
@@ -99,6 +106,9 @@ def _run_clinical_modular(
     to match the agentic-analyst shape. h_tokens / l_tokens are both 0
     until ExtractionResult surfaces LLM token counts for the clinical
     pipeline.
+
+    Defect 1 (2026-04-24): ``document_metadata`` forwards through
+    ``run_pipeline`` for trial-name self-reference resolution.
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
     from kgspin_demo_app.llm_backend import resolve_llm_backend
@@ -125,6 +135,7 @@ def _run_clinical_modular(
             backend=backend,
             pipeline_config_ref=_pipeline_ref("agentic_analyst"),
             registry_client=registry_client,
+            document_metadata=document_metadata,
         )
         elapsed = time.time() - t0
         return result.to_dict(), 0, 0, elapsed, 0

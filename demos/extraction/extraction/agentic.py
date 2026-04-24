@@ -37,6 +37,7 @@ def _run_agentic_flash(
     llm_alias: str | None = None,
     llm_provider: str | None = None,
     llm_model: str | None = None,
+    document_metadata: dict | None = None,
 ) -> tuple:
     """Run the ``agentic-flash`` pipeline — single-prompt LLM extraction.
 
@@ -45,6 +46,10 @@ def _run_agentic_flash(
     the ``AgenticFlashExtractor`` subclass. Returns
     (kg_dict, tokens, elapsed, error_count, truncated) to match the SSE
     event builder contract.
+
+    Defect 1 (2026-04-24): ``document_metadata`` now forwards to
+    ``run_pipeline`` so the H-module resolver's ``company_name``
+    override fires (non-ALL-CAPS filers like UnitedHealth Group).
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
     from kgspin_demo_app.llm_backend import resolve_llm_backend
@@ -76,6 +81,7 @@ def _run_agentic_flash(
             log_callback=log_cb,
             pipeline_config_ref=_pipeline_ref("agentic_flash"),
             registry_client=registry_client,
+            document_metadata=document_metadata,
         )
         elapsed = time.time() - t0
         tokens = getattr(result.provenance, "tokens_used", 0) or 0
@@ -103,12 +109,17 @@ def _run_agentic_analyst(
     llm_alias: str | None = None,
     llm_provider: str | None = None,
     llm_model: str | None = None,
+    document_metadata: dict | None = None,
 ) -> tuple:
     """Run the ``agentic-analyst`` pipeline — chunked schema-aware LLM
     extraction. Same dispatch shape as :func:`_run_agentic_flash`.
 
     Returns (kg, h_tokens, l_tokens, elapsed, error_count); h/l_tokens
     stay 0 until ExtractionResult surfaces LLM token counts.
+
+    Defect 1 (2026-04-24): ``document_metadata`` now forwards to
+    ``run_pipeline`` so the H-module resolver's ``company_name``
+    override fires.
     """
     from kgspin_core.execution.extractor import KnowledgeGraphExtractor
     from kgspin_demo_app.llm_backend import resolve_llm_backend
@@ -141,6 +152,7 @@ def _run_agentic_analyst(
             log_callback=log_cb,
             pipeline_config_ref=_pipeline_ref("agentic_analyst"),
             registry_client=registry_client,
+            document_metadata=document_metadata,
         )
         elapsed = time.time() - t0
         tokens = getattr(result.provenance, "tokens_used", 0) or 0

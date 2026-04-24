@@ -181,6 +181,8 @@ def run_llm_full_shot(
         llm_patterns_path = PATTERNS_PATH
 
     # Extract — alias selector wins over legacy `model=` string.
+    # Defect 1 (2026-04-24): pass document_metadata so the H-module
+    # resolver's company_name override fires for non-ALL-CAPS filers.
     t0 = time.time()
     kg, total_tokens, api_elapsed, error_count, truncated = _run_agentic_flash(
         truncated_text, company_name, f"{ticker}_10K",
@@ -188,6 +190,13 @@ def run_llm_full_shot(
         bundle_path=llm_bundle_path,
         patterns_path=llm_patterns_path,
         llm_alias=llm_alias,
+        document_metadata={
+            "company_name": company_name,
+            "doc_id": ticker,
+            "cik": getattr(sec_doc, "cik", "") or "",
+            "accession_number": getattr(sec_doc, "accession_number", "") or "",
+            "filing_date": getattr(sec_doc, "filing_date", "") or "",
+        },
     )
     elapsed = time.time() - t0
 
@@ -266,6 +275,7 @@ def run_llm_multi_stage(
         llm_patterns_path = PATTERNS_PATH
 
     # Extract — alias selector wins over legacy `model=` string.
+    # Defect 1 (2026-04-24): pass document_metadata.
     t0 = time.time()
     kg, total_tokens, _, api_elapsed, error_count = _run_agentic_analyst(
         truncated_text, company_name, f"{ticker}_10K",
@@ -274,6 +284,13 @@ def run_llm_multi_stage(
         bundle_path=llm_bundle_path,
         patterns_path=llm_patterns_path,
         llm_alias=llm_alias,
+        document_metadata={
+            "company_name": company_name,
+            "doc_id": ticker,
+            "cik": getattr(sec_doc, "cik", "") or "",
+            "accession_number": getattr(sec_doc, "accession_number", "") or "",
+            "filing_date": getattr(sec_doc, "filing_date", "") or "",
+        },
     )
     elapsed = time.time() - t0
 
