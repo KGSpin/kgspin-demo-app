@@ -4324,46 +4324,313 @@ _NOISE_COLOR = "#6B3A3A"
 _NOISE_BORDER = "#FF4444"
 
 
-def _merge_kgs(base_kg: dict, overlay_kg: dict) -> dict:
-    """Merge two KG dicts, deduplicating entities by normalized_text+type.
+# --- Wave J (PRD-056 v2): provenance-preserving merge + hub-registry client ---
+#
+# `_merge_kgs_with_provenance` replaces the old first-wins dedup. Every entity
+# and relationship carries a `sources: list[dict]` where each dict is a
+# SourceRef-as-JSON. Legacy KGs without `sources` get a synthetic default
+# injected at merge time (kind="filing", origin="legacy").
+#
+# `_fetch_hub_registry` calls admin's GET /registry/hubs for the current
+# domain, caches the response for the intel run's lifetime, and deserializes
+# each row via `HubEntry.from_json`. On admin unreachable, returns an empty
+# registry with a WARNING log — merge still runs, just without bridge
+# creation (commit 2 wires that in).
 
-    Sprint 33.13: First-wins dedup — base (SEC) entities take priority over
-    overlay (news). Relationships deduped by (subject, predicate, object) triple.
-    Sprint 33.15: Suffix-stripped normalization for identity resolution.
+_LEGACY_SOURCE_REF: dict = {
+    "kind": "filing",
+    "origin": "legacy",
+    "article_id": None,
+    "fetched_at": None,
+}
+
+
+def _source_ref_to_dict(source_ref: Any) -> dict:
+    """Serialize a `SourceRef` (or dict) to a plain JSON-ready dict.
+
+    Accepts either the `kgspin_core.execution.graph_aware.SourceRef` frozen
+    dataclass or a pre-built dict with the same fields. Other shapes are
+    coerced to `_LEGACY_SOURCE_REF` so downstream consumers never see a
+    bare None or partial dict.
+    """
+    if source_ref is None:
+        return dict(_LEGACY_SOURCE_REF)
+    if isinstance(source_ref, dict):
+        return {
+            "kind": source_ref.get("kind", "unknown"),
+            "origin": source_ref.get("origin", "unknown"),
+            "article_id": source_ref.get("article_id"),
+            "fetched_at": source_ref.get("fetched_at"),
+        }
+    # Assume SourceRef dataclass (duck-typed by attribute access).
+    return {
+        "kind": getattr(source_ref, "kind", "unknown"),
+        "origin": getattr(source_ref, "origin", "unknown"),
+        "article_id": getattr(source_ref, "article_id", None),
+        "fetched_at": getattr(source_ref, "fetched_at", None),
+    }
+
+
+def _sources_with_default(
+    item: dict, fallback_source_ref: Any | None
+) -> list[dict]:
+    """Return a list of source-ref dicts for `item`, injecting a default if absent.
+
+    - If `item["sources"]` exists and is a non-empty list, coerce each entry to dict.
+    - Else, use `fallback_source_ref` (coerced to dict); if that is also None,
+      use the legacy filing default.
+    """
+    existing = item.get("sources")
+    if isinstance(existing, list) and existing:
+        return [_source_ref_to_dict(s) for s in existing]
+    return [_source_ref_to_dict(fallback_source_ref)]
+
+
+def _dedup_source_refs(refs: list[dict]) -> list[dict]:
+    """De-duplicate a list of source-ref dicts by (kind, origin, article_id)."""
+    seen: set = set()
+    out: list[dict] = []
+    for ref in refs:
+        key = (ref.get("kind"), ref.get("origin"), ref.get("article_id"))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(ref)
+    return out
+
+
+def _merge_kgs_with_provenance(
+    base_kg: dict,
+    overlay_kg: dict,
+    *,
+    admission_tokens: Optional[List[str]] = None,
+    base_source_ref: Any | None = None,
+    overlay_source_ref: Any | None = None,
+) -> dict:
+    """Union-with-provenance merge (PRD-056 v2 MH #1, #10).
+
+    - Same normalized `(entity_type, text)` key → merge: aliases union,
+      ``confidence = max``, ``sources`` union (deduped by (kind, origin, article_id)).
+    - Same normalized `(subj_text, predicate, obj_text)` key on relationships
+      → merge: ``sources`` union, ``confidence = max``.
+    - Legacy items without ``sources`` receive a synthetic default
+      (``base_source_ref`` or ``overlay_source_ref``, else the filing/legacy
+      fallback).
+    - ``admission_tokens`` is passed to ``normalize_entity_text`` so
+      cross-bundle collisions collapse consistently (MH #10).
     """
     from kgspin_demo_app.services.entity_resolution import normalize_entity_text
 
+    def _norm(t: str) -> str:
+        return normalize_entity_text(t, admission_tokens=admission_tokens)
+
     merged: dict = {"entities": [], "relationships": []}
 
-    seen_entities: set = set()
-    for ent in base_kg.get("entities", []) + overlay_kg.get("entities", []):
-        key = (
-            ent.get("entity_type", ""),
-            normalize_entity_text(ent.get("text", "")),
-        )
-        if key not in seen_entities:
-            seen_entities.add(key)
-            merged["entities"].append(ent)
+    # --- Entities (union with provenance) ------------------------------------
+    entity_by_key: dict = {}
+    for side, ents, sref in (
+        ("base", base_kg.get("entities", []) or [], base_source_ref),
+        ("overlay", overlay_kg.get("entities", []) or [], overlay_source_ref),
+    ):
+        for ent in ents:
+            key = (ent.get("entity_type", ""), _norm(ent.get("text", "")))
+            item_sources = _sources_with_default(ent, sref)
+            if key not in entity_by_key:
+                merged_ent = dict(ent)
+                merged_ent["sources"] = list(item_sources)
+                # Ensure aliases field exists as a list for union below.
+                aliases = list(merged_ent.get("aliases", []) or [])
+                merged_ent["aliases"] = aliases
+                entity_by_key[key] = merged_ent
+            else:
+                existing = entity_by_key[key]
+                # Union sources.
+                existing["sources"] = _dedup_source_refs(
+                    list(existing.get("sources", [])) + list(item_sources)
+                )
+                # Max confidence.
+                prev_conf = existing.get("confidence", 0) or 0
+                new_conf = ent.get("confidence", 0) or 0
+                existing["confidence"] = max(prev_conf, new_conf)
+                # Alias union.
+                existing_aliases = set(existing.get("aliases", []) or [])
+                existing_aliases.update(ent.get("aliases", []) or [])
+                # Overlay text becomes an alias if it differs from the canonical.
+                if ent.get("text") and ent.get("text") != existing.get("text"):
+                    existing_aliases.add(ent.get("text"))
+                existing["aliases"] = sorted(existing_aliases)
 
-    seen_rels: set = set()
-    for rel in base_kg.get("relationships", []) + overlay_kg.get("relationships", []):
-        subj = rel.get("subject", {})
-        obj = rel.get("object", {})
-        key = (
-            normalize_entity_text(subj.get("text", "")),
-            rel.get("predicate", ""),
-            normalize_entity_text(obj.get("text", "")),
-        )
-        if key not in seen_rels:
-            seen_rels.add(key)
-            merged["relationships"].append(rel)
+    merged["entities"] = list(entity_by_key.values())
 
-    # Carry forward other top-level keys (metadata, etc.)
+    # --- Relationships (union with provenance) -------------------------------
+    rel_by_key: dict = {}
+    for side, rels, sref in (
+        ("base", base_kg.get("relationships", []) or [], base_source_ref),
+        ("overlay", overlay_kg.get("relationships", []) or [], overlay_source_ref),
+    ):
+        for rel in rels:
+            subj = rel.get("subject", {}) or {}
+            obj = rel.get("object", {}) or {}
+            key = (
+                _norm(subj.get("text", "")),
+                rel.get("predicate", ""),
+                _norm(obj.get("text", "")),
+            )
+            item_sources = _sources_with_default(rel, sref)
+            if key not in rel_by_key:
+                merged_rel = dict(rel)
+                merged_rel["sources"] = list(item_sources)
+                rel_by_key[key] = merged_rel
+            else:
+                existing = rel_by_key[key]
+                existing["sources"] = _dedup_source_refs(
+                    list(existing.get("sources", [])) + list(item_sources)
+                )
+                prev_conf = existing.get("confidence", 0) or 0
+                new_conf = rel.get("confidence", 0) or 0
+                existing["confidence"] = max(prev_conf, new_conf)
+
+    merged["relationships"] = list(rel_by_key.values())
+
+    # Carry forward other top-level keys (metadata, etc.). Prefer overlay values
+    # when present; fall back to base otherwise.
     for k in set(list(base_kg.keys()) + list(overlay_kg.keys())):
         if k not in ("entities", "relationships"):
             merged[k] = overlay_kg.get(k, base_kg.get(k))
 
     return merged
+
+
+def _merge_kgs(base_kg: dict, overlay_kg: dict) -> dict:
+    """Backward-compat wrapper around `_merge_kgs_with_provenance`.
+
+    Retains the historical call sites' shape. Adds ``sources`` to every
+    entity/relationship (additive — legacy consumers ignore unknown keys).
+    """
+    return _merge_kgs_with_provenance(base_kg, overlay_kg)
+
+
+# --- Hub registry client (Wave J MH #2) ----------------------------------
+
+_hub_registry_cache: dict = {}  # (domain, ticker-scope) → list[HubEntry]
+_hub_registry_cache_lock = threading.Lock()
+
+
+def _fetch_hub_registry_sync(domain: str) -> list:
+    """Synchronous GET {ADMIN}/registry/hubs?domain=<domain>.
+
+    Returns a list of `HubEntry` dataclasses (may be empty). On HTTP / network
+    failure, logs a WARNING and returns `[]` so callers keep running with
+    merge-only behavior.
+    """
+    import json as _json
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    from kgspin_core.execution.graph_aware import HubEntry as _HubEntry
+
+    admin_base = os.environ.get("KGSPIN_ADMIN_URL", "http://127.0.0.1:8750").rstrip("/")
+    qs = urllib.parse.urlencode({"domain": domain})
+    url = f"{admin_base}/registry/hubs?{qs}"
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            payload = _json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, ValueError, OSError) as exc:
+        logger.warning(
+            "hub registry unreachable at %s, falling back to empty registry: %s",
+            url, exc,
+        )
+        return []
+
+    rows = payload.get("hubs") if isinstance(payload, dict) else payload
+    if not isinstance(rows, list):
+        return []
+    out = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        try:
+            out.append(_HubEntry.from_json(row))
+        except (KeyError, TypeError, ValueError) as exc:
+            logger.warning("skipping malformed hub-registry row: %s (row=%r)", exc, row)
+    return out
+
+
+async def _fetch_hub_registry(domain: str) -> list:
+    """Async wrapper over `_fetch_hub_registry_sync` with per-process caching.
+
+    Caches at `(domain,)` granularity for the lifetime of the process; an
+    intel run that completes is short-lived enough that a process-level
+    cache is effectively a run-level cache. Admin's own TTL header handles
+    freshness across runs.
+    """
+    with _hub_registry_cache_lock:
+        cached = _hub_registry_cache.get(domain)
+    if cached is not None:
+        return cached
+    registry = await asyncio.to_thread(_fetch_hub_registry_sync, domain)
+    with _hub_registry_cache_lock:
+        _hub_registry_cache[domain] = registry
+    return registry
+
+
+def _bundle_admission_tokens(bundle) -> Optional[List[str]]:
+    """Derive the admission-token list from a bundle's TypeRegistry.
+
+    Used by `_merge_kgs_with_provenance` for bundle-consistent normalization
+    at the merge site (MH #10). Returns None if the bundle has no gates
+    configured (falls back to the legacy hardcoded list inside
+    `normalize_entity_text`).
+    """
+    try:
+        type_registry = getattr(bundle, "type_registry", None) or getattr(bundle, "types", None)
+        if type_registry is None or not hasattr(type_registry, "get_admission_gate_types"):
+            return None
+        gates = type_registry.get_admission_gate_types()
+        if not gates:
+            return None
+        tokens: set = set()
+        for gate in gates.values():
+            for anchor in (gate.get("anchors") or []):
+                if anchor:
+                    tokens.add(anchor.lower())
+        return sorted(tokens) if tokens else None
+    except Exception:  # defensive — never block a merge on bundle introspection
+        logger.debug("admission-token extraction failed; using normalize_entity_text defaults", exc_info=True)
+        return None
+
+
+def _make_source_ref_for_article(source_type: str, article: dict, article_idx: int) -> Any:
+    """Build a `SourceRef` for a single news article.
+
+    Falls back gracefully when `article` fields are missing — a demo-only
+    corpus fetcher may not populate every field.
+    """
+    from kgspin_core.execution.graph_aware import SourceRef as _SourceRef
+
+    origin = (
+        article.get("source_name")
+        or article.get("outlet")
+        or (source_type.split("_", 1)[0] if source_type else "news")
+        or "news"
+    )
+    article_id = (
+        article.get("url")
+        or article.get("article_id")
+        or f"{source_type}_{article_idx}"
+    )
+    fetched_at = (
+        article.get("fetched_at")
+        or article.get("published_at")
+        or ""
+    )
+    return _SourceRef(
+        kind="news_article",
+        origin=str(origin),
+        article_id=str(article_id),
+        fetched_at=str(fetched_at),
+    )
 
 
 def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
@@ -7437,6 +7704,24 @@ async def run_intelligence(
     bundle = _get_bundle()
     news_only = [(s, t) for s, t in articles if s != "sec_filing"]
 
+    # --- Wave J (PRD-056 v2): per-run bridging-first prep ------------------
+    # Fetch the hub registry once per intel run; cache it on the module-level
+    # cache. Admission tokens for bundle-consistent normalization are derived
+    # from the bundle's TypeRegistry. SourceRefs are built per-article at
+    # merge time. ExtractionContexts are built per-article here and stored
+    # for use during merge + (future) extractor plumbing; they are not yet
+    # passed to `KnowledgeGraphExtractor.extract` in this commit since the
+    # façade does not accept `extraction_context` yet — tracked as deferred.
+    intel_domain = info.get("domain") or ("clinical" if is_clinical else "financial")
+    hub_registry = await _fetch_hub_registry(intel_domain)
+    admission_tokens = _bundle_admission_tokens(bundle)
+    filing_source_ref_dict = {
+        "kind": "filing",
+        "origin": "sec" if not is_clinical else "pubmed",
+        "article_id": f"{ticker}_10K" if not is_clinical else f"{ticker}_pub",
+        "fetched_at": "",
+    }
+
     # Sprint 33.14c: Shared news extraction helper (used by both paths)
     def _extract_news_articles(
         news_list, company_name, t, bndl, doc_ctx, _loop, _queue
@@ -7750,10 +8035,23 @@ async def run_intelligence(
             })
             await asyncio.sleep(0)
 
-        # Phase C: Runtime merge — SEC base graph + news article graphs
+        # Phase C: Runtime merge — SEC base graph + news article graphs.
+        # Wave J (MH #1, #10): provenance-preserving merge with bundle
+        # admission tokens + per-article SourceRef.
         kgs_kg = sec_kg
-        for akg in article_kgs:
-            kgs_kg = _merge_kgs(kgs_kg, akg)
+        for i, akg in enumerate(article_kgs):
+            overlay_sref = None
+            if i < len(news_articles):
+                news_source_type, news_article = news_articles[i]
+                overlay_sref = _make_source_ref_for_article(
+                    news_source_type, news_article, i
+                )
+            kgs_kg = _merge_kgs_with_provenance(
+                kgs_kg, akg,
+                admission_tokens=admission_tokens,
+                base_source_ref=filing_source_ref_dict if i == 0 else None,
+                overlay_source_ref=overlay_sref,
+            )
 
         kgs_entities = len(kgs_kg.get("entities", []))
         kgs_rels = len(kgs_kg.get("relationships", []))
