@@ -84,8 +84,11 @@ def _fake_edgartools_module(
     company.industry = ck.get("industry", "Pharmaceutical Preparations")
     company.business_category = ck.get("business_category", "Life Sciences")
     company.fiscal_year_end = ck.get("fiscal_year_end", "1228")
-    company.business_address = address
-    company.mailing_address = address
+    # business_address / mailing_address are callable methods on the real
+    # edgartools Company class; lander code invokes them. The fixture must
+    # return the Address-like mock when called, not when accessed.
+    company.business_address = MagicMock(return_value=address)
+    company.mailing_address = MagicMock(return_value=address)
     company.tickers = ck.get("tickers", ["JNJ"])
     company.filer_category = ck.get("filer_category", "Large Accelerated Filer")
     company.filer_type = ck.get("filer_type", "Operating Company")
