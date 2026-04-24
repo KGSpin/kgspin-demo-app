@@ -1,9 +1,17 @@
-# PRD-041: HITL Feedback UI Elements
+# PRD-041: HITL Feedback UI Elements [SUPERSEDED]
 
-**Status:** Draft
-**Owner:** VP of Product, CEO
-**Date:** 2026-03-03
-**RICE Score:** 4.6 (Reach: 5, Impact: 4, Confidence: 0.7, Effort: 3)
+**Status:** ⚠️ **SUPERSEDED** 2026-04-24 — replaced by [PRD-062 Sealable Proposition Surface](PRD-062-sealable-proposition-surface.md).
+
+**Reason for supersession:** PRD-041 framed human-in-the-loop as an *after-the-fact* flagging mechanism ("something was extracted wrong, mark it for the tuner"). PRD-062 reframes it as *pre-commit tiered curation* ("review the high-risk propositions before they enter the graph"). The reframe was triggered by (a) the 2026-04-24 UHC mixed-case-filer UX gap — 374 entities post-extraction, no way for the operator to tell which were load-bearing vs. garbage — and (b) the architectural framing from the Nexus / KronosDeret publicist thread (user-seal as trust boundary). PRD-062 preserves PRD-041's click-to-highlight concept, visual-state updates, and retraction flow, but inverts the default — nothing auto-commits if it requires human judgment. The "Little LLM Agent" for suggested FPs (PRD-041 §5) is factored out to a future PRD-063.
+
+**Do not implement against this document.** Refer to PRD-062 for the current design.
+
+---
+
+**Original metadata (retained for historical reference):**
+- **Owner:** VP of Product, CEO
+- **Date:** 2026-03-03
+- **RICE Score:** 4.6 (Reach: 5, Impact: 4, Confidence: 0.7, Effort: 3)
 
 
 ## High-Level Vision
