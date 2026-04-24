@@ -353,6 +353,39 @@ body {
 .graph-toolbar .discover-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .graph-toolbar .discover-status { font-size: 10px; color: #888; white-space: nowrap; }
 
+/* Wave J: per-article graph_delta controls */
+.intel-delta-controls {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 18px; background: #0f0f23;
+    border-bottom: 1px solid #2a2a4e;
+    font-size: 11px; color: #888;
+}
+.intel-delta-controls .intel-delta-label { font-size: 10px; color: #6e7681; }
+.intel-delta-controls button {
+    background: #2a2a4e; border: none; color: #ccc;
+    width: 26px; height: 24px; border-radius: 4px;
+    cursor: pointer; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+}
+.intel-delta-controls button:hover:not(:disabled) { background: #3a3a5e; color: #fff; }
+.intel-delta-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+.intel-delta-queue-badge {
+    display: none; min-width: 18px; padding: 1px 5px;
+    background: #d4a017; color: #1a1a2e; font-weight: 600;
+    border-radius: 8px; font-size: 10px; text-align: center;
+}
+.intel-bridge-badge {
+    color: #E67E5B; font-weight: 600; margin-left: 4px;
+}
+.intel-delta-pulse {
+    animation: intel-delta-pulse-anim 0.8s ease-out;
+}
+@keyframes intel-delta-pulse-anim {
+    0%   { box-shadow: 0 0 0 0 rgba(91, 159, 230, 0.5); }
+    50%  { box-shadow: 0 0 0 6px rgba(91, 159, 230, 0.2); }
+    100% { box-shadow: 0 0 0 0 rgba(91, 159, 230, 0); }
+}
+
 .gemini-history-bar {
     display: flex; align-items: center; gap: 8px;
     padding: 6px 12px; background: #1a1a3e; border-radius: 6px;
@@ -2111,6 +2144,14 @@ body {
                         <button id="intelligence-physics-btn" data-action="graph-toggle-physics" data-graph-id="intelligence" title="Toggle physics" class="active">&#9889;</button>
                         <button id="intelligence-disconnected-btn" data-action="graph-toggle-disconnected" data-graph-id="intelligence" title="Show disconnected entities">&#9678;</button>
                     </div>
+                    <!-- Wave J: per-article graph_delta controls -->
+                    <div class="intel-delta-controls" id="intel-delta-controls">
+                        <span class="intel-delta-label">Article deltas:</span>
+                        <button id="intel-delta-pause" data-action="intel-delta-pause" title="Pause delta application">&#10074;&#10074;</button>
+                        <button id="intel-delta-step" data-action="intel-delta-step" title="Apply next queued delta" disabled>&#9654;&#124;</button>
+                        <button id="intel-delta-resume" data-action="intel-delta-resume" title="Resume delta application" disabled>&#9654;</button>
+                        <span id="intel-delta-queue-badge" class="intel-delta-queue-badge"></span>
+                    </div>
                     <div class="gemini-history-bar" id="intel-history" style="display:none;">
                         <button class="history-nav" id="intel-prev" data-action="intel-prev-run">&larr;</button>
                         <span class="history-label" id="intel-run-label">Run 1 of 1</span>
@@ -2640,6 +2681,7 @@ body {
 <script src="/static/js/domain-switch.js"></script>
 <script src="/static/js/graph.js"></script>
 <script src="/static/js/slots.js"></script>
+<script src="/static/js/intel-graph-delta.js"></script>
 <script src="/static/js/intelligence.js"></script>
 <script src="/static/js/impact.js"></script>
 <script src="/static/js/compare-runner.js"></script>

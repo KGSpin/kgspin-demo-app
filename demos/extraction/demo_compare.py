@@ -4650,6 +4650,104 @@ def _cross_hub_relations_from_bundle(bundle: Any) -> frozenset:
     return frozenset()
 
 
+def _graph_delta_payload(
+    *,
+    article_index: int,
+    news_source_type: str,
+    news_article: dict,
+    overlay_sref: Any,
+    added_entities: list[dict],
+    added_relationships: list[dict],
+    bridges_created: list[dict],
+    spokes_promoted: list[dict],
+    kgs_kg: dict,
+) -> dict:
+    """Shape the payload for a `graph_delta` SSE event (Wave J MH #5).
+
+    Health is computed from the post-merge KG so the sparkline (MH #7) has
+    one data point per article. Entities + relationships are emitted in
+    the demo's native dict shape; the frontend converts to vis.js shape
+    incrementally.
+    """
+    from kgspin_demo_app.services.topology_health import health_for_kg
+    sref_dict = _source_ref_to_dict(overlay_sref) if overlay_sref is not None else None
+    outlet = (
+        news_article.get("source_name")
+        or news_article.get("outlet")
+        or (news_source_type.split("_", 1)[0] if news_source_type else "")
+    )
+    return {
+        "article_index": article_index,
+        "article_id": sref_dict.get("article_id") if sref_dict else None,
+        "source_type": news_source_type or "",
+        "outlet": outlet,
+        "title": news_article.get("title", ""),
+        "fetched_at": sref_dict.get("fetched_at") if sref_dict else "",
+        "source_ref": sref_dict,
+        "added_entities": added_entities,
+        "added_relationships": added_relationships,
+        "bridges_created": bridges_created,
+        "spokes_promoted": spokes_promoted,
+        "health": health_for_kg(kgs_kg),
+    }
+
+
+def _kg_entity_key(ent: dict, admission_tokens: Optional[List[str]] = None) -> tuple:
+    """Canonical (entity_type, normalized_text) key for a merged-KG entity."""
+    from kgspin_demo_app.services.entity_resolution import normalize_entity_text
+    return (
+        ent.get("entity_type", ""),
+        normalize_entity_text(ent.get("text", "") or "", admission_tokens=admission_tokens),
+    )
+
+
+def _kg_relationship_key(rel: dict, admission_tokens: Optional[List[str]] = None) -> tuple:
+    """Canonical (subj_text_norm, predicate, obj_text_norm) key."""
+    from kgspin_demo_app.services.entity_resolution import normalize_entity_text
+    subj = rel.get("subject", {}) or {}
+    obj = rel.get("object", {}) or {}
+    return (
+        normalize_entity_text(subj.get("text", "") or "", admission_tokens=admission_tokens),
+        rel.get("predicate", ""),
+        normalize_entity_text(obj.get("text", "") or "", admission_tokens=admission_tokens),
+    )
+
+
+def _compute_graph_delta(
+    before_kg: dict,
+    after_kg: dict,
+    *,
+    admission_tokens: Optional[List[str]] = None,
+) -> dict:
+    """Diff two merged KGs → the entities + relationships newly present in ``after_kg``.
+
+    Both shapes are the same dict shape used throughout the demo. Keys collide
+    via ``_kg_entity_key`` / ``_kg_relationship_key`` so overlay mentions that
+    collapse into an existing entity are NOT reported as additions.
+
+    Returns ``{"added_entities": [...], "added_relationships": [...]}``. Each
+    item is the entity/relationship dict verbatim from ``after_kg`` (so
+    sources / confidence / kind are preserved for the client).
+    """
+    before_ent_keys = {
+        _kg_entity_key(e, admission_tokens)
+        for e in (before_kg.get("entities") or [])
+    }
+    before_rel_keys = {
+        _kg_relationship_key(r, admission_tokens)
+        for r in (before_kg.get("relationships") or [])
+    }
+    added_ents: list[dict] = []
+    for ent in after_kg.get("entities", []) or []:
+        if _kg_entity_key(ent, admission_tokens) not in before_ent_keys:
+            added_ents.append(ent)
+    added_rels: list[dict] = []
+    for rel in after_kg.get("relationships", []) or []:
+        if _kg_relationship_key(rel, admission_tokens) not in before_rel_keys:
+            added_rels.append(rel)
+    return {"added_entities": added_ents, "added_relationships": added_rels}
+
+
 def _make_source_ref_for_article(source_type: str, article: dict, article_idx: int) -> Any:
     """Build a `SourceRef` for a single news article.
 
@@ -8336,14 +8434,23 @@ async def run_intelligence(
         # admission tokens + per-article SourceRef.
         # Wave J (MH #2): bridge-edge creation from hub-registry matches,
         # gated by `HybridUtilityGate` (cross-hub bridges always commit).
+        # Wave J (MH #5): emit `graph_delta` SSE per article so the frontend
+        # can animate additions incrementally. `kg_ready` still fires as the
+        # final-state checkpoint (backward compat mandatory).
         kgs_kg = sec_kg
         for i, akg in enumerate(article_kgs):
             overlay_sref = None
+            news_source_type = ""
+            news_article: dict = {}
             if i < len(news_articles):
                 news_source_type, news_article = news_articles[i]
                 overlay_sref = _make_source_ref_for_article(
                     news_source_type, news_article, i
                 )
+            before_kg_snapshot = {
+                "entities": list(kgs_kg.get("entities", []) or []),
+                "relationships": list(kgs_kg.get("relationships", []) or []),
+            }
             kgs_kg = _merge_kgs_with_provenance(
                 kgs_kg, akg,
                 admission_tokens=admission_tokens,
@@ -8360,6 +8467,19 @@ async def run_intelligence(
             )
             bridges_by_article.append(bridge_result.get("bridges_created", []))
             spokes_by_article.append(bridge_result.get("spokes_promoted", []))
+            delta = _compute_graph_delta(before_kg_snapshot, kgs_kg, admission_tokens=admission_tokens)
+            yield sse_event("graph_delta", _graph_delta_payload(
+                article_index=i,
+                news_source_type=news_source_type,
+                news_article=news_article,
+                overlay_sref=overlay_sref,
+                added_entities=delta["added_entities"],
+                added_relationships=delta["added_relationships"],
+                bridges_created=bridge_result.get("bridges_created", []),
+                spokes_promoted=bridge_result.get("spokes_promoted", []),
+                kgs_kg=kgs_kg,
+            ))
+            await asyncio.sleep(0)
 
         kgs_entities = len(kgs_kg.get("entities", []))
         kgs_rels = len(kgs_kg.get("relationships", []))
@@ -8478,15 +8598,21 @@ async def run_intelligence(
             return
 
         # Merge: cached SEC KG + all per-article news KGs.
-        # Wave J: provenance-preserving merge + bridge creation per article.
+        # Wave J: provenance-preserving merge + bridge creation + graph_delta per article.
         kgs_kg = cached_kgs_kg
         for i, akg in enumerate(article_kgs):
             overlay_sref = None
+            news_source_type = ""
+            news_article = {}
             if i < len(news_articles):
                 news_source_type, news_article = news_articles[i]
                 overlay_sref = _make_source_ref_for_article(
                     news_source_type, news_article, i
                 )
+            before_kg_snapshot = {
+                "entities": list(kgs_kg.get("entities", []) or []),
+                "relationships": list(kgs_kg.get("relationships", []) or []),
+            }
             kgs_kg = _merge_kgs_with_provenance(
                 kgs_kg, akg,
                 admission_tokens=admission_tokens,
@@ -8503,6 +8629,19 @@ async def run_intelligence(
             )
             bridges_by_article.append(bridge_result.get("bridges_created", []))
             spokes_by_article.append(bridge_result.get("spokes_promoted", []))
+            delta = _compute_graph_delta(before_kg_snapshot, kgs_kg, admission_tokens=admission_tokens)
+            yield sse_event("graph_delta", _graph_delta_payload(
+                article_index=i,
+                news_source_type=news_source_type,
+                news_article=news_article,
+                overlay_sref=overlay_sref,
+                added_entities=delta["added_entities"],
+                added_relationships=delta["added_relationships"],
+                bridges_created=bridge_result.get("bridges_created", []),
+                spokes_promoted=bridge_result.get("spokes_promoted", []),
+                kgs_kg=kgs_kg,
+            ))
+            await asyncio.sleep(0)
 
         duration = int((time.time() - t0) * 1000)
         kgs_entities = len(kgs_kg.get("entities", []))

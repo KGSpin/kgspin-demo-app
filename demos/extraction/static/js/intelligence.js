@@ -109,6 +109,9 @@ function startIntelligence() {
     intelRunState.currentIndex = 0;
     intelRunState.totalRuns = 0;
     activeSourceFilter = null;
+    if (typeof window.resetIntelDeltaState === 'function') {
+        window.resetIntelDeltaState();
+    }
 
     document.getElementById('status').textContent = 'Running intelligence...';
     document.getElementById('intel-run-btn').disabled = true;
@@ -117,6 +120,11 @@ function startIntelligence() {
     const corpusKb = document.getElementById('corpus-kb-select').value;
     const gemModel = document.getElementById('model-select').value;
     eventSource = new EventSource(`/api/intelligence/${ticker}?corpus_kb=${corpusKb}&model=${gemModel}`);
+
+    // Wave J: attach the graph_delta listener (intel-graph-delta.js).
+    if (typeof window.wireIntelDeltaHandler === 'function') {
+        window.wireIntelDeltaHandler(eventSource);
+    }
 
     eventSource.addEventListener('step_start', (e) => {
         const d = JSON.parse(e.data);
