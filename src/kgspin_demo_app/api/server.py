@@ -34,11 +34,16 @@ except ImportError:
     def Field(*args, **kwargs):
         return None
 
-from ..execution.extractor import ExtractionBundle, KnowledgeGraphExtractor
-from ..execution.embeddings import get_embedding_engine
-from ..cli.utils import load_bundle, save_bundle, load_patterns_from_file, patterns_to_definitions
-from ..agents.pattern_compiler import PatternCompilerAgent
-from ..tools.linker_tool import LinkerTool
+from kgspin_core.execution.extractor import ExtractionBundle, KnowledgeGraphExtractor
+from kgspin_core.execution.embeddings import get_embedding_engine
+from kgspin_core.cli.utils import load_bundle, save_bundle, load_patterns_from_file, patterns_to_definitions
+from kgspin_core.agents.pattern_compiler import PatternCompilerAgent
+from kgspin_core.tools.linker_tool import LinkerTool
+
+try:
+    from kgspin_interface.version import INSTALLATION_CONFIG_SCHEMA_V1
+except ImportError:
+    INSTALLATION_CONFIG_SCHEMA_V1 = 1
 
 
 # Request/Response Models
@@ -52,11 +57,58 @@ class EntityRequest(BaseModel):
     threshold: float = Field(default=0.5, ge=0.0, le=1.0, description="Confidence threshold")
 
 
+class ExtractionMetadata(BaseModel):
+    """Phase 2 INSTALLATION — triple-hash provenance attached to every
+    extraction-returning response.
+
+    Field order is pinned for stable JSON serialization (Pydantic v2
+    preserves declaration order). Any of the hash fields may be ``None``
+    on legacy paths or when admin is unreachable; the customer-facing
+    doc explains the semantics.
+    """
+    schema_version: int = Field(
+        default=INSTALLATION_CONFIG_SCHEMA_V1,
+        description="kgspin-interface InstallationConfig schema version",
+    )
+    pipeline_version_hash: Optional[str] = Field(
+        None, description="pipeline version (kgspin-core git commit + interface schema)"
+    )
+    bundle_version_hash: Optional[str] = Field(
+        None, description="domain bundle version (canonical bundle YAML hash)"
+    )
+    installation_version_hash: Optional[str] = Field(
+        None, description="deployment configuration version (admin InstallationConfig hash)"
+    )
+
+
+def _build_extraction_metadata(provenance: Any) -> ExtractionMetadata:
+    """Lift the triple-hash off ``result.provenance`` into the wire shape.
+
+    Empty strings (the kgspin-core migration-window default) are
+    surfaced as ``None`` so the customer-facing surface has one
+    "unset" representation instead of two.
+    """
+    def _norm(value: Optional[str]) -> Optional[str]:
+        return value if value else None
+
+    return ExtractionMetadata(
+        schema_version=INSTALLATION_CONFIG_SCHEMA_V1,
+        pipeline_version_hash=_norm(getattr(provenance, "pipeline_version_hash", None)),
+        bundle_version_hash=_norm(getattr(provenance, "bundle_version_hash", None)),
+        installation_version_hash=_norm(getattr(provenance, "installation_version_hash", None)),
+    )
+
+
 class EntityResponse(BaseModel):
     """Response from entity extraction."""
     entities: List[Dict[str, Any]]
     count: int
     processing_time_ms: float
+    extraction_metadata: Optional[ExtractionMetadata] = Field(
+        None,
+        description="Triple-hash provenance (Phase 2). None for entity-only "
+                    "GLiNER calls that don't touch the orchestrator.",
+    )
 
 
 class RelationshipRequest(BaseModel):
@@ -70,8 +122,27 @@ class RelationshipResponse(BaseModel):
     """Response from relationship extraction."""
     entities: List[Dict[str, Any]]
     relationships: List[Dict[str, Any]]
+    # Deprecated: kept flat for one release window so existing callers
+    # don't break when extraction_metadata.bundle_version_hash arrives.
     bundle_version: str
     processing_time_ms: float
+    extraction_metadata: ExtractionMetadata
+
+
+class ReplayRequest(BaseModel):
+    """Request to replay an extraction with a pinned triple-hash.
+
+    The platform verifies all three hashes match the currently-loaded
+    deployment. On any mismatch, the endpoint returns 409 with the
+    installed values so the caller can see what version this deployment
+    is on.
+    """
+    text: str = Field(..., description="Document text to re-extract from")
+    source_document: str = Field(default="api-replay")
+    bundle_name: Optional[str] = Field(None)
+    pipeline_version_hash: str = Field(..., description="Required pin")
+    bundle_version_hash: str = Field(..., description="Required pin")
+    installation_version_hash: str = Field(..., description="Required pin")
 
 
 class EstablishRelationshipRequest(BaseModel):
@@ -251,7 +322,8 @@ def create_app() -> "FastAPI":
                     for e in entities
                 ],
                 count=len(entities),
-                processing_time_ms=processing_time
+                processing_time_ms=processing_time,
+                extraction_metadata=None,
             )
 
         except ImportError:
@@ -294,7 +366,8 @@ def create_app() -> "FastAPI":
                 for r in result.relationships
             ],
             bundle_version=bundle.version,
-            processing_time_ms=processing_time
+            processing_time_ms=processing_time,
+            extraction_metadata=_build_extraction_metadata(result.provenance),
         )
 
     @app.post("/extract/establish")
@@ -304,6 +377,7 @@ def create_app() -> "FastAPI":
     ):
         """Check if a specific relationship exists between two entities."""
         linker = get_linker(request.bundle_name)
+        bundle = get_bundle(request.bundle_name)
 
         result = linker.establish_relationship(
             entity_a=request.entity_a,
@@ -311,6 +385,25 @@ def create_app() -> "FastAPI":
             context=request.context,
             threshold=request.threshold
         )
+
+        # Phase 2 INSTALLATION (CTO 2026-04-26) — establish does not run
+        # the orchestrator and therefore has no Provenance to lift from.
+        # Surface the bundle hash we *can* compute; pipeline/installation
+        # are resolved on the live extractor, not the linker, so they
+        # surface as None on this endpoint.
+        try:
+            from kgspin_core.provenance import bundle_version_hash as _bvh
+            bundle_payload = bundle.model_dump(mode="json") if hasattr(bundle, "model_dump") else {}
+            bundle_hash = _bvh(bundle_payload) if bundle_payload else None
+        except Exception:
+            bundle_hash = None
+
+        metadata = ExtractionMetadata(
+            schema_version=INSTALLATION_CONFIG_SCHEMA_V1,
+            pipeline_version_hash=None,
+            bundle_version_hash=bundle_hash,
+            installation_version_hash=None,
+        ).model_dump()
 
         if result:
             return {
@@ -320,13 +413,94 @@ def create_app() -> "FastAPI":
                     "predicate": result["predicate"],
                     "object": result["object"]["text"],
                     "confidence": result["confidence"]
-                }
+                },
+                "extraction_metadata": metadata,
             }
         else:
             return {
                 "found": False,
-                "message": "No relationship detected above threshold"
+                "message": "No relationship detected above threshold",
+                "extraction_metadata": metadata,
             }
+
+    @app.post("/extract/replay/relationships")
+    async def replay_relationships(
+        request: ReplayRequest,
+        api_key: Optional[str] = Depends(verify_api_key),
+    ):
+        """Replay an extraction with a pinned triple-hash.
+
+        Phase 2 INSTALLATION (CTO 2026-04-26). This is the *match-or-409*
+        replay surface: the request's triple must match the deployment's
+        currently-loaded `(pipeline, bundle, installation)` triple. On
+        mismatch, returns 409 with both `requested` and `installed`
+        triples so the caller can see what version this deployment is on.
+
+        Per-historical-hash replay (fetch arbitrary bundle/installation
+        by hash, build a fresh extractor, run, return) is a documented
+        Phase 2.1 follow-up — see `docs/reproducibility-by-triple-hash.md`.
+        """
+        bundle = get_bundle(request.bundle_name)
+        extractor = KnowledgeGraphExtractor(bundle)
+        start_time = time.time()
+        result = extractor.extract(request.text, request.source_document)
+        processing_time = (time.time() - start_time) * 1000
+
+        installed_meta = _build_extraction_metadata(result.provenance)
+
+        requested = (
+            request.pipeline_version_hash,
+            request.bundle_version_hash,
+            request.installation_version_hash,
+        )
+        installed = (
+            installed_meta.pipeline_version_hash or "",
+            installed_meta.bundle_version_hash or "",
+            installed_meta.installation_version_hash or "",
+        )
+        if requested != installed:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error": "triple_hash_mismatch",
+                    "message": (
+                        "The requested triple-hash does not match this "
+                        "deployment's currently-loaded triple. See "
+                        "docs/reproducibility-by-triple-hash.md for the "
+                        "pinning workflow."
+                    ),
+                    "requested": {
+                        "pipeline_version_hash": requested[0],
+                        "bundle_version_hash": requested[1],
+                        "installation_version_hash": requested[2],
+                    },
+                    "installed": installed_meta.model_dump(),
+                },
+            )
+
+        return RelationshipResponse(
+            entities=[
+                {
+                    "text": e.text,
+                    "type": e.entity_type,
+                    "confidence": e.confidence,
+                }
+                for e in result.entities
+            ],
+            relationships=[
+                {
+                    "subject": r.subject.text,
+                    "predicate": r.predicate,
+                    "object": r.object.text,
+                    "confidence": r.confidence,
+                    "evidence": r.evidence.sentence_text if r.evidence else None,
+                }
+                for r in result.relationships
+            ],
+            bundle_version=bundle.version,
+            processing_time_ms=processing_time,
+            extraction_metadata=installed_meta,
+        )
 
     @app.post("/compile", response_model=CompileResponse)
     async def compile_bundle(

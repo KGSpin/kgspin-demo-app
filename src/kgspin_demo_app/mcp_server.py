@@ -31,11 +31,33 @@ except ImportError:
     MCP_AVAILABLE = False
     Server = None
 
-from .execution.extractor import ExtractionBundle, KnowledgeGraphExtractor
-from .execution.embeddings import get_embedding_engine
-from .cli.utils import load_bundle, save_bundle, load_patterns_from_file, patterns_to_definitions
-from .agents.pattern_compiler import PatternCompilerAgent
-from .tools.linker_tool import LinkerTool
+from kgspin_core.execution.extractor import ExtractionBundle, KnowledgeGraphExtractor
+from kgspin_core.execution.embeddings import get_embedding_engine
+from kgspin_core.cli.utils import load_bundle, save_bundle, load_patterns_from_file, patterns_to_definitions
+from kgspin_core.agents.pattern_compiler import PatternCompilerAgent
+from kgspin_core.tools.linker_tool import LinkerTool
+
+try:
+    from kgspin_interface.version import INSTALLATION_CONFIG_SCHEMA_V1
+except ImportError:
+    INSTALLATION_CONFIG_SCHEMA_V1 = 1
+
+
+def _extraction_metadata_dict(provenance: Any) -> dict:
+    """Phase 2 INSTALLATION (CTO 2026-04-26) — triple-hash wire shape for
+    MCP tool outputs. Mirrors the api/server.py ExtractionMetadata Pydantic
+    model. Empty strings (kgspin-core's migration-window default) surface
+    as ``None`` so downstream callers see one "unset" representation.
+    """
+    def _norm(value: Optional[str]) -> Optional[str]:
+        return value if value else None
+
+    return {
+        "schema_version": INSTALLATION_CONFIG_SCHEMA_V1,
+        "pipeline_version_hash": _norm(getattr(provenance, "pipeline_version_hash", None)),
+        "bundle_version_hash": _norm(getattr(provenance, "bundle_version_hash", None)),
+        "installation_version_hash": _norm(getattr(provenance, "installation_version_hash", None)),
+    }
 
 
 def create_mcp_server() -> "Server":
@@ -229,7 +251,8 @@ async def _extract_entities(arguments: dict[str, Any]) -> list:
                 }
                 for e in entities
             ],
-            "count": len(entities)
+            "count": len(entities),
+            "extraction_metadata": None,
         }
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
@@ -294,7 +317,8 @@ async def _extract_relationships(
             "provenance": {
                 "total_entities": result.provenance.total_entities,
                 "total_relationships": result.provenance.total_relationships
-            }
+            },
+            "extraction_metadata": _extraction_metadata_dict(result.provenance),
         }
         return [TextContent(type="text", text=json.dumps(output, indent=2))]
 
@@ -372,6 +396,27 @@ async def _establish_relationship(
             entity_a, entity_b, context, threshold
         )
 
+        # Phase 2 INSTALLATION (CTO 2026-04-26) — establish does not run
+        # the orchestrator and has no Provenance to lift from. We compute
+        # the bundle hash from the linker's loaded bundle when possible;
+        # pipeline / installation surface as None on this tool.
+        bundle_for_meta = bundle_cache.get(bundle_path) if bundle_path else getattr(linker, "bundle", None)
+        bundle_hash = None
+        if bundle_for_meta is not None:
+            try:
+                from kgspin_core.provenance import bundle_version_hash as _bvh
+                payload = bundle_for_meta.model_dump(mode="json") if hasattr(bundle_for_meta, "model_dump") else {}
+                if payload:
+                    bundle_hash = _bvh(payload)
+            except Exception:
+                bundle_hash = None
+        meta = {
+            "schema_version": INSTALLATION_CONFIG_SCHEMA_V1,
+            "pipeline_version_hash": None,
+            "bundle_version_hash": bundle_hash,
+            "installation_version_hash": None,
+        }
+
         if result:
             output = {
                 "found": True,
@@ -381,12 +426,14 @@ async def _establish_relationship(
                     "object": result["object"]["text"],
                     "confidence": result["confidence"],
                     "fingerprint_version": result.get("fingerprint_version")
-                }
+                },
+                "extraction_metadata": meta,
             }
         else:
             output = {
                 "found": False,
-                "message": "No relationship detected above threshold"
+                "message": "No relationship detected above threshold",
+                "extraction_metadata": meta,
             }
 
         return [TextContent(type="text", text=json.dumps(output, indent=2))]
