@@ -257,6 +257,14 @@ Per the CTO assignment:
 
 ## Commits on this branch
 
-(Fill in after the commit + push.)
+```
+c91ff37 feat(api,mcp): surface Phase 2 triple-hash on extraction responses
+43bae42 feat(ui,adr): cached-runs UI passes triple-hash through; ADR-006 Phase 2 landed
+40faa39 docs(customer,sprint): triple-hash reproducibility doc + Phase 3 sprint reports
+```
+
+(A small follow-up commit on top of `40faa39` records this commit
+graph in the dev-report itself — the dev-report file existed at
+commit time of `40faa39` but did not yet know the final SHAs.)
 
 — Dev Team (kgspin-demo-app)
