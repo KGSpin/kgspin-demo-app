@@ -113,3 +113,4 @@ uv run pytest
 - Instance config: `kgspin-demo-config`
 - Admin registry: `kgspin-admin`
 - Core libs: `kgspin-core`, `kgspin-interface`
+- Customer reproducibility property: [`docs/reproducibility-by-triple-hash.md`](docs/reproducibility-by-triple-hash.md)
