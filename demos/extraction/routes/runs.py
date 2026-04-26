@@ -11,6 +11,36 @@ from __future__ import annotations
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+# Phase 2 INSTALLATION (CTO 2026-04-26) — wire shape constant for the
+# triple-hash placeholder shown on legacy cached runs that pre-date the
+# Phase 2 surfacing landing. No data migration; honest signal that the
+# fields were not recorded at extraction time.
+_PRE_PHASE_2 = "<pre-Phase-2>"
+
+
+def _extraction_metadata_from_kg(kg: dict) -> dict:
+    """Lift the triple-hash from a cached run's ``kg.provenance`` block.
+
+    Cached runs predating Phase 2 lack the three hash fields entirely;
+    we render a ``<pre-Phase-2>`` placeholder so the UI doesn't show
+    empty strings (which look like a bug). Live runs (post-Phase-2)
+    pass the orchestrator's stamped values through verbatim.
+    """
+    prov = kg.get("provenance", {}) if isinstance(kg, dict) else {}
+
+    def _lift(name: str) -> str | None:
+        value = prov.get(name)
+        if value is None:
+            return _PRE_PHASE_2
+        return value if value else _PRE_PHASE_2
+
+    return {
+        "schema_version": prov.get("schema_version", 1),
+        "pipeline_version_hash": _lift("pipeline_version_hash"),
+        "bundle_version_hash": _lift("bundle_version_hash"),
+        "installation_version_hash": _lift("installation_version_hash"),
+    }
+
 from cache.run_log import (
     GeminiRunLog,
     _impact_qa_run_log,
@@ -140,6 +170,7 @@ async def gemini_run_detail(doc_id: str, index: int):
         "run_index": index,
         "total_runs": total,
         "config_key": cfg_key,
+        "extraction_metadata": _extraction_metadata_from_kg(kg),
     })
 
 
@@ -221,6 +252,7 @@ async def modular_run_detail(doc_id: str, index: int):
         "run_index": index,
         "total_runs": total,
         "config_key": cfg_key,
+        "extraction_metadata": _extraction_metadata_from_kg(kg),
     })
 
 
@@ -305,6 +337,7 @@ async def kgen_run_detail(doc_id: str, index: int):
         "run_index": index,
         "total_runs": total,
         "config_key": cfg_key,
+        "extraction_metadata": _extraction_metadata_from_kg(kg),
     })
 
 
@@ -377,6 +410,7 @@ async def intel_run_detail(doc_id: str, index: int):
         "run_index": index,
         "total_runs": total,
         "config_key": cfg_key,
+        "extraction_metadata": _extraction_metadata_from_kg(kg),
     })
 
 

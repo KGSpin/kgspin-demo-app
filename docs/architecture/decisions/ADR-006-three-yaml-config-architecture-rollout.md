@@ -32,6 +32,37 @@ provenance writers must carry the triple forward on every emitted fact.
 
 ## Phase 2 implications for this repo
 
+**Status as of 2026-04-26: Phase 2 LANDED.** kgspin-interface shipped
+`InstallationConfig` (`8af1afd`), kgspin-admin shipped the
+`installation_config` resource type (`31e1736`), kgspin-core shipped the
+triple-hash provenance machinery and 7-field read-site migration
+(`788afe2`). This repo's surfacing slice landed on the
+`phase-2-installation-exec` branch — see
+`docs/sprints/phase-2-installation-plan/` for the plan + dev-report and
+`docs/cross-repo/2026-04-26-phase-2-installation-notice-received.md` for
+the cross-repo acknowledgment.
+
+What this repo now does:
+- `api/server.py` — every extraction-returning response carries an
+  `extraction_metadata` block (Pydantic model `ExtractionMetadata`) with
+  `schema_version`, `pipeline_version_hash`, `bundle_version_hash`,
+  `installation_version_hash`. Field order is pinned for stable JSON
+  serialization. `RelationshipResponse` keeps the flat `bundle_version`
+  field for one release window as a deprecation shim.
+- `mcp_server.py` — same triple-hash block on every MCP tool output.
+- `demos/extraction/routes/runs.py` — cached-runs UI passes
+  `extraction_metadata` through; legacy runs render `<pre-Phase-2>` for
+  fields not recorded at extraction time.
+- `POST /extract/replay/relationships` — match-or-409 replay endpoint:
+  verifies the request's triple matches the deployment's currently-loaded
+  triple, runs extraction on match, returns 409 with `installed` triple
+  on mismatch.
+
+Customer-facing reproducibility doc lives at
+`docs/reproducibility-by-triple-hash.md`.
+
+### Pre-Phase-2 wording (kept for history)
+
 Until kgspin-interface lands `InstallationConfig` and kgspin-admin ships the
 `installation_config` endpoints (register / version-bump / retrieve-by-hash):
 - New fields added to demo runtime that *would* be INSTALLATION (resource
@@ -54,5 +85,8 @@ regress them when wiring new metadata into provenance.
 
 No code changes. No new env vars. No metadata-schema edits. This is a
 documentation rollout only; implementation lands when Phase 2 fires.
+
+(See "Status as of 2026-04-26" above — Phase 2 has landed; this section
+describes the original rollout-ADR scope.)
 
 — Dev Team (kgspin-demo-app)
