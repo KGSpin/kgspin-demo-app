@@ -1,0 +1,19 @@
+# Hotfix — Lineage display fallback for degenerate (numeric / very-short) sentences
+
+**Date:** 2026-04-27
+**Branch:** `hotfix-lineage-degenerate-sentence-fallback-20260427` (off `main`)
+**Files:** `demos/extraction/static/js/slots.js` (helpers + `modalHighlightSourceForEdge` + `renderRelDetail`), `demos/extraction/static/js/impact.js` (`highlightSourceForEdge`)
+
+## Summary
+
+The CEO repro was: clicking the lineage edge `Contents Summary -> sourced_from -> Cash Equivelents For` (chunk_83 / sentence 836) showed only `1,990` as the source text — useless to a reviewer — while the working case `Decreased -> operates_in -> CMS Medicare` (chunk_84 / sentence 844) rendered the full sentence as expected. Root cause is upstream (a flattened table cell got picked up as the evidence "sentence" with no surrounding context), but the data-quality fix is a Row 12 / architectural concern out of partner-call scope. The display-layer hotfix here adds a fallback: when `sentence_text` is degenerate — `length < 20` OR matches `^[\d.,\s$%-]+$` (numeric / currency / percent / punctuation only) — the lineage panel now expands to show neighboring sentences in the same chunk (sentence_index ± 2, capped at chunk boundaries by virtue of only including sentences actually present in the evidence index, deduped, excluding the focus sentence). Two helpers were added at the top of `slots.js` (loaded before `impact.js` so global): `isDegenerateLineageSentence(text)` and `gatherChunkContextSentences(evidenceIndex, chunkId, sentenceIdx)` plus a thin HTML renderer `renderLineageContextHtml(...)` used by the evidence card. Three call-sites consume them: the Impact-tab lineage handler `highlightSourceForEdge` (impact.js), the full-screen modal lineage handler `modalHighlightSourceForEdge` (slots.js), and the Data-tab relationship detail `renderRelDetail` (slots.js); each renders a "Surrounding context" / "Context" block beneath the chunk/sentence reference when (and only when) the focus sentence is degenerate. The two graph-handler paths additionally light up the ±2 source-text paragraphs with the existing `.source-highlight` style so the user sees real sentences, not a lonely number, when scrolled into view.
+
+## Validation
+
+Static: `node --check` passes for both modified files. Helper-level smoke test (Node REPL) confirms `isDegenerateLineageSentence('1,990')`, `'$1,990.00'`, `'12.5%'`, `''`, `null`, `'Total assets'` all return true; long-prose sentences ('Apple revenue increased to $394 billion in fiscal 2023', 'CMS Medicare operates in the United States health system') return false — i.e. the working case in the CEO repro is **not** affected (no regression on long prose). `gatherChunkContextSentences` returns `[834, 835, 837, 838]` for a synthetic chunk_83/s836 fixture (correctly drops the focus index, excludes a same-index entry from a different chunk, drops out-of-±2 entries, and dedupes). End-to-end UI click-through against a live AAPL fan_out cache was deferred — there is no cached AAPL extraction on disk in this worktree, and standing up the demo + re-running fan_out is well outside the partner-call hotfix budget; the CEO/operator should reload the running demo (or restart it) and click the broken lineage edge to confirm the "Surrounding context" block renders. The change is purely additive to existing render paths (no behavior change when `isDegenerateLineageSentence` returns false), so the long-prose path is byte-identical to before.
+
+## Out of scope (per brief)
+
+- The upstream data-quality fix (table-flattening + `sourced_from` + TOC-header garbage triple) — Row 12 architectural concern, deferred.
+- Bundle / orchestrator changes — none made.
+- Entity-detail (`renderEntityDetail`) source-list rendering — not in the symptom path; per-source context expansion would require restructuring how `meta.sources` is shaped and is left for a follow-up if reviewers request it.
