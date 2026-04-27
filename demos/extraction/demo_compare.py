@@ -2233,21 +2233,25 @@ async def refresh_analysis(doc_id: str, request: Request):
     })
 
 
-# Slot pipeline key → _kg_cache field mapping
+# Slot pipeline key → _kg_cache field mapping.
+# Frontend sends the canonical 5-pipeline keys (PIPELINE_META in slots.js):
+# fan_out / discovery_rapid / discovery_deep are KGSpin (kgs_kg);
+# agentic_flash → gem_kg (Gemini single-shot);
+# agentic_analyst → mod_kg (modular multi-stage).
 _SLOT_PIPELINE_TO_CACHE_KEY = {
-    "kgspin-default": "kgs_kg",
-    "kgspin-emergent": "kgs_kg",
-    "kgspin-structural": "kgs_kg",
-    "fullshot": "gem_kg",
-    "multistage": "mod_kg",
+    "fan_out": "kgs_kg",
+    "discovery_rapid": "kgs_kg",
+    "discovery_deep": "kgs_kg",
+    "agentic_flash": "gem_kg",
+    "agentic_analyst": "mod_kg",
 }
 
 _SLOT_PIPELINE_LABELS = {
-    "kgspin-default": "KGSpin Base",
-    "kgspin-emergent": "KGSpin Emergent",
-    "kgspin-structural": "KGSpin Structural",
-    "fullshot": "LLM Full Shot",
-    "multistage": "LLM Multi-Stage",
+    "fan_out": "Signal Fan-out",
+    "discovery_rapid": "Rapid Discovery",
+    "discovery_deep": "Deep Discovery",
+    "agentic_flash": "Agentic Flash",
+    "agentic_analyst": "Agentic Analyst",
 }
 
 
