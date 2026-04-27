@@ -2469,7 +2469,7 @@ async def model_pricing():
 @app.get("/api/multihop/scenarios")
 async def multihop_scenarios():
     """PRD-004 v4 #9: return the multi-hop scenario pack for the picker."""
-    from demos.extraction.scenarios import load_scenarios, scenario_to_dict
+    from scenarios import load_scenarios, scenario_to_dict
     return JSONResponse({
         "scenarios": [scenario_to_dict(s) for s in load_scenarios()],
     })
@@ -2521,8 +2521,8 @@ async def multihop_run(request: Request):
     timeout (``_MULTIHOP_PER_CALL_TIMEOUT_S``) prevents one hung pipeline
     from blocking the others.
     """
-    from demos.extraction.judge import JudgeParseError, rank_answers
-    from demos.extraction.scenarios import get_scenario, scenario_to_dict
+    from judge import JudgeParseError, rank_answers
+    from scenarios import get_scenario, scenario_to_dict
     from kgspin_demo_app.services.micrograph import build_micrograph_from_answer
     from kgspin_demo_app.services.topology_health import health_for_kg
 

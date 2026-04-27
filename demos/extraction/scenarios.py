@@ -59,7 +59,7 @@ def get_scenario(scenario_id: str) -> Scenario:
 def scenario_to_dict(s: Scenario) -> dict:
     """Serialize one scenario for JSON responses."""
     return {
-        "id": s.scenario_id,
+        "scenario_id": s.scenario_id,
         "domain": s.domain,
         "question": s.question,
         "expected_hops": s.expected_hops,
