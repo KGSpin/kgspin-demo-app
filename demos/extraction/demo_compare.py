@@ -3119,7 +3119,19 @@ async def slot_cache_check(doc_id: str, pipeline: str = "", bundle: str = "", st
             _kg_cache[ticker][kg_field] = kg
 
     elapsed_s = logged_run.get("elapsed_seconds", 0)
-    tokens = logged_run.get("total_tokens", 0)
+    # Bug B (2026-04-27): legacy cached runs sometimes saved
+    # ``total_tokens=0`` at the top level even when the LLM did report
+    # tokens — fall back to ``kg.provenance.tokens_used`` (Phase 2
+    # canonical surface) or ``kg.provenance.total_tokens`` (pre-Phase-2
+    # legacy field) before giving up. KGSpin pipelines have no LLM tokens
+    # so they still resolve to 0.
+    _kg_prov = kg.get("provenance", {}) if isinstance(kg, dict) else {}
+    tokens = (
+        logged_run.get("total_tokens")
+        or (_kg_prov.get("tokens_used") if isinstance(_kg_prov, dict) else None)
+        or (_kg_prov.get("total_tokens") if isinstance(_kg_prov, dict) else None)
+        or 0
+    )
     # corpus_kb may be missing from older KG provenance — fall back to in-memory cache
     text_kb = kg.get("provenance", {}).get("corpus_kb", 0)
     if not text_kb and cached_entry:

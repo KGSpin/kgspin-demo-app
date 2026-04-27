@@ -92,6 +92,26 @@ def _sync_kg_cache(ticker: str, field: str, kg: dict) -> None:
             _kg_cache[ticker][field] = kg
 
 
+def _resolve_total_tokens(run_data: dict) -> int:
+    """Surface the LLM token count for an LLM-pipeline run record.
+
+    Reads top-level ``total_tokens`` first; falls back to
+    ``kg.provenance.tokens_used`` (post-2026-04-21 Phase 2 surface) and
+    then to ``kg.provenance.total_tokens`` (legacy field on pre-Phase-2
+    cached runs). Returns 0 only when no source has a value — KGSpin
+    pipelines (zero LLM calls) legitimately resolve to 0 here.
+    """
+    if not isinstance(run_data, dict):
+        return 0
+    top = run_data.get("total_tokens") or 0
+    if top:
+        return int(top)
+    prov = run_data.get("kg", {}).get("provenance", {}) if isinstance(run_data.get("kg"), dict) else {}
+    if not isinstance(prov, dict):
+        return 0
+    return int(prov.get("tokens_used") or prov.get("total_tokens") or 0)
+
+
 @router.get("/api/gemini-runs/{doc_id}")
 async def gemini_runs(doc_id: str):
     """List all logged Gemini runs for a ticker (across all config hashes)."""
@@ -158,7 +178,7 @@ async def gemini_run_detail(doc_id: str, index: int):
         "stats": {
             "entities": run_data.get("entity_count", 0),
             "relationships": run_data.get("relationship_count", 0),
-            "tokens": run_data.get("total_tokens", 0),
+            "tokens": _resolve_total_tokens(run_data),
             "duration_ms": int(elapsed_s * 1000),
             "errors": error_count,
             "throughput_kb_sec": round(throughput, 1) if throughput else None,
@@ -240,7 +260,7 @@ async def modular_run_detail(doc_id: str, index: int):
         "stats": {
             "entities": run_data.get("entity_count", 0),
             "relationships": run_data.get("relationship_count", 0),
-            "tokens": run_data.get("total_tokens", 0),
+            "tokens": _resolve_total_tokens(run_data),
             "duration_ms": int(elapsed_s * 1000),
             "errors": error_count,
             "throughput_kb_sec": round(throughput, 1) if throughput else None,
