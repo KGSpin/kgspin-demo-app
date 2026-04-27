@@ -2753,17 +2753,20 @@ async def why_this_matters(
         )
     except LLMParamsError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
-    ticker = ticker.upper()
-    is_clinical = domain == "clinical" or ticker.startswith("NCT")
+    # ``doc_id`` is the domain-agnostic identifier: a stock ticker for
+    # finance, an NCT-id for clinical, etc. Normalize to upper for
+    # cache-key consistency.
+    doc_id = doc_id.upper()
+    is_clinical = domain == "clinical" or doc_id.startswith("NCT")
     question_domain = "clinical" if is_clinical else "financial"
     if not question.strip():
         question = WTM_QUESTIONS.get(question_domain, WTM_QUESTIONS["financial"])
 
     with _cache_lock:
-        cached = _kg_cache.get(ticker)
+        cached = _kg_cache.get(doc_id)
 
     if not cached or "text" not in cached:
-        return {"error": "No cached data for doc_id. Load a graph first.", "doc_id": ticker}
+        return {"error": "No cached data for doc_id. Load a graph first.", "doc_id": doc_id}
 
     # Sprint 05 HITL-round-2 fix: when the modal asks for a specific pipeline,
     # use that slot's KG instead of the best-available fallback. Also fixes a
@@ -2801,14 +2804,14 @@ async def why_this_matters(
                 break
 
     if not best_kg:
-        return {"error": "No graph available yet. Run at least one pipeline first.", "doc_id": ticker}
+        return {"error": "No graph available yet. Run at least one pipeline first.", "doc_id": doc_id}
 
     # Check Gemini availability
     gemini_available = bool(
         os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_GENAI_API_KEY")
     )
     if not gemini_available:
-        return {"error": "GEMINI_API_KEY not set.", "doc_id": ticker}
+        return {"error": "GEMINI_API_KEY not set.", "doc_id": doc_id}
 
     kg_context = _build_kg_context_string(best_kg)
     raw_context = cached["text"][:30000]
