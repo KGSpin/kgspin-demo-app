@@ -1,21 +1,21 @@
 scenarios:
-  - scenario_id: jnj_acquisitions_litigation
+  - scenario_id: acquisitions_litigation_3hop
     domain: financial
-    question: "Which of J&J's acquired companies since 2020 are now facing active litigation, and what product lines does that touch?"
+    question: "Which of the company's acquired companies since 2020 are now facing active litigation, and what product lines does that touch?"
     expected_hops: 3
     talking_track: |
-      Three-hop scenario: J&J -> acquired companies (2020+) -> litigation events -> product mapping.
+      Three-hop scenario: the company -> acquired companies (2020+) -> litigation events -> product mapping.
       KG pipelines should chain the acquisition + litigation edges; LLM pipelines must hold all
       four facts in working memory simultaneously. Watch the topology health gap: KG pipelines
-      get explicit edges between Abiomed/Momenta/Ambrx and their acquisition years and product
+      get explicit edges between acquired entities and their acquisition years and product
       lines; LLM-side micro-graphs typically collapse the chain.
 
-  - scenario_id: jnj_rd_therapeutic_areas_acquired
+  - scenario_id: rd_therapeutic_areas_acquired_2hop
     domain: financial
-    question: "What therapeutic areas does J&J's R&D pipeline target, and which acquired companies contribute to each?"
+    question: "What therapeutic areas does the company's R&D pipeline target, and which acquired companies contribute to each?"
     expected_hops: 2
     talking_track: |
-      Two-hop scenario: J&J therapeutic areas -> acquired companies contributing to each area.
+      Two-hop scenario: the company's therapeutic areas -> acquired companies contributing to each area.
       Tests cross-referencing structural facts (therapeutic-area taxonomy) against time-stamped
       M&A events. KG pipelines should produce a clean area-to-company mapping; LLM pipelines
       tend to either drop areas (incomplete) or invent acquisitions (specifically, hallucinate
@@ -23,20 +23,20 @@ scenarios:
 
   - scenario_id: stelara_adverse_events_cohort
     domain: clinical
-    question: "Which adverse events reported in Stelara trials also appear in other J&J immunology trials in the same patient age bracket?"
+    question: "Which adverse events reported in Stelara trials also appear in other sponsor immunology trials in the same patient age bracket?"
     expected_hops: 3
     talking_track: |
-      Three-hop scenario: Stelara -> adverse events -> other J&J immunology trials -> age-bracket filter.
+      Three-hop scenario: Stelara -> adverse events -> other sponsor immunology trials -> age-bracket filter.
       Requires simultaneously joining adverse-event tables across trials and constraining by
       cohort age. KG pipelines with named-entity-anchored AE rows can chain this; LLM pipelines
       typically conflate AE counts across cohorts or drop the age constraint entirely.
 
-  - scenario_id: jnj_immunology_phase3_recruitment
+  - scenario_id: immunology_phase3_recruitment_2hop
     domain: clinical
-    question: "Which J&J immunology trials in Phase III have completed enrollment, and what was the recruitment timeline?"
+    question: "Which sponsor immunology trials in Phase III have completed enrollment, and what was the recruitment timeline?"
     expected_hops: 2
     talking_track: |
-      Two-hop scenario: J&J immunology Phase III trials -> enrollment status + recruitment timeline.
+      Two-hop scenario: sponsor immunology Phase III trials -> enrollment status + recruitment timeline.
       Easier than the Stelara scenario but exposes whether the pipeline grounded enrollment dates
       to specific NCT IDs. KG pipelines surface trial->date edges directly; LLM pipelines tend
       to summarize at the program level and lose per-trial timelines.
