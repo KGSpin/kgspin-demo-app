@@ -19,6 +19,7 @@ dependencies = [
     "httpx>=0.27",     # HttpResourceRegistryClient
     "pydantic-settings>=2.2",  # ADR-001: YAML-backed settings
     "edgartools>=2.0", # SEC EDGAR lander — filing.html() + Company metadata (2026-04-22 restore after Wave A regression)
+    "kgspin-tuner",    # HITL feedback store (PRD-042) — canonical home post-`kgenskills` carve.
 ]
 # GLiREL is the optional zero-shot relation extractor used by the KGSpin
 # Base / Emergent / Structural pipelines. kgspin-core gracefully degrades
@@ -70,6 +71,7 @@ kgspin-demo-generate-clinical-gold = "kgspin_demo_app.services.clinical_gold:mai
 [tool.uv.sources]
 kgspin-interface = { path = "../kgspin-interface", editable = true }
 kgspin-core = { path = "../kgspin-core", editable = true }
+kgspin-tuner = { path = "../kgspin-tuner", editable = true }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kgspin_demo_app"]

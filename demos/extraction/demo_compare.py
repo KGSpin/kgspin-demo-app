@@ -3207,7 +3207,10 @@ _feedback_store = None
 def _get_feedback_store():
     global _feedback_store
     if _feedback_store is None:
-        from kgenskills.feedback.store import create_feedback_store
+        # Canonical home post-carve is ``kgspin_tuner.feedback.store``.
+        # The old ``kgenskills.feedback.store`` import survived the
+        # rename and crashed on first /api/feedback/* call.
+        from kgspin_tuner.feedback.store import create_feedback_store
         _feedback_store = create_feedback_store()
     return _feedback_store
 
@@ -6703,6 +6706,22 @@ async def run_single_refresh(
         bundle_name=_bid,
     )
     _cfg_hash = _refresh_cfg_keys[pipeline]
+
+    # Defect 1 (2026-04-24, restored 2026-04-27): the call sites at
+    # ``document_metadata=_refresh_doc_metadata`` below were added without
+    # the variable definition, so each refresh raised NameError. Build it
+    # here from the cached info — the refresh path doesn't re-fetch
+    # ``sec_doc``, so cik/accession/filing_date/fiscal_year_end are blank
+    # on cache-hit. Only ``company_name`` + ``doc_id`` are required for
+    # the H-module resolver override that this metadata exists to drive.
+    _refresh_doc_metadata = {
+        "company_name": info.get("name", ticker),
+        "doc_id": ticker,
+        "cik": "",
+        "accession_number": "",
+        "filing_date": "",
+        "fiscal_year_end": "",
+    }
 
     if pipeline == "gemini":
         yield sse_event("step_start", {

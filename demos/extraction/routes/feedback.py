@@ -35,7 +35,7 @@ def _bundle_predicates():
 @router.post("/api/feedback/false_positive")
 async def submit_false_positive(request: Request):
     """Store a user-flagged False Positive from the KGS graph."""
-    from kgenskills.feedback.models import FalsePositiveFeedback
+    from kgspin_tuner.feedback.models import FalsePositiveFeedback
 
     body = await request.json()
     bundle = _bundle()
@@ -71,7 +71,7 @@ async def submit_false_negative(request: Request):
 
     Validates predicate against bundle schema (VP Eng guardrail #2).
     """
-    from kgenskills.feedback.models import FalseNegativeFeedback
+    from kgspin_tuner.feedback.models import FalseNegativeFeedback
 
     body = await request.json()
     feedback_target = body.get("feedback_target", "relationship")
@@ -127,7 +127,7 @@ async def submit_false_negative(request: Request):
 @router.post("/api/feedback/true_positive")
 async def submit_true_positive(request: Request):
     """Store a user-confirmed True Positive from any graph panel (Sprint 90)."""
-    from kgenskills.feedback.models import FalsePositiveFeedback
+    from kgspin_tuner.feedback.models import FalsePositiveFeedback
 
     body = await request.json()
     bundle = _bundle()

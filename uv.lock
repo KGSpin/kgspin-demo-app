@@ -1185,6 +1185,7 @@ dependencies = [
     { name = "httpx" },
     { name = "kgspin-core", extra = ["gemini"] },
     { name = "kgspin-interface" },
+    { name = "kgspin-tuner" },
     { name = "numpy" },
     { name = "pydantic-settings" },
     { name = "requests" },
@@ -1210,6 +1211,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "kgspin-core", extras = ["gemini"], editable = "../kgspin-core" },
     { name = "kgspin-interface", editable = "../kgspin-interface" },
+    { name = "kgspin-tuner", editable = "../kgspin-tuner" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pydantic-settings", specifier = ">=2.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0" },
@@ -1243,6 +1245,27 @@ dev = [
     { name = "mypy", specifier = ">=1.10" },
     { name = "pytest", specifier = ">=9.0.3" },
 ]
+
+[[package]]
+name = "kgspin-tuner"
+version = "0.1.0"
+source = { editable = "../kgspin-tuner" }
+dependencies = [
+    { name = "kgspin-core" },
+    { name = "kgspin-interface" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kgspin-core", editable = "../kgspin-core" },
+    { name = "kgspin-interface", editable = "../kgspin-interface" },
+    { name = "pydantic-settings", specifier = ">=2.2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "loguru"
