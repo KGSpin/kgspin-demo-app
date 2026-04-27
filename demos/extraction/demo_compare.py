@@ -2487,8 +2487,8 @@ _MULTIHOP_PIPELINE_TO_CACHE_KEY = {
 # the cached extraction directly.
 _MULTIHOP_LLM_PIPELINES = {"agentic_flash", "agentic_analyst"}
 
-_MULTIHOP_JUDGE_ALIAS = "gemini-flash-2.5"
-_MULTIHOP_ANSWER_ALIAS = "gemini-flash-2.5"
+_MULTIHOP_JUDGE_ALIAS = "gemini_flash"
+_MULTIHOP_ANSWER_ALIAS = "gemini_flash"
 _MULTIHOP_PER_CALL_TIMEOUT_S = 60.0
 
 
