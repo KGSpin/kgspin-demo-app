@@ -3,6 +3,59 @@
 // share global lexical scope across <script> tags. Function decls
 // at top-level become window properties (used by inline on*= attrs).
 
+// Hotfix 2026-04-27: degenerate-sentence lineage fallback.
+// Some triples (notably from flattened table cells) have evidence pointing
+// to a sentence that is just a bare number like "1,990". Showing that
+// alone as the source is useless to a reviewer. When the evidence text is
+// degenerate (very short, or numeric/symbol-only), gather neighboring
+// sentences from the same chunk so the reviewer sees real context.
+function isDegenerateLineageSentence(text) {
+    if (text == null) return true;
+    const trimmed = String(text).trim();
+    if (trimmed.length < 20) return true;
+    if (/^[\d.,\s$%\-]+$/.test(trimmed)) return true;
+    return false;
+}
+
+// Pulls sentences with the same chunk_id and sentence_index within ±2 from
+// the evidence index. Returns an array of {idx, text} sorted by idx (deduped),
+// excluding the focus sentence itself. Capped to chunk boundaries implicitly:
+// only sentences present in the index are returned, so out-of-range neighbors
+// are simply absent.
+function gatherChunkContextSentences(evidenceIndex, chunkId, sentenceIdx) {
+    if (!evidenceIndex || !chunkId || sentenceIdx == null || sentenceIdx < 0) return [];
+    const lo = sentenceIdx - 2;
+    const hi = sentenceIdx + 2;
+    const seen = new Set();
+    const out = [];
+    for (const ev of evidenceIndex) {
+        if (!ev || ev.chunk_id !== chunkId) continue;
+        const sIdx = ev.sentence_index;
+        if (sIdx == null || sIdx < lo || sIdx > hi || sIdx === sentenceIdx) continue;
+        if (!ev.sentence_text) continue;
+        if (seen.has(sIdx)) continue;
+        seen.add(sIdx);
+        out.push({ idx: sIdx, text: ev.sentence_text });
+    }
+    out.sort((a, b) => a.idx - b.idx);
+    return out;
+}
+
+// Renders an HTML "Context" block for the evidence card. Returns '' when
+// no useful context is available (caller should still show the bare value).
+function renderLineageContextHtml(evidenceIndex, chunkId, sentenceIdx) {
+    const neighbors = gatherChunkContextSentences(evidenceIndex, chunkId, sentenceIdx);
+    if (!neighbors.length) return '';
+    const lines = neighbors.map(n =>
+        `<div style="color:#bbb;font-size:11px;margin:2px 0;">` +
+        `<span style="color:#888;">[${chunkId} · s${n.idx}]</span> ` +
+        `${escapeHtml(n.text)}</div>`
+    ).join('');
+    return `<div style="margin-top:8px;padding:6px 8px;background:#1a1f2a;border-left:2px solid #5B9FE6;">` +
+           `<div style="color:#5B9FE6;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Surrounding context</div>` +
+           lines + `</div>`;
+}
+
 // --- compare.html lines 4903-4929: loadTrials ---
 async function loadTrials() {
     try {
@@ -833,6 +886,10 @@ function renderRelDetail(edge) {
     if (meta.rationale_code) html += `<div class="detail-field"><span class="detail-label">Rationale</span><span class="detail-value">${escapeHtml(meta.rationale_code)}</span></div>`;
     if (meta.sentence_text) html += `<div class="detail-field"><span class="detail-label">Source Sentence</span><span class="detail-value" style="font-style:italic;">"${escapeHtml(meta.sentence_text)}"</span></div>`;
     if (meta.chunk_id) html += `<div class="detail-field"><span class="detail-label">Chunk</span><span class="detail-value">${escapeHtml(meta.chunk_id)}${meta.sentence_index != null ? ' / sentence ' + meta.sentence_index : ''}</span></div>`;
+    if (isDegenerateLineageSentence(meta.sentence_text) && meta.chunk_id && meta.sentence_index != null) {
+        const ctx = renderLineageContextHtml(modalLineageEvidenceIndex, meta.chunk_id, meta.sentence_index);
+        if (ctx) html += `<div class="detail-field"><span class="detail-label">Context</span><span class="detail-value">${ctx}</span></div>`;
+    }
     if (meta.source_document) html += `<div class="detail-field"><span class="detail-label">Source Document</span><span class="detail-value">${escapeHtml(meta.source_document)}</span></div>`;
     // Show any additional metadata fields
     const skip = new Set(['subject_text','object_text','predicate','extraction_method','confidence','fingerprint_similarity','rationale_code','sentence_text','chunk_id','sentence_index','source_document']);
@@ -1088,6 +1145,10 @@ function modalHighlightSourceForEdge(meta) {
     }
     const card = document.getElementById('modal-lineage-evidence-card');
     const methodLabel = (match.extraction_method || 'unknown').replace(/_/g, ' ');
+    const degenerate = isDegenerateLineageSentence(match.sentence_text);
+    const contextHtml = degenerate
+        ? renderLineageContextHtml(modalLineageEvidenceIndex, match.chunk_id, match.sentence_index)
+        : '';
     card.innerHTML = `
         <div style="display:flex; gap:16px; flex-wrap:wrap;">
             <div><strong>Method:</strong> ${methodLabel}</div>
@@ -1095,7 +1156,8 @@ function modalHighlightSourceForEdge(meta) {
             ${match.fingerprint_similarity != null ? `<div><strong>Similarity:</strong> ${(match.fingerprint_similarity * 100).toFixed(0)}%</div>` : ''}
             ${match.rationale_code ? `<div><strong>Rationale:</strong> ${match.rationale_code}</div>` : ''}
         </div>
-        <div style="margin-top:6px; color:#5B9FE6; font-size:11px;">${match.chunk_id || ''} / sentence ${match.sentence_index >= 0 ? match.sentence_index : '?'}</div>`;
+        <div style="margin-top:6px; color:#5B9FE6; font-size:11px;">${match.chunk_id || ''} / sentence ${match.sentence_index >= 0 ? match.sentence_index : '?'}</div>
+        ${contextHtml}`;
     card.style.display = 'block';
     document.getElementById('modal-lineage-edge-info').textContent = `${match.subject} \u2014[${match.predicate}]\u2192 ${match.object}`;
 
@@ -1103,12 +1165,21 @@ function modalHighlightSourceForEdge(meta) {
     sourcePanel.querySelectorAll('.source-highlight').forEach(el => el.classList.remove('source-highlight'));
 
     let target = null;
+    const extras = [];
     if (match.chunk_id && match.sentence_index >= 0) {
         const tagged = sourcePanel.querySelectorAll('.source-para[data-evidence]');
         for (const para of tagged) {
             try {
                 const ev = JSON.parse(para.dataset.evidence);
-                if (ev.some(e => e.c === match.chunk_id && e.s === match.sentence_index)) { target = para; break; }
+                if (ev.some(e => e.c === match.chunk_id && e.s === match.sentence_index)) {
+                    if (!target) target = para;
+                } else if (degenerate && ev.some(e =>
+                    e.c === match.chunk_id &&
+                    e.s >= match.sentence_index - 2 &&
+                    e.s <= match.sentence_index + 2 &&
+                    e.s !== match.sentence_index)) {
+                    extras.push(para);
+                }
             } catch (_) {}
         }
     }
@@ -1122,6 +1193,7 @@ function modalHighlightSourceForEdge(meta) {
     }
     if (target) {
         target.classList.add('source-highlight');
+        for (const p of extras) p.classList.add('source-highlight');
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }

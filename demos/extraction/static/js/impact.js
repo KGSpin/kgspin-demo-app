@@ -194,6 +194,10 @@ function highlightSourceForEdge(meta) {
     // Show evidence card
     const card = document.getElementById('lineage-evidence-card');
     const methodLabel = (match.extraction_method || 'unknown').replace(/_/g, ' ');
+    const degenerate = isDegenerateLineageSentence(match.sentence_text);
+    const contextHtml = degenerate
+        ? renderLineageContextHtml(lineageEvidenceIndex, match.chunk_id, match.sentence_index)
+        : '';
     card.innerHTML = `
         <div style="display:flex; gap:16px; flex-wrap:wrap;">
             <div><strong>Method:</strong> ${methodLabel}</div>
@@ -201,7 +205,8 @@ function highlightSourceForEdge(meta) {
             ${match.fingerprint_similarity != null ? `<div><strong>Similarity:</strong> ${(match.fingerprint_similarity * 100).toFixed(0)}%</div>` : ''}
             ${match.rationale_code ? `<div><strong>Rationale:</strong> ${match.rationale_code}</div>` : ''}
         </div>
-        <div style="margin-top:6px; color:#5B9FE6; font-size:11px;">${match.chunk_id || ''} / sentence ${match.sentence_index >= 0 ? match.sentence_index : '?'}</div>`;
+        <div style="margin-top:6px; color:#5B9FE6; font-size:11px;">${match.chunk_id || ''} / sentence ${match.sentence_index >= 0 ? match.sentence_index : '?'}</div>
+        ${contextHtml}`;
     card.style.display = 'block';
 
     document.getElementById('lineage-edge-info').textContent =
@@ -211,16 +216,24 @@ function highlightSourceForEdge(meta) {
     const sourcePanel = document.getElementById('lineage-source-text');
     sourcePanel.querySelectorAll('.source-highlight').forEach(el => el.classList.remove('source-highlight'));
 
-    // Primary: find paragraph tagged with this chunk_id + sentence_index
+    // Primary: find paragraph tagged with this chunk_id + sentence_index.
+    // When the sentence is degenerate, also collect \u00b12 neighbors in the same
+    // chunk so the highlight isn't a lonely "1,990".
     let target = null;
+    const extras = [];
     if (match.chunk_id && match.sentence_index >= 0) {
         const tagged = sourcePanel.querySelectorAll('.source-para[data-evidence]');
         for (const para of tagged) {
             try {
                 const ev = JSON.parse(para.dataset.evidence);
                 if (ev.some(e => e.c === match.chunk_id && e.s === match.sentence_index)) {
-                    target = para;
-                    break;
+                    if (!target) target = para;
+                } else if (degenerate && ev.some(e =>
+                    e.c === match.chunk_id &&
+                    e.s >= match.sentence_index - 2 &&
+                    e.s <= match.sentence_index + 2 &&
+                    e.s !== match.sentence_index)) {
+                    extras.push(para);
                 }
             } catch (_) { /* skip malformed */ }
         }
@@ -241,6 +254,7 @@ function highlightSourceForEdge(meta) {
 
     if (target) {
         target.classList.add('source-highlight');
+        for (const p of extras) p.classList.add('source-highlight');
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
