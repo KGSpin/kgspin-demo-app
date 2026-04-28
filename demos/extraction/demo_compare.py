@@ -2233,21 +2233,25 @@ async def refresh_analysis(doc_id: str, request: Request):
     })
 
 
-# Slot pipeline key → _kg_cache field mapping
+# Slot pipeline key → _kg_cache field mapping.
+# Frontend sends the canonical 5-pipeline keys (PIPELINE_META in slots.js):
+# fan_out / discovery_rapid / discovery_deep are KGSpin (kgs_kg);
+# agentic_flash → gem_kg (Gemini single-shot);
+# agentic_analyst → mod_kg (modular multi-stage).
 _SLOT_PIPELINE_TO_CACHE_KEY = {
-    "kgspin-default": "kgs_kg",
-    "kgspin-emergent": "kgs_kg",
-    "kgspin-structural": "kgs_kg",
-    "fullshot": "gem_kg",
-    "multistage": "mod_kg",
+    "fan_out": "kgs_kg",
+    "discovery_rapid": "kgs_kg",
+    "discovery_deep": "kgs_kg",
+    "agentic_flash": "gem_kg",
+    "agentic_analyst": "mod_kg",
 }
 
 _SLOT_PIPELINE_LABELS = {
-    "kgspin-default": "KGSpin Base",
-    "kgspin-emergent": "KGSpin Emergent",
-    "kgspin-structural": "KGSpin Structural",
-    "fullshot": "LLM Full Shot",
-    "multistage": "LLM Multi-Stage",
+    "fan_out": "Signal Fan-out",
+    "discovery_rapid": "Rapid Discovery",
+    "discovery_deep": "Deep Discovery",
+    "agentic_flash": "Agentic Flash",
+    "agentic_analyst": "Agentic Analyst",
 }
 
 
@@ -2465,7 +2469,7 @@ async def model_pricing():
 @app.get("/api/multihop/scenarios")
 async def multihop_scenarios():
     """PRD-004 v4 #9: return the multi-hop scenario pack for the picker."""
-    from demos.extraction.scenarios import load_scenarios, scenario_to_dict
+    from scenarios import load_scenarios, scenario_to_dict
     return JSONResponse({
         "scenarios": [scenario_to_dict(s) for s in load_scenarios()],
     })
@@ -2517,8 +2521,8 @@ async def multihop_run(request: Request):
     timeout (``_MULTIHOP_PER_CALL_TIMEOUT_S``) prevents one hung pipeline
     from blocking the others.
     """
-    from demos.extraction.judge import JudgeParseError, rank_answers
-    from demos.extraction.scenarios import get_scenario, scenario_to_dict
+    from judge import JudgeParseError, rank_answers
+    from scenarios import get_scenario, scenario_to_dict
     from kgspin_demo_app.services.micrograph import build_micrograph_from_answer
     from kgspin_demo_app.services.topology_health import health_for_kg
 
@@ -3115,7 +3119,19 @@ async def slot_cache_check(doc_id: str, pipeline: str = "", bundle: str = "", st
             _kg_cache[ticker][kg_field] = kg
 
     elapsed_s = logged_run.get("elapsed_seconds", 0)
-    tokens = logged_run.get("total_tokens", 0)
+    # Bug B (2026-04-27): legacy cached runs sometimes saved
+    # ``total_tokens=0`` at the top level even when the LLM did report
+    # tokens — fall back to ``kg.provenance.tokens_used`` (Phase 2
+    # canonical surface) or ``kg.provenance.total_tokens`` (pre-Phase-2
+    # legacy field) before giving up. KGSpin pipelines have no LLM tokens
+    # so they still resolve to 0.
+    _kg_prov = kg.get("provenance", {}) if isinstance(kg, dict) else {}
+    tokens = (
+        logged_run.get("total_tokens")
+        or (_kg_prov.get("tokens_used") if isinstance(_kg_prov, dict) else None)
+        or (_kg_prov.get("total_tokens") if isinstance(_kg_prov, dict) else None)
+        or 0
+    )
     # corpus_kb may be missing from older KG provenance — fall back to in-memory cache
     text_kb = kg.get("provenance", {}).get("corpus_kb", 0)
     if not text_kb and cached_entry:
