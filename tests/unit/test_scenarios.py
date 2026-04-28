@@ -33,7 +33,7 @@ def test_scenarios_split_two_financial_two_clinical():
 
 
 def test_get_scenario_by_id():
-    s = get_scenario("jnj_acquisitions_litigation")
+    s = get_scenario("acquisitions_litigation_3hop")
     assert s.domain == "financial"
     assert "acquired" in s.question.lower()
 

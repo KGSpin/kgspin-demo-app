@@ -34,7 +34,7 @@ Respond with JSON only, in this exact shape:
 """
 
 
-_JUDGE_MODEL_ALIAS = "gemini-flash-2.5"
+_JUDGE_MODEL_ALIAS = "gemini_flash"
 _VALID_LABELS = ("A", "B", "C")
 
 

@@ -132,13 +132,13 @@ def test_multihop_run_happy_path(app_with_seeded_kg):
         "/api/multihop/run",
         json={
             "doc_id": "TEST",
-            "scenario_id": "jnj_acquisitions_litigation",
+            "scenario_id": "acquisitions_litigation_3hop",
             "slot_pipelines": ["fan_out", "agentic_flash", "agentic_analyst"],
         },
     )
     assert resp.status_code == 200, resp.text
     payload = resp.json()
-    assert payload["scenario"]["id"] == "jnj_acquisitions_litigation"
+    assert payload["scenario"]["id"] == "acquisitions_litigation_3hop"
     assert len(payload["answers"]) == 3
     pipelines = [a["pipeline"] for a in payload["answers"]]
     assert pipelines == ["fan_out", "agentic_flash", "agentic_analyst"]
@@ -157,7 +157,7 @@ def test_multihop_run_judge_prompt_does_not_leak_pipeline_names(app_with_seeded_
         "/api/multihop/run",
         json={
             "doc_id": "TEST",
-            "scenario_id": "jnj_acquisitions_litigation",
+            "scenario_id": "acquisitions_litigation_3hop",
             "slot_pipelines": ["fan_out", "agentic_flash", "agentic_analyst"],
         },
     )
@@ -188,7 +188,7 @@ def test_multihop_run_wrong_pipeline_count(app_with_seeded_kg):
         "/api/multihop/run",
         json={
             "doc_id": "TEST",
-            "scenario_id": "jnj_acquisitions_litigation",
+            "scenario_id": "acquisitions_litigation_3hop",
             "slot_pipelines": ["fan_out", "agentic_flash"],
         },
     )
@@ -202,7 +202,7 @@ def test_multihop_run_unknown_pipeline(app_with_seeded_kg):
         "/api/multihop/run",
         json={
             "doc_id": "TEST",
-            "scenario_id": "jnj_acquisitions_litigation",
+            "scenario_id": "acquisitions_litigation_3hop",
             "slot_pipelines": ["fan_out", "agentic_flash", "made_up_pipeline"],
         },
     )
@@ -225,7 +225,7 @@ def test_multihop_run_cache_miss_returns_partial(app_with_seeded_kg):
         "/api/multihop/run",
         json={
             "doc_id": "TEST",
-            "scenario_id": "jnj_acquisitions_litigation",
+            "scenario_id": "acquisitions_litigation_3hop",
             "slot_pipelines": ["fan_out", "agentic_flash", "agentic_analyst"],
         },
     )
@@ -269,7 +269,7 @@ def test_multihop_run_parallel_dispatch_under_per_call_latency(app_with_seeded_k
             "/api/multihop/run",
             json={
                 "doc_id": "TEST",
-                "scenario_id": "jnj_acquisitions_litigation",
+                "scenario_id": "acquisitions_litigation_3hop",
                 "slot_pipelines": ["fan_out", "agentic_flash", "agentic_analyst"],
             },
         )
