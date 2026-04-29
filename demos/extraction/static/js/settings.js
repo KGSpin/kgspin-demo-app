@@ -95,6 +95,26 @@ function syncCorpusSetting() {
     const val = document.getElementById('settings-corpus-select').value;
     document.getElementById('corpus-kb-select').value = val;
 }
+// CEO directive 2026-04-29: confidence floor lives in Settings (not the
+// main toolbar). Read by compare-runner / slots when starting a run.
+function syncConfidenceFloorSetting() {
+    const slider = document.getElementById('settings-confidence-floor');
+    const label = document.getElementById('settings-confidence-floor-value');
+    if (slider && label) {
+        const v = parseFloat(slider.value);
+        label.textContent = (Number.isFinite(v) ? v : 0.5).toFixed(2);
+    }
+}
+// Note: name-collision-avoiding alias. graph.js defines its own
+// getConfidenceFloor() that reads a URL param (Sprint 90 Task 10
+// debug badge); this one reads the Settings slider. Run-starters
+// (compare-runner, slots) must call this one.
+function getSettingsConfidenceFloor() {
+    const slider = document.getElementById('settings-confidence-floor');
+    if (!slider) return 0.5;
+    const v = parseFloat(slider.value);
+    return Number.isFinite(v) ? v : 0.5;
+}
 // Close settings panel when clicking outside
 document.addEventListener('click', function(e) {
     const panel = document.getElementById('settings-panel');
@@ -108,6 +128,7 @@ document.addEventListener('click', function(e) {
 registerAction('toggle-settings-panel', () => toggleSettingsPanel());
 registerAction('sync-model-setting', () => syncModelSetting());
 registerAction('sync-corpus-setting', () => syncCorpusSetting());
+registerAction('sync-confidence-floor-setting', () => syncConfidenceFloorSetting());
 registerAction('update-bundle-id', () => updateBundleId());
 
 // --- Per-Graph Run ---

@@ -1076,6 +1076,8 @@ function startComparisonForTicker(ticker, forceRefresh) {
     params.set('model', gemModel);
     params.set('chunk_size', chunkSize);
     if (bundleVersion) params.set('bundle', bundleVersion);
+    // CEO directive 2026-04-29: confidence floor is operator-tunable via Settings.
+    params.set('confidence_floor', getSettingsConfidenceFloor().toFixed(2));
     const compareEndpoint = currentDomain === 'clinical'
         ? `/api/compare-clinical/${ticker}`
         : `/api/compare/${ticker}`;

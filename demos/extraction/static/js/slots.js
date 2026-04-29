@@ -331,6 +331,8 @@ function runSlot(slotIdx) {
             if (meta.isKgspin && slot.strategy) params.set('strategy', slot.strategy);
         }
     }
+    // CEO directive 2026-04-29: confidence floor is operator-tunable via Settings.
+    params.set('confidence_floor', getSettingsConfidenceFloor().toFixed(2));
 
     const btn = document.getElementById(`slot-${slotIdx}-run`);
     const progressEl = document.getElementById(`slot-${slotIdx}-progress`);

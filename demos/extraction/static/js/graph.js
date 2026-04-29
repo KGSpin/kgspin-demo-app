@@ -1530,16 +1530,18 @@ function buildLegend(pipeline, visData) {
 }
 
 // --- Confidence Floor URL Param (Sprint 90 Task 10) ---
+// Default updated 0.55 → 0.5 per CEO directive 2026-04-29; the badge now
+// surfaces only when a URL param overrides the default-or-Settings value.
 function getConfidenceFloor() {
     const params = new URLSearchParams(window.location.search);
     const cf = parseFloat(params.get('confidence_floor'));
     if (!isNaN(cf) && cf >= 0.0 && cf <= 1.0) return cf;
-    return 0.55; // default
+    return 0.5; // default
 }
 
 (function showConfidenceFloorBadge() {
     const cf = getConfidenceFloor();
-    if (cf !== 0.55) {
+    if (cf !== 0.5) {
         const badge = document.createElement('div');
         badge.style.cssText = 'position:fixed; bottom:10px; right:10px; background:#2a1a3a; border:1px solid #5a3a7a; color:#E088E5; padding:6px 12px; border-radius:6px; font-size:11px; z-index:100;';
         badge.textContent = `Confidence Floor: ${cf.toFixed(2)} (Custom)`;

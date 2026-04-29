@@ -548,6 +548,13 @@ DEFAULT_CORPUS_KB = 0  # Sprint 80: Full document is default (CEO directive)
 VALID_CHUNK_SIZES = {3000, 10000, 30000, 50000, 0, 1, 6, 12, 24}
 DEFAULT_CHUNK_SIZE = 30000
 
+# CEO directive 2026-04-29: lowered from 0.55 so HITL operators see
+# lower-confidence entities (e.g. UNH main entity at 0.5232) by default;
+# the floor is now operator-tunable via demo Settings. Defined here so
+# helpers above the original Sprint 12 location (e.g. _cached_kg_event,
+# _fresh_kg_event) can use it as a default arg without forward-ref.
+_DEFAULT_CONFIDENCE_FLOOR = 0.5
+
 # Model selection with pricing (per 1M tokens).
 # Wave 3 follow-up: Gemini 3.x preview models added 2026-04-22. All 3.x
 # variants are Preview (no GA tier yet); pricing is not published on the
@@ -1117,6 +1124,7 @@ def _cached_kg_event(
     extra_stats: dict | None = None,
     backfill_info: dict | None = None,
     backfill_domain: str = "financial",
+    confidence_floor: float = _DEFAULT_CONFIDENCE_FLOOR,
 ) -> dict:
     """Build kg_ready SSE event data for a cached pipeline result."""
     run_log = _PIPELINE_LOGS[run_log_name]
@@ -1124,7 +1132,7 @@ def _cached_kg_event(
     # Sprint 79: Backfill document_context for older cached KGs
     if backfill_info and not kg.get("document_context"):
         _backfill_document_context(kg, domain=backfill_domain, info=backfill_info)
-    vis = build_vis_data(kg)
+    vis = build_vis_data(kg, confidence_floor=confidence_floor)
     elapsed = logged_run.get("elapsed_seconds", 0)
     throughput = actual_kb / elapsed if elapsed > 0 else 0
     tokens = logged_run.get("total_tokens", 0)
@@ -1169,13 +1177,14 @@ def _fresh_kg_event(
     extra_stats: dict | None = None,
     backfill_info: dict | None = None,
     backfill_domain: str = "financial",
+    confidence_floor: float = _DEFAULT_CONFIDENCE_FLOOR,
 ) -> dict:
     """Build kg_ready SSE event data for a freshly-extracted result."""
     run_log = _PIPELINE_LOGS[run_log_name]
     # Sprint 79: Inject document_context for fresh KGs
     if backfill_info and not kg.get("document_context"):
         _backfill_document_context(kg, domain=backfill_domain, info=backfill_info)
-    vis = build_vis_data(kg)
+    vis = build_vis_data(kg, confidence_floor=confidence_floor)
     throughput = actual_kb / elapsed if elapsed > 0 else 0
 
     stats = {
@@ -1775,6 +1784,7 @@ async def compare_clinical(
     force_refresh: str = "",
     source: str = "live",
     llm_alias: str = "",
+    confidence_floor: float = -1.0,
 ):
     """Sprint 78: Clinical domain comparison — KGSpin + LLM Full Shot + Multi-Stage.
 
@@ -1813,6 +1823,10 @@ async def compare_clinical(
     refresh_set = set(force_refresh.split(",")) if force_refresh else set()
     if "all" in refresh_set or "1" in refresh_set:
         refresh_set = {"gemini", "modular", "kgen"}
+    confidence_floor = _resolve_confidence_floor(
+        query_value=confidence_floor,
+        pipeline_name=None,
+    )
     return StreamingResponse(
         _run_clinical_comparison(
             doc_id, request, bundle_name=bundle_name,
@@ -1820,6 +1834,7 @@ async def compare_clinical(
             force_refresh=refresh_set,
             corpus_source=source,
             llm_alias=alias,
+            confidence_floor=confidence_floor,
         ),
         media_type="text/event-stream",
         headers={
@@ -1884,9 +1899,6 @@ def _pipeline_ref_from_pipeline_id(pipeline_id: str | None):
     return PipelineConfigRef(name=pipeline_id or "fan-out", version="v1")
 
 
-_DEFAULT_CONFIDENCE_FLOOR = 0.55
-
-
 def _resolve_confidence_floor(
     *, query_value: float, pipeline_name: str | None,
 ) -> float:
@@ -1896,7 +1908,7 @@ def _resolve_confidence_floor(
     1. Valid caller-supplied ``query_value`` (not the sentinel -1.0).
     2. Admin pipeline_config param ``confidence_floor`` for
        ``pipeline_name``.
-    3. Hardcoded fallback ``_DEFAULT_CONFIDENCE_FLOOR`` (0.55).
+    3. Hardcoded fallback ``_DEFAULT_CONFIDENCE_FLOOR`` (0.5).
 
     Admin lookup graceful-degrades on any failure — operator never
     sees a 500 from a missing param.
@@ -2013,16 +2025,17 @@ async def compare(doc_id: str, request: Request, force_refresh: int = 0, corpus_
     except InvalidPipelineStrategyError as exc:
         return JSONResponse({"error": str(exc)}, status_code=400)
     # Sprint 12 Task 8: confidence_floor precedence — query arg >
-    # admin pipeline param > hardcoded fallback (0.55). Query arg of
-    # -1.0 means "not supplied by caller" (0.55 is a valid operator
-    # choice so we can't use it as the sentinel). Admin lookup uses
-    # the resolved pipeline name; graceful-degrade to 0.55 on miss.
+    # admin pipeline param > hardcoded fallback (0.5 per CEO directive
+    # 2026-04-29). Query arg of -1.0 means "not supplied by caller"
+    # (0.5 is a valid operator choice so we can't use it as the sentinel).
+    # Admin lookup uses the resolved pipeline name; graceful-degrade to
+    # the default on miss.
     confidence_floor = _resolve_confidence_floor(
         query_value=confidence_floor,
         pipeline_name=pipeline_id,
     )
     return StreamingResponse(
-        run_comparison(ticker.upper(), request, force_refresh=bool(force_refresh), corpus_kb=corpus_kb, chunk_size=chunk_size, model=model, bundle_name=bundle_name, pipeline_id=pipeline_id, llm_alias=alias),
+        run_comparison(ticker.upper(), request, force_refresh=bool(force_refresh), corpus_kb=corpus_kb, chunk_size=chunk_size, model=model, bundle_name=bundle_name, pipeline_id=pipeline_id, llm_alias=alias, confidence_floor=confidence_floor),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -2033,7 +2046,7 @@ async def compare(doc_id: str, request: Request, force_refresh: int = 0, corpus_
 
 
 @app.get("/api/refresh-agentic-flash/{doc_id}")
-async def refresh_agentic_flash(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = ""):
+async def refresh_agentic_flash(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = "", confidence_floor: float = -1.0):
     """INIT-001 Sprint 04: Re-run only Agentic Flash (single-prompt LLM) for this ticker.
 
     Stage 0.5.4 (ADR-002): ``llm_alias`` selects an admin-registered LLM
@@ -2055,8 +2068,12 @@ async def refresh_agentic_flash(doc_id: str, request: Request, corpus_kb: int = 
     if model not in VALID_GEMINI_MODELS:
         model = DEFAULT_GEMINI_MODEL
     bundle_name = bundle if bundle else None
+    confidence_floor = _resolve_confidence_floor(
+        query_value=confidence_floor,
+        pipeline_name="agentic-flash",
+    )
     return StreamingResponse(
-        run_single_refresh(ticker.upper(), request, "gemini", corpus_kb, model=model, bundle_name=bundle_name, llm_alias=alias),
+        run_single_refresh(ticker.upper(), request, "gemini", corpus_kb, model=model, bundle_name=bundle_name, llm_alias=alias, confidence_floor=confidence_floor),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -2067,7 +2084,7 @@ async def refresh_agentic_flash(doc_id: str, request: Request, corpus_kb: int = 
 
 
 @app.get("/api/refresh-agentic-analyst/{doc_id}")
-async def refresh_agentic_analyst(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = ""):
+async def refresh_agentic_analyst(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL, bundle: str = "", llm_alias: str = "", confidence_floor: float = -1.0):
     """INIT-001 Sprint 04: Re-run only Agentic Analyst (schema-aware chunked LLM) for this ticker.
 
     Stage 0.5.4 (ADR-002): ``llm_alias`` selects an admin-registered LLM
@@ -2091,8 +2108,12 @@ async def refresh_agentic_analyst(doc_id: str, request: Request, corpus_kb: int 
     if model not in VALID_GEMINI_MODELS:
         model = DEFAULT_GEMINI_MODEL
     bundle_name = bundle if bundle else None
+    confidence_floor = _resolve_confidence_floor(
+        query_value=confidence_floor,
+        pipeline_name="agentic-analyst",
+    )
     return StreamingResponse(
-        run_single_refresh(ticker.upper(), request, "modular", corpus_kb, chunk_size=chunk_size, model=model, bundle_name=bundle_name, llm_alias=alias),
+        run_single_refresh(ticker.upper(), request, "modular", corpus_kb, chunk_size=chunk_size, model=model, bundle_name=bundle_name, llm_alias=alias, confidence_floor=confidence_floor),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -2103,7 +2124,7 @@ async def refresh_agentic_analyst(doc_id: str, request: Request, corpus_kb: int 
 
 
 @app.get("/api/refresh-discovery/{doc_id}")
-async def refresh_discovery(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, bundle: str = "", strategy: str = "", pipeline_config_ref: str = ""):
+async def refresh_discovery(doc_id: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB, bundle: str = "", strategy: str = "", pipeline_config_ref: str = "", confidence_floor: float = -1.0):
     """Re-run a zero-token KGSpin pipeline (fan_out / discovery_rapid /
     discovery_deep). Accepts ``strategy=`` or ``pipeline_config_ref=``
     (both canonical form); anything outside the canonical 5 → 400.
@@ -2116,8 +2137,12 @@ async def refresh_discovery(doc_id: str, request: Request, corpus_kb: int = DEFA
         pipeline_id = _pipeline_id_from_compare_args(strategy, pipeline_config_ref)
     except InvalidPipelineStrategyError as exc:
         return JSONResponse({"error": str(exc)}, status_code=400)
+    confidence_floor = _resolve_confidence_floor(
+        query_value=confidence_floor,
+        pipeline_name=pipeline_id,
+    )
     return StreamingResponse(
-        _run_kgen_refresh(ticker.upper(), request, corpus_kb, bundle_name=bundle_name, pipeline_id=pipeline_id),
+        _run_kgen_refresh(ticker.upper(), request, corpus_kb, bundle_name=bundle_name, pipeline_id=pipeline_id, confidence_floor=confidence_floor),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -4959,14 +4984,15 @@ def _create_bridges_from_matches(
     return {"bridges_created": bridges_created, "spokes_promoted": spokes_promoted}
 
 
-def build_vis_data(kg: dict, confidence_floor: float = 0.55) -> dict:
+def build_vis_data(kg: dict, confidence_floor: float = 0.5) -> dict:
     """Build vis.js nodes and edges from kg.json data.
 
     Args:
         kg: Knowledge graph dict with entities and relationships.
-        confidence_floor: Minimum entity confidence to include (default: 0.55).
-            Entities below this threshold are excluded. Relationships where
-            either subject or object is below the floor are also excluded.
+        confidence_floor: Minimum entity confidence to include (default: 0.5,
+            matches ``_DEFAULT_CONFIDENCE_FLOOR``). Entities below this
+            threshold are excluded. Relationships where either subject or
+            object is below the floor are also excluded.
     """
     nodes_map = {}  # (type, norm_text) -> node data
     edges = []
@@ -5322,6 +5348,7 @@ async def run_comparison(
     model: str = DEFAULT_GEMINI_MODEL, bundle_name: str | None = None,
     pipeline_id: str | None = None,
     llm_alias: str | None = None,
+    confidence_floor: float = _DEFAULT_CONFIDENCE_FLOOR,
 ) -> AsyncGenerator[str, None]:
     """Main comparison pipeline - yields SSE events."""
     pipeline_start = time.time()
@@ -5544,7 +5571,7 @@ async def run_comparison(
         if _fin_doc_ctx and not kgs_kg.get("document_context"):
             kgs_kg["document_context"] = _fin_doc_ctx
         kgs_elapsed = kgen_logged_run.get("elapsed_seconds", 0)
-        kgs_vis = build_vis_data(kgs_kg)
+        kgs_vis = build_vis_data(kgs_kg, confidence_floor=confidence_floor)
         kgs_entities = len(kgs_vis["nodes"])
         kgs_rels = len(kgs_vis["edges"])
         # Sprint 101: Quarantine count from precision pass.
@@ -5654,7 +5681,7 @@ async def run_comparison(
             },
         )
         await asyncio.sleep(0)
-        gem_vis = build_vis_data(gem_kg)
+        gem_vis = build_vis_data(gem_kg, confidence_floor=confidence_floor)
         gem_entities = len(gem_vis["nodes"])
         gem_rels = len(gem_vis["edges"])
         gem_throughput = actual_kb / gem_elapsed if gem_elapsed > 0 else 0
@@ -5747,7 +5774,7 @@ async def run_comparison(
             },
         )
         await asyncio.sleep(0)
-        mod_vis = build_vis_data(mod_kg)
+        mod_vis = build_vis_data(mod_kg, confidence_floor=confidence_floor)
         mod_entities = len(mod_vis["nodes"])
         mod_rels = len(mod_vis["edges"])
         mod_throughput = actual_kb / mod_elapsed if mod_elapsed > 0 else 0
@@ -5849,7 +5876,7 @@ async def run_comparison(
             # Fallback: estimate num_chunks if progress events weren't polled in time
             if kgen_num_chunks == 0 and actual_kb > 0:
                 kgen_num_chunks = max(1, round(actual_kb * 1024 / chunk_size))
-            kgs_vis = build_vis_data(kgs_kg)
+            kgs_vis = build_vis_data(kgs_kg, confidence_floor=confidence_floor)
             # Sprint 33.15b: Report post-filter vis counts (Bug 3)
             kgs_entities = len(kgs_vis["nodes"])
             kgs_rels = len(kgs_vis["edges"])
@@ -5981,7 +6008,7 @@ async def run_comparison(
                 logger.warning(f"Skipping Gemini cache: {_gem_raw_entities} entities, {gem_errors} errors, truncated={gem_truncated}")
             run_count = _run_log.count(ticker, _cfg_hash)
 
-            gem_vis = build_vis_data(gem_kg)
+            gem_vis = build_vis_data(gem_kg, confidence_floor=confidence_floor)
             gem_entities = len(gem_vis["nodes"])
             gem_rels = len(gem_vis["edges"])
             gem_throughput = actual_kb / gem_elapsed if gem_elapsed > 0 else 0
@@ -6098,7 +6125,7 @@ async def run_comparison(
                 logger.warning(f"Skipping modular cache: 0 entities with {mod_errors} errors")
             mod_run_count = _modular_run_log.count(ticker, _mod_cfg_hash)
 
-            mod_vis = build_vis_data(mod_kg)
+            mod_vis = build_vis_data(mod_kg, confidence_floor=confidence_floor)
             mod_entities = len(mod_vis["nodes"])
             mod_rels = len(mod_vis["edges"])
             mod_throughput = actual_kb / mod_elapsed if mod_elapsed > 0 else 0
@@ -6369,6 +6396,7 @@ async def run_comparison(
 async def _run_kgen_refresh(
     ticker: str, request: Request, corpus_kb: int = DEFAULT_CORPUS_KB,
     bundle_name: str | None = None, pipeline_id: str | None = None,
+    confidence_floor: float = _DEFAULT_CONFIDENCE_FLOOR,
 ) -> AsyncGenerator[str, None]:
     """Re-run KGSpin extraction to prove determinism."""
     yield ": connected\n\n"
@@ -6574,7 +6602,7 @@ async def _run_kgen_refresh(
         return
 
     elapsed = time.time() - t0
-    kgs_vis = build_vis_data(kgs_kg)
+    kgs_vis = build_vis_data(kgs_kg, confidence_floor=confidence_floor)
     vis_entities = len(kgs_vis["nodes"])
     vis_rels = len(kgs_vis["edges"])
     kgs_throughput = actual_kb / elapsed if elapsed > 0 else 0
@@ -6644,6 +6672,7 @@ async def run_single_refresh(
     chunk_size: int = DEFAULT_CHUNK_SIZE, model: str = DEFAULT_GEMINI_MODEL,
     bundle_name: str | None = None,
     llm_alias: str | None = None,
+    confidence_floor: float = _DEFAULT_CONFIDENCE_FLOOR,
 ) -> AsyncGenerator[str, None]:
     """Re-run a single LLM pipeline without restarting KGSpin or the other LLM.
 
@@ -6858,7 +6887,7 @@ async def run_single_refresh(
             _kg_cache[ticker]["gem_tokens"] = gem_tokens
 
         gem_throughput = actual_kb / gem_elapsed if gem_elapsed > 0 else 0
-        gem_vis = build_vis_data(gem_kg)
+        gem_vis = build_vis_data(gem_kg, confidence_floor=confidence_floor)
         gem_entities = len(gem_vis["nodes"])
         gem_rels = len(gem_vis["edges"])
         gem_duration = int((time.time() - t0) * 1000)
@@ -7018,7 +7047,7 @@ async def run_single_refresh(
             _kg_cache[ticker]["mod_tokens"] = mod_tokens
 
         mod_throughput = actual_kb / mod_elapsed if mod_elapsed > 0 else 0
-        mod_vis = build_vis_data(mod_kg)
+        mod_vis = build_vis_data(mod_kg, confidence_floor=confidence_floor)
         mod_entities = len(mod_vis["nodes"])
         mod_rels = len(mod_vis["edges"])
         mod_duration = int((time.time() - t0) * 1000)
@@ -7130,6 +7159,7 @@ async def _run_clinical_comparison(
     force_refresh: set | None = None,
     corpus_source: str = "live",
     llm_alias: str | None = None,
+    confidence_floor: float = _DEFAULT_CONFIDENCE_FLOOR,
 ) -> AsyncGenerator[str, None]:
     """Sprint 06: Clinical comparison pipeline with explicit corpus source.
 
@@ -7350,6 +7380,7 @@ async def _run_clinical_comparison(
         _kgen_kg_event = _cached_kg_event(
             "kgenskills", kgen_logged_run, actual_kb, "kgen", nct_id, _cfg_keys["kgen"],
             extra_stats={"chunks_completed": len(all_chunks), "chunks_total": len(all_chunks)},
+            confidence_floor=confidence_floor,
         )
         yield sse_event("kg_ready", _kgen_kg_event)
         await asyncio.sleep(0)
@@ -7470,7 +7501,7 @@ async def _run_clinical_comparison(
         # Sprint 79: Inject clinical document_context
         if _clinical_doc_ctx and "document_context" not in kgen_result:
             kgen_result["document_context"] = _clinical_doc_ctx
-        kgen_vis = build_vis_data(kgen_result)
+        kgen_vis = build_vis_data(kgen_result, confidence_floor=confidence_floor)
         kgen_entities = len(kgen_vis["nodes"])
         kgen_rels = len(kgen_vis["edges"])
 
@@ -7485,6 +7516,7 @@ async def _run_clinical_comparison(
             "kgenskills", kgen_result, 0, kgs_elapsed, actual_kb,
             "kgen", nct_id, _cfg_keys["kgen"],
             extra_stats={"chunks_completed": len(all_chunks), "chunks_total": len(all_chunks)},
+            confidence_floor=confidence_floor,
         ))
         await asyncio.sleep(0)
 
@@ -7500,12 +7532,13 @@ async def _run_clinical_comparison(
         yield sse_event("kg_ready", _cached_kg_event(
             "gemini", gem_logged_run, actual_kb, "gemini", nct_id, _cfg_keys["gemini"],
             model=model,
+            confidence_floor=confidence_floor,
         ))
         await asyncio.sleep(0)
     elif gemini_task:
         try:
             gem_kg, gem_tokens, gem_elapsed, gem_errors, gem_truncated = await gemini_task
-            gem_vis = build_vis_data(gem_kg)
+            gem_vis = build_vis_data(gem_kg, confidence_floor=confidence_floor)
             gem_entities = len(gem_vis["nodes"])
 
             yield sse_event("step_complete", {
@@ -7520,6 +7553,7 @@ async def _run_clinical_comparison(
                 "gemini", gem_kg, gem_tokens, gem_elapsed, actual_kb,
                 "gemini", nct_id, _cfg_keys["gemini"],
                 model=model, truncated=gem_truncated,
+                confidence_floor=confidence_floor,
             ))
             await asyncio.sleep(0)
 
@@ -7541,6 +7575,7 @@ async def _run_clinical_comparison(
         yield sse_event("kg_ready", _cached_kg_event(
             "modular", mod_logged_run, actual_kb, "modular", nct_id, _cfg_keys["modular"],
             model=model,
+            confidence_floor=confidence_floor,
         ))
         await asyncio.sleep(0)
     elif modular_task:
@@ -7550,7 +7585,7 @@ async def _run_clinical_comparison(
             # until ExtractionResult surfaces per-stage counts.
             mod_kg, mod_h_tokens, mod_l_tokens, mod_elapsed, mod_errors = await modular_task
             mod_tokens = mod_h_tokens + mod_l_tokens
-            mod_vis = build_vis_data(mod_kg)
+            mod_vis = build_vis_data(mod_kg, confidence_floor=confidence_floor)
             mod_entities = len(mod_vis["nodes"])
 
             yield sse_event("step_complete", {
@@ -7565,6 +7600,7 @@ async def _run_clinical_comparison(
                 "modular", mod_kg, mod_tokens, mod_elapsed, actual_kb,
                 "modular", nct_id, _cfg_keys["modular"],
                 model=model,
+                confidence_floor=confidence_floor,
             ))
             await asyncio.sleep(0)
 
