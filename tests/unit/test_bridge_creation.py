@@ -38,7 +38,7 @@ def hub_registry():
             ticker="JNJ",
             cik="0000200406",
             entity_type="ORGANIZATION",
-            source_bundles=("financial-v2",),
+            source_bundles=("financial-v0",),
             domain="financial",
         ),
         HubEntry(
@@ -47,7 +47,7 @@ def hub_registry():
             ticker="MRK",
             cik="0000310158",
             entity_type="ORGANIZATION",
-            source_bundles=("financial-v2",),
+            source_bundles=("financial-v0",),
             domain="financial",
         ),
         HubEntry(
@@ -56,7 +56,7 @@ def hub_registry():
             ticker="PFE",
             cik="0000078003",
             entity_type="ORGANIZATION",
-            source_bundles=("financial-v2",),
+            source_bundles=("financial-v0",),
             domain="financial",
         ),
     ]

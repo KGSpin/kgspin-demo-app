@@ -161,8 +161,8 @@ async function onSlotPipelineChange(slotIdx) {
                 const opt = document.createElement('option');
                 opt.value = d.domain_id;
                 // Show the admin-registered domain id verbatim (e.g.
-                // ``financial-v2`` / ``clinical-v2``). Prior
-                // "Domain V<version>" template produced "Domain Vfinancial-v2"
+                // ``financial-v0`` / ``clinical-v2``). Prior
+                // "Domain V<version>" template produced "Domain Vfinancial-v0"
                 // — missing space + redundant prefix.
                 opt.textContent = d.domain_id;
                 bundleSel.appendChild(opt);
