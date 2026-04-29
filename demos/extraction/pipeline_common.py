@@ -99,7 +99,7 @@ def _bundle_name_from_pointer(resource: dict) -> str:
     """Derive the user-facing bundle name from a ``bundle_compiled`` resource.
 
     Admin stores pointer at ``<tree>/<bundle-name>/bundle.json``. The
-    ``<bundle-name>`` directory (e.g. ``financial-v2``) is what the UI
+    ``<bundle-name>`` directory (e.g. ``financial-v0``) is what the UI
     shows and what on-disk bundles historically used. Empty string if
     the pointer is malformed.
     """
@@ -201,7 +201,7 @@ def resolve_bundle_path(name: str) -> Path:
     pointer's enclosing directory name, and returns that directory.
     Raises ``FileNotFoundError`` if admin has no matching registration.
     """
-    # Bundle names encode the domain class prefix (``financial-v2`` →
+    # Bundle names encode the domain class prefix (``financial-v0`` →
     # ``financial``). Use the prefix to scope the admin query.
     domain = name.split("-", 1)[0] if "-" in name else name
     resources = _admin_list("bundle_compiled", domain=domain)
@@ -233,7 +233,7 @@ def resolve_domain_yaml_path(domain_id: str) -> Path:
 
     Accepts two input shapes:
 
-    - Versioned id (``financial-v2``, ``clinical-v2``): matches by
+    - Versioned id (``financial-v0``, ``clinical-v2``): matches by
       pointer filename stem exactly.
     - Bare domain (``financial``, ``clinical``): returns the most
       recently registered YAML for that domain — newest-first by

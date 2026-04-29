@@ -1545,14 +1545,15 @@ async def get_extraction_schema(bundle: str = None):
 
     Source of truth is admin's ``bundle_source_yaml`` registry (Wave 3).
     Query shape:
-        bundle=financial-v2  → resolves to the blueprint's domain YAML
+        bundle=financial-v0  → resolves to the blueprint's domain YAML
         bundle=clinical-v2   → same
-        bundle unset         → falls back to ``financial-v2``.
+        bundle unset         → resolves the newest ``financial`` YAML
+                                via admin (no hardcoded version).
     Raises 500 with a focused message if the admin lookup fails.
     """
     import yaml as _yaml
     try:
-        domain_id = (bundle or "financial-v2").replace("bundles/", "").replace(".yaml", "")
+        domain_id = (bundle or "financial").replace("bundles/", "").replace(".yaml", "")
         patterns_path = resolve_domain_yaml_path(domain_id)
         with open(patterns_path) as f:
             patterns = _yaml.safe_load(f)

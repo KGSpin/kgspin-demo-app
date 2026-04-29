@@ -178,7 +178,7 @@ def test_fetch_hub_registry_deserializes_admin_payload(demo_compare, monkeypatch
                 "ticker": "JNJ",
                 "cik": "0000200406",
                 "entity_type": "ORGANIZATION",
-                "source_bundles": ["financial-v2"],
+                "source_bundles": ["financial-v0"],
                 "domain": "financial",
             },
         ]
