@@ -167,16 +167,38 @@ def test_scenario_a_run_returns_503_when_corpus_missing(app_client):
 # ---------------------------------------------------------------------------
 
 
-def test_scenario_b_templates_returns_six(app_client):
+def test_scenario_b_templates_returns_ten_with_status_field(app_client):
+    """PRD-004 v5 fixup-20260430 (F4a + F5): /api/scenario-b/templates
+    returns 10 entries — 5 fin (ready) + 1 clinical (ready) + 4
+    clinical scaffolds. Every entry exposes a `status` field
+    (`"ready"` or `"scaffold"`)."""
     resp = app_client.get("/api/scenario-b/templates")
     assert resp.status_code == 200
     out = resp.json()
-    assert len(out) == 6
+    assert len(out) == 10
     ids = {t["scenario_id"] for t in out}
     assert "subsidiaries_litigation_jurisdiction" in ids
     assert "stelara_adverse_events_cohort_v5" in ids
-    # Forward-compat: each template has key_fields (F1 input).
-    assert all("key_fields" in t and t["key_fields"] for t in out)
+    assert "clinical_scaffold_phase_progression_endpoints" in ids
+
+    # status field exposed.
+    statuses = {t["scenario_id"]: t["status"] for t in out}
+    assert statuses["subsidiaries_litigation_jurisdiction"] == "ready"
+    assert statuses["stelara_adverse_events_cohort_v5"] == "ready"
+    assert statuses["clinical_scaffold_phase_progression_endpoints"] == "scaffold"
+
+    # 4 scaffolds total.
+    assert sum(1 for t in out if t["status"] == "scaffold") == 4
+    # 6 ready (5 fin + 1 clinical hedge).
+    assert sum(1 for t in out if t["status"] == "ready") == 6
+
+    # Ready templates have key_fields. Scaffolds have empty key_fields
+    # (placeholder entries).
+    for t in out:
+        if t["status"] == "ready":
+            assert t["key_fields"], f"{t['scenario_id']} missing key_fields"
+        else:
+            assert t["key_fields"] == []
 
 
 def test_scenario_b_analyze_with_pre_parsed_structured(app_client):

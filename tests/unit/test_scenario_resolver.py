@@ -20,20 +20,53 @@ def _reset_yaml_path():
     sr.set_yaml_path(sr._DEFAULT_YAML_PATH)
 
 
-def test_loads_six_phase5a_templates():
+def test_loads_ten_phase5a_templates():
+    """Phase 5A fixup: 5 fin (ready) + 1 clinical (ready, JNJ-Stelara hedge)
+    + 4 clinical scaffolds = 10 total."""
     templates = sr.load_v5_templates()
-    assert len(templates) == 6
+    assert len(templates) == 10
     ids = {t.scenario_id for t in templates}
+    # 5 fin scenarios (ready).
     assert "subsidiaries_litigation_jurisdiction" in ids
     assert "neo_compensation_stock_awards" in ids
     assert "segments_revenue_litigation_accrual" in ids
     assert "supplier_concentration_ma_termination" in ids
     assert "warrants_options_proxy_executives" in ids
+    # 1 clinical hedge (ready).
     assert "stelara_adverse_events_cohort_v5" in ids
+    # 4 clinical scaffolds (status=scaffold).
+    assert "clinical_scaffold_phase_progression_endpoints" in ids
+    assert "clinical_scaffold_adverse_events_dose" in ids
+    assert "clinical_scaffold_cross_trial_inclusion" in ids
+    assert "clinical_scaffold_regulatory_submission" in ids
+
+
+def test_scaffold_templates_have_status_flag():
+    """The 4 scaffold entries carry status='scaffold'; the other 6 carry
+    the default status='ready'."""
+    by_id = {t.scenario_id: t for t in sr.load_v5_templates()}
+    scaffold_ids = {
+        "clinical_scaffold_phase_progression_endpoints",
+        "clinical_scaffold_adverse_events_dose",
+        "clinical_scaffold_cross_trial_inclusion",
+        "clinical_scaffold_regulatory_submission",
+    }
+    for sid in scaffold_ids:
+        assert by_id[sid].status == "scaffold", f"{sid} should be scaffold"
+    for sid, t in by_id.items():
+        if sid not in scaffold_ids:
+            assert t.status == "ready", f"{sid} should be ready (got {t.status!r})"
 
 
 def test_each_template_has_required_fields():
+    """Ready templates carry placeholders + key_fields. Scaffolds are
+    skipped — they're placeholder entries with intentionally empty
+    placeholders/key_fields so they parse and load without breaking
+    the picker, but they don't run end-to-end (the frontend disables
+    Run on scaffold selection)."""
     for t in sr.load_v5_templates():
+        if t.status == "scaffold":
+            continue
         assert t.scenario_id
         assert t.question_template
         assert t.expected_hops >= 1
@@ -123,9 +156,12 @@ def test_placeholder_multi_occurrence_substitutes_all():
 
 
 def test_template_placeholders_match_yaml_declaration():
-    """Each template's ``placeholders`` field must match what the
-    question_template actually contains."""
+    """Each ready template's ``placeholders`` field must match what the
+    question_template actually contains. Scaffolds skipped — their
+    placeholder copy doesn't carry `{name}` markers."""
     for t in sr.load_v5_templates():
+        if t.status == "scaffold":
+            continue
         text_phs = set(sr._placeholders_in_template(t.question_template))
         declared = set(t.placeholders)
         assert text_phs == declared, (
