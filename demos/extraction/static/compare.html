@@ -1550,6 +1550,143 @@ body {
 }
 .health-drawer-citation a { color: #5B9FE6; text-decoration: none; }
 .health-drawer-citation a:hover { text-decoration: underline; }
+
+/* PRD-004 v5 Phase 5A — Scenario A view (commit 9b). */
+.scenario-a, .scenario-b {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #14172b;
+    border: 1px solid #2a2a4e;
+    border-radius: 8px;
+}
+.scenario-a header h2, .scenario-b header h2 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: #5B9FE6;
+}
+.scenario-a header .rubric, .scenario-b header .rubric {
+    margin: 0 0 12px 0;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.scenario-a-controls, .scenario-b-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-bottom: 12px;
+}
+.scenario-a-controls input[type="text"] {
+    flex: 1; min-width: 280px;
+    background: #0f0f23;
+    color: #c9d1d9;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+.scenario-a-controls select, .scenario-b-controls select {
+    background: #0f0f23;
+    color: #c9d1d9;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+.scenario-a-controls .mode-toggle {
+    display: inline-flex; flex-direction: column; gap: 2px;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+.scenario-a-controls .mode-toggle .caption {
+    color: #888; font-size: 10px; padding: 0 4px;
+}
+.scenario-a-controls .mode-toggle label {
+    color: #c9d1d9; font-size: 11px; cursor: pointer;
+}
+.scenario-a-controls button, .scenario-b-controls button {
+    background: #1a2a4a;
+    color: #5B9FE6;
+    border: 1px solid #2a3a5a;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+.scenario-a-controls button:hover:not([disabled]),
+.scenario-b-controls button:hover:not([disabled]) {
+    background: #2a3a5a; color: #c9d1d9;
+}
+.scenario-a-controls button[disabled], .scenario-b-controls button[disabled] {
+    opacity: 0.4; cursor: not-allowed;
+}
+.scenario-a-status, .scenario-b-status {
+    color: #888; font-size: 11px; margin-left: auto;
+}
+.scenario-a-panes, .scenario-b-panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.scenario-b-panes[data-pane-mode="three"] {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+.scenario-a-panes .pane, .scenario-b-panes .pane {
+    background: #0f0f23;
+    border: 1px solid #2a2a4e;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+.scenario-a-panes .pane header, .scenario-b-panes .pane header {
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #2a2a4e;
+    padding-bottom: 6px; margin-bottom: 8px;
+}
+.scenario-a-panes .pane-label, .scenario-b-panes .pane header {
+    color: #5B9FE6; font-weight: 600; font-size: 13px;
+}
+.scenario-a-panes .badge, .scenario-b-panes .badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 3px;
+    background: #1a1a3e; color: #888; text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.scenario-b-panes .badge.badge-paper { background: #2a3a15; color: #d4a017; }
+.scenario-b-panes .badge.badge-advanced { background: #3a1a4a; color: #b48fd6; }
+.scenario-a-panes .answer, .scenario-b-panes .answer {
+    color: #c9d1d9; font-size: 13px; line-height: 1.5;
+    min-height: 60px; white-space: pre-wrap;
+}
+.scenario-a-panes .retrieved-context, .scenario-b-panes pre {
+    background: #050511;
+    color: #888; font-size: 10px; line-height: 1.4;
+    padding: 8px;
+    border-radius: 4px;
+    max-height: 200px; overflow-y: auto;
+    white-space: pre-wrap;
+}
+.scenario-a-panes details, .scenario-b-panes details {
+    margin-top: 8px; font-size: 11px; color: #aaa;
+}
+.scenario-a-panes summary, .scenario-b-panes summary {
+    cursor: pointer; padding: 3px 0; user-select: none;
+}
+.scenario-a-verdict, .scenario-b-verdict {
+    margin-top: 12px;
+    background: #0f0f23;
+    border: 1px solid #2a2a4e;
+    border-radius: 6px;
+    padding: 12px 16px;
+    color: #c9d1d9;
+    font-size: 12px;
+}
+.scenario-a-verdict header, .scenario-b-verdict header {
+    color: #d4a017; font-weight: 600; margin-bottom: 6px;
+}
+.verdict-winner {
+    color: #5ED68A; font-weight: 600; font-size: 14px; margin-bottom: 6px;
+}
+.verdict-rationales div { margin: 4px 0; }
+.verdict-summary { margin-top: 8px; color: #aaa; font-style: italic; }
 </style>
 </head>
 <body>
@@ -1862,8 +1999,54 @@ body {
              Backend routes (/api/multihop/*, /api/compare-qa/*) stay
              alive until Phase 5B per plan §2.3 / VP-Prod major #4.
              Scenario A + Scenario B views inserted by commit 9b/10. -->
-        <!-- PRD-004 v5 Phase 5A — Scenario A + Scenario B inserted below by commit 9b/10. -->
-        <div data-region="prd004-v5" id="prd004-v5-region"></div>
+        <!-- PRD-004 v5 Phase 5A — Scenario A + Scenario B (commit 9b + 10). -->
+        <div data-region="prd004-v5" id="prd004-v5-region">
+
+          <!-- Scenario A — One-shot RAG vs GraphRAG. -->
+          <section class="scenario-a" data-region="scenario-a">
+            <header>
+              <h2>Scenario A — One-shot RAG vs GraphRAG</h2>
+              <p class="rubric">Same question, two retrieval strategies. Pure dense RAG on the left (no graph). GraphRAG on the right.</p>
+            </header>
+            <div class="scenario-a-controls">
+              <input type="text" id="scenario-a-question-input" data-action="scenario-a-question-input" placeholder="Ask a question about the document...">
+              <select id="scenario-a-ticker-picker" data-change-action="scenario-a-ticker-picker">
+                <option value="">— Select ticker —</option>
+              </select>
+              <fieldset class="mode-toggle">
+                <legend class="caption">GraphRAG mode (right pane). +1-hop is the recommended comparison.</legend>
+                <label title="Same as left pane; sanity check that GraphRAG matches the dense baseline when the graph isn't used."><input type="radio" name="scenario-a-mode" value="A1"> Standard (sanity)</label>
+                <label title="Recommended. Dense retrieval + 1-hop graph neighborhood added to context."><input type="radio" name="scenario-a-mode" value="A2" checked> +1-hop graph</label>
+                <label title="Search the graph itself (BM25+cosine over nodes/edges); evidence spans pulled into context."><input type="radio" name="scenario-a-mode" value="A3"> Graph-as-corpus</label>
+              </fieldset>
+              <button id="scenario-a-run-btn" data-action="scenario-a-run">Run</button>
+              <button id="scenario-a-analyze-btn" data-action="scenario-a-analyze" hidden>Analyze Results</button>
+              <span id="scenario-a-status" class="scenario-a-status"></span>
+            </div>
+            <div class="scenario-a-panes">
+              <article class="pane pane-left">
+                <header><span class="pane-label">Dense RAG</span> <span class="badge">no graph</span></header>
+                <div class="answer" id="scenario-a-dense-answer"></div>
+                <details><summary>Retrieved chunks</summary><pre class="retrieved-context" id="scenario-a-dense-context"></pre></details>
+              </article>
+              <article class="pane pane-right">
+                <header><span class="pane-label">GraphRAG</span> <span class="badge mode-badge" id="scenario-a-mode-badge">+1-hop</span></header>
+                <div class="answer" id="scenario-a-graphrag-answer"></div>
+                <details><summary>Retrieved context</summary><pre class="retrieved-context" id="scenario-a-graphrag-context"></pre></details>
+              </article>
+            </div>
+            <aside class="scenario-a-verdict" id="scenario-a-verdict" hidden>
+              <header><span class="verdict-label">Blinded LLM judge</span></header>
+              <div class="verdict-winner" id="scenario-a-verdict-winner"></div>
+              <div class="verdict-rationales">
+                <div><strong>A (Dense):</strong> <span id="scenario-a-verdict-rationale-a"></span></div>
+                <div><strong>B (GraphRAG):</strong> <span id="scenario-a-verdict-rationale-b"></span></div>
+              </div>
+              <div class="verdict-summary" id="scenario-a-verdict-summary"></div>
+            </aside>
+          </section>
+
+        </div>
         <!-- Performance Delta — Pairwise Matrix -->
         <div id="diagnostic-scores" style="display:none;">
             <h3 style="color:#9B59B6; margin:0 0 12px 0; font-size:15px;">Pairwise Performance Delta</h3>
@@ -2594,6 +2777,7 @@ body {
 <script src="/static/js/intelligence.js"></script>
 <script src="/static/js/impact.js"></script>
 <script src="/static/js/compare-runner.js"></script>
+<script src="/static/js/scenario-a-runner.js"></script>
 <div id="engine-version" class="engine-version" style="display:none;"></div>
 </body>
 </html>
