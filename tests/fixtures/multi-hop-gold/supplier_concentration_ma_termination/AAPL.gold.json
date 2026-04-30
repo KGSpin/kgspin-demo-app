@@ -1,0 +1,19 @@
+{
+  "scenario_id": "supplier_concentration_ma_termination",
+  "ticker": "AAPL",
+  "resolved_question": "Among Apple Inc.'s top supplier or customer concentrations disclosed in MD&A, which carry termination or renegotiation rights triggered by Apple Inc.'s ongoing M&A activity?",
+  "bindings": {"company": "Apple Inc."},
+  "expected_answer": {
+    "summary": "Apple Inc. typically does not disclose specific supplier or customer concentration triggers tied to its own M&A activity in MD&A. Its supplier base (Foxconn, Pegatron, etc.) operates under contracts with industry-standard change-of-control clauses, but the 10-K's MD&A does not name supplier concentrations as a risk factor — Apple's supplier risk is treated as supply-chain risk, not concentration risk. Acquired entities' supplier contracts are normally absorbed without public disclosure of termination clauses.",
+    "structured": []
+  },
+  "key_fields": ["counterparty", "contract_term"],
+  "source_spans": [
+    {"section": "MD&A — concentration / risk factors", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "hard",
+  "narrative_recovery": "This scenario is intentionally hard for AAPL — the 10-K doesn't typically have the specific intersection. If a pane returns 'none' that's CORRECT; if a pane invents counterparties (e.g., 'Foxconn has a termination right'), that's a hallucination teaching moment.",
+  "notes": "DRAFT — CTO HITL pending. Empty structured list reflects the realistic answer that AAPL doesn't disclose this intersection. CTO review should confirm against the live 2025 10-K — if Apple has begun disclosing supplier-M&A clauses post-some-recent-acquisition, the answer expands.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

@@ -1,0 +1,22 @@
+{
+  "scenario_id": "neo_compensation_stock_awards",
+  "ticker": "JNJ",
+  "resolved_question": "Among Johnson & Johnson's named executive officers in fiscal 2025 whose total compensation exceeded the median S&P 500 NEO threshold, how many had stock awards as the largest single component of compensation?",
+  "bindings": {"company": "Johnson & Johnson", "year": "2025"},
+  "expected_answer": {
+    "summary": "Johnson & Johnson's fiscal-2025 NEOs (CEO Joaquin Duato, CFO Joseph Wolk, EVP/COO Vanessa Broadhurst, EVP Worldwide Chairman Jennifer Taubert, EVP Worldwide Chairman Jorge Torres) all received total compensation above plausible S&P 500 medians. The largest single component varies by executive: for the CEO and CFO, performance share units (PSUs) typically dominate; for division chairmen, base + cash incentive can rival the equity component depending on the year's PSU vesting schedule.",
+    "structured": [
+      {"executive": "Joaquin Duato", "total_compensation": "$28M (illustrative)"},
+      {"executive": "Joseph Wolk", "total_compensation": "$10M (illustrative)"}
+    ]
+  },
+  "key_fields": ["executive", "total_compensation"],
+  "source_spans": [
+    {"section": "Item 11 / proxy compensation table", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "medium",
+  "narrative_recovery": "JNJ's compensation mix is more balanced than tech firms — the 'stock awards as largest single component' answer may not be \"all NEOs\" the way it is for AAPL. If paper-mirror identifies 2 NEOs and dense identifies 5, the value-prop is paper-mirror's selectivity (it read the comp components rigorously) vs dense's pattern-match overreach.",
+  "notes": "DRAFT — CTO HITL pending. JNJ's NEOs and compensation breakdown changes year-over-year; specific counts and dollar amounts must come from the live 2025 proxy document.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

@@ -84,6 +84,94 @@ def _parse_response(raw: str) -> JudgeVerdict:
     return JudgeVerdict(ranking=list(ranking), rationales=dict(rationales))
 
 
+_TWO_ANSWER_PROMPT = """You are an evaluator. Below is a question followed by two
+candidate answers labeled A and B. Rank them best-to-worst using this rubric:
+- Most specific (cites concrete entities, numbers, dates)
+- Most complete (addresses all parts of the question)
+- Least speculative (avoids hedging, "likely", "possibly")
+- Best grounded (clearly relies on document evidence)
+
+Question: {question}
+
+Answer A: {answer_a}
+
+Answer B: {answer_b}
+
+Respond with JSON only, in this exact shape:
+{{
+  "winner": "A" or "B" or "tie",
+  "rationale_a": "one-sentence assessment of A",
+  "rationale_b": "one-sentence assessment of B",
+  "verdict": "one-sentence overall conclusion"
+}}
+"""
+
+
+@dataclass(frozen=True)
+class TwoAnswerVerdict:
+    """Scenario A blinded A/B verdict (PRD-004 v5)."""
+    winner: str  # "A" | "B" | "tie"
+    rationale_a: str
+    rationale_b: str
+    verdict: str
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+def _parse_two_answer_response(raw: str) -> TwoAnswerVerdict:
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise JudgeParseError(f"judge returned non-JSON response: {e}") from e
+    winner = payload.get("winner")
+    if winner not in ("A", "B", "tie"):
+        raise JudgeParseError(
+            f"judge winner must be 'A' / 'B' / 'tie', got {winner!r}"
+        )
+    rationale_a = payload.get("rationale_a", "")
+    rationale_b = payload.get("rationale_b", "")
+    verdict = payload.get("verdict", "")
+    if not all(isinstance(s, str) for s in (rationale_a, rationale_b, verdict)):
+        raise JudgeParseError("judge rationales/verdict must be strings")
+    return TwoAnswerVerdict(
+        winner=winner,
+        rationale_a=rationale_a,
+        rationale_b=rationale_b,
+        verdict=verdict,
+    )
+
+
+def rank_two(
+    question: str,
+    answer_a: str,
+    answer_b: str,
+    *,
+    backend=None,
+) -> TwoAnswerVerdict:
+    """PRD-004 v5 Scenario A blinded A/B judge.
+
+    Same temperature-0 + JSON-mode contract as :func:`rank_answers`.
+    Retries once on parse / validation failure; second failure raises
+    :class:`JudgeParseError`.
+    """
+    prompt = _TWO_ANSWER_PROMPT.format(
+        question=question, answer_a=answer_a, answer_b=answer_b,
+    )
+    if backend is None:
+        backend = resolve_llm_backend(llm_alias=_JUDGE_MODEL_ALIAS, flow="judge")
+    last_error: JudgeParseError | None = None
+    for _ in range(2):
+        result = backend.complete(prompt, temperature=0.0)
+        try:
+            return _parse_two_answer_response(result.text)
+        except JudgeParseError as e:
+            last_error = e
+            continue
+    assert last_error is not None
+    raise last_error
+
+
 def rank_answers(
     question: str,
     answers: list[str],

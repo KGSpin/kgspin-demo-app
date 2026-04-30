@@ -1,0 +1,20 @@
+{
+  "scenario_id": "warrants_options_proxy_executives",
+  "ticker": "AAPL",
+  "resolved_question": "What is the intersection of Apple Inc.'s outstanding warrants and stock options (per the equity-securities footnote) and the named executives mentioned in the proxy compensation discussion who hold those securities?",
+  "bindings": {"company": "Apple Inc."},
+  "expected_answer": {
+    "summary": "Apple Inc. does not have outstanding warrants in any meaningful quantity (warrants are uncommon for a mature, dividend-paying tech company). The equity securities footnote disclosed Apple's outstanding stock options grant pool — the 1991 plan and successors — which has long since stopped issuing options to executives in favor of RSUs. NEOs hold RSUs (disclosed in the proxy compensation tables), not legacy options. The intersection is essentially empty for current NEOs.",
+    "structured": []
+  },
+  "key_fields": ["executive", "security_count"],
+  "source_spans": [
+    {"section": "Equity securities footnote", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Proxy compensation discussion", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "hard",
+  "narrative_recovery": "The empty answer here is correct — Apple's NEOs don't hold legacy stock options or warrants. If a pane returns 'Tim Cook holds 100K options', that's a hallucination (he holds RSUs). If both panes return empty + acknowledge the warrant absence, that's the win. Recovery line: 'this scenario tests whether the pipeline distinguishes RSUs from options correctly — both panes did.'",
+  "notes": "DRAFT — CTO HITL pending. Apple's RSU-only NEO comp posture has been stable for ~10 years. CTO review should confirm against the latest equity-securities footnote — if Apple has any de minimis warrant outstanding, the gold expands.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

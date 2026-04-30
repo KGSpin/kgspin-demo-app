@@ -1550,6 +1550,200 @@ body {
 }
 .health-drawer-citation a { color: #5B9FE6; text-decoration: none; }
 .health-drawer-citation a:hover { text-decoration: underline; }
+
+/* PRD-004 v5 Phase 5A — Scenario A view (commit 9b). */
+.scenario-a, .scenario-b {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #14172b;
+    border: 1px solid #2a2a4e;
+    border-radius: 8px;
+}
+.scenario-a header h2, .scenario-b header h2 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: #5B9FE6;
+}
+.scenario-a header .rubric, .scenario-b header .rubric {
+    margin: 0 0 12px 0;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.scenario-a-controls, .scenario-b-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-bottom: 12px;
+}
+.scenario-a-controls input[type="text"] {
+    flex: 1; min-width: 280px;
+    background: #0f0f23;
+    color: #c9d1d9;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+.scenario-a-controls select, .scenario-b-controls select {
+    background: #0f0f23;
+    color: #c9d1d9;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+.scenario-a-controls .mode-toggle {
+    display: inline-flex; flex-direction: column; gap: 2px;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+.scenario-a-controls .mode-toggle .caption {
+    color: #888; font-size: 10px; padding: 0 4px;
+}
+.scenario-a-controls .mode-toggle label {
+    color: #c9d1d9; font-size: 11px; cursor: pointer;
+}
+.scenario-a-controls button, .scenario-b-controls button {
+    background: #1a2a4a;
+    color: #5B9FE6;
+    border: 1px solid #2a3a5a;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+.scenario-a-controls button:hover:not([disabled]),
+.scenario-b-controls button:hover:not([disabled]) {
+    background: #2a3a5a; color: #c9d1d9;
+}
+.scenario-a-controls button[disabled], .scenario-b-controls button[disabled] {
+    opacity: 0.4; cursor: not-allowed;
+}
+.scenario-a-status, .scenario-b-status {
+    color: #888; font-size: 11px; margin-left: auto;
+}
+.scenario-a-panes, .scenario-b-panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.scenario-b-panes[data-pane-mode="three"] {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+.scenario-a-panes .pane, .scenario-b-panes .pane {
+    background: #0f0f23;
+    border: 1px solid #2a2a4e;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+.scenario-a-panes .pane header, .scenario-b-panes .pane header {
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #2a2a4e;
+    padding-bottom: 6px; margin-bottom: 8px;
+}
+.scenario-a-panes .pane-label, .scenario-b-panes .pane header {
+    color: #5B9FE6; font-weight: 600; font-size: 13px;
+}
+.scenario-a-panes .badge, .scenario-b-panes .badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 3px;
+    background: #1a1a3e; color: #888; text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.scenario-b-panes .badge.badge-paper { background: #2a3a15; color: #d4a017; }
+.scenario-b-panes .badge.badge-advanced { background: #3a1a4a; color: #b48fd6; }
+.scenario-a-panes .answer, .scenario-b-panes .answer {
+    color: #c9d1d9; font-size: 13px; line-height: 1.5;
+    min-height: 60px; white-space: pre-wrap;
+}
+.scenario-a-panes .retrieved-context, .scenario-b-panes pre {
+    background: #050511;
+    color: #888; font-size: 10px; line-height: 1.4;
+    padding: 8px;
+    border-radius: 4px;
+    max-height: 200px; overflow-y: auto;
+    white-space: pre-wrap;
+}
+.scenario-a-panes details, .scenario-b-panes details {
+    margin-top: 8px; font-size: 11px; color: #aaa;
+}
+.scenario-a-panes summary, .scenario-b-panes summary {
+    cursor: pointer; padding: 3px 0; user-select: none;
+}
+.scenario-a-verdict, .scenario-b-verdict {
+    margin-top: 12px;
+    background: #0f0f23;
+    border: 1px solid #2a2a4e;
+    border-radius: 6px;
+    padding: 12px 16px;
+    color: #c9d1d9;
+    font-size: 12px;
+}
+.scenario-a-verdict header, .scenario-b-verdict header {
+    color: #d4a017; font-weight: 600; margin-bottom: 6px;
+}
+.verdict-winner {
+    color: #5ED68A; font-weight: 600; font-size: 14px; margin-bottom: 6px;
+}
+.verdict-rationales div { margin: 4px 0; }
+.verdict-summary { margin-top: 8px; color: #aaa; font-style: italic; }
+
+/* PRD-004 v5 Phase 5A — Scenario B specifics (commit 10). */
+.resolved-question {
+    background: #0f0f23;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    color: #c9d1d9;
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.resolved-question .gold-badge {
+    color: #d4a017; font-size: 10px; padding: 2px 8px;
+    background: #2a3015; border-radius: 3px;
+    border: 1px solid #4a5a20;
+}
+.resolved-question .no-gold-badge {
+    color: #888; font-size: 10px; padding: 2px 8px;
+    background: #1a1a3e; border-radius: 3px;
+}
+.scenario-b-panes .progress-strip {
+    margin: 6px 0;
+    min-height: 18px;
+    font-size: 10px;
+    color: #888;
+    display: flex; flex-wrap: wrap; gap: 4px;
+}
+.scenario-b-panes .progress-strip .stage-pill {
+    padding: 1px 6px;
+    background: #1a1a3e;
+    border-radius: 8px;
+    border: 1px solid #2a2a4e;
+}
+.scenario-b-panes .progress-strip .stage-pill.active {
+    background: #2a3a5a; color: #c9d1d9; border-color: #5B9FE6;
+}
+.scenario-b-panes .progress-strip .stage-pill.done {
+    background: #1a3a25; color: #5ED68A; border-color: #2a5a3a;
+}
+.phase-5b-preview { color: #c9d1d9; font-size: 12px; line-height: 1.5; padding: 8px 12px; }
+.phase-5b-preview .coming-soon { color: #b48fd6; font-style: italic; margin-top: 8px; }
+.scenario-b-verdict .f1-block { font-size: 13px; color: #c9d1d9; margin-bottom: 8px; }
+.scenario-b-verdict .f1-pane-row {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 4px 0; border-bottom: 1px dotted #2a2a4e;
+}
+.scenario-b-verdict .f1-pane-row:last-child { border-bottom: none; }
+.scenario-b-verdict .f1-pane-row .pane-name { font-weight: 600; color: #5B9FE6; min-width: 140px; }
+.scenario-b-verdict .f1-pane-row .f1-score { color: #d4a017; font-weight: 600; }
+.scenario-b-verdict .rationale-block { margin-top: 6px; font-size: 12px; color: #aaa; }
+.scenario-b-verdict .recovery-narrative {
+    margin-top: 8px; padding: 8px 12px; background: #2a3015; border-radius: 4px;
+    color: #d4a017; font-size: 11px; font-style: italic;
+}
+.scenario-b-verdict .methodology-note { margin-top: 10px; font-size: 10px; color: #6e7681; }
 </style>
 </head>
 <body>
@@ -1863,63 +2057,113 @@ body {
                 <div class="legend rel-legend" id="slot-2-rel-legend"></div>
             </div>
         </div>
-        <!-- PRD-004 v4 #12 / PRD-055 #3: Multi-hop comparison row -->
-        <div class="multihop-bar" data-region="multihop-controls" hidden>
-            <label for="multihop-scenario-picker" class="multihop-label">Multi-hop scenario:</label>
-            <select id="multihop-scenario-picker" data-change-action="pick-multihop-scenario">
-                <option value="">— Select a scenario —</option>
-            </select>
-            <button id="run-multihop-btn" data-action="run-multihop" disabled>Run Multi-Hop</button>
-            <button id="reveal-pipelines-btn" data-action="reveal-pipelines" hidden>Reveal Pipelines</button>
-            <span id="multihop-status" class="multihop-status"></span>
+        <!-- PRD-004 v4 multi-hop UI removed in v5 Phase 5A (commit 9a).
+             The 3-pane "all-displayed-plays" cross-KG-pipeline comparison
+             is migrating to the per-graph view (PRD-002 territory).
+             Backend routes (/api/multihop/*, /api/compare-qa/*) stay
+             alive until Phase 5B per plan §2.3 / VP-Prod major #4.
+             Scenario A + Scenario B views inserted by commit 9b/10. -->
+        <!-- PRD-004 v5 Phase 5A — Scenario A + Scenario B (commit 9b + 10). -->
+        <div data-region="prd004-v5" id="prd004-v5-region">
+
+          <!-- Scenario A — One-shot RAG vs GraphRAG. -->
+          <section class="scenario-a" data-region="scenario-a">
+            <header>
+              <h2>Scenario A — One-shot RAG vs GraphRAG</h2>
+              <p class="rubric">Same question, two retrieval strategies. Pure dense RAG on the left (no graph). GraphRAG on the right.</p>
+            </header>
+            <div class="scenario-a-controls">
+              <input type="text" id="scenario-a-question-input" data-action="scenario-a-question-input" placeholder="Ask a question about the document...">
+              <select id="scenario-a-ticker-picker" data-change-action="scenario-a-ticker-picker">
+                <option value="">— Select ticker —</option>
+              </select>
+              <fieldset class="mode-toggle">
+                <legend class="caption">GraphRAG mode (right pane). +1-hop is the recommended comparison.</legend>
+                <label title="Same as left pane; sanity check that GraphRAG matches the dense baseline when the graph isn't used."><input type="radio" name="scenario-a-mode" value="A1"> Standard (sanity)</label>
+                <label title="Recommended. Dense retrieval + 1-hop graph neighborhood added to context."><input type="radio" name="scenario-a-mode" value="A2" checked> +1-hop graph</label>
+                <label title="Search the graph itself (BM25+cosine over nodes/edges); evidence spans pulled into context."><input type="radio" name="scenario-a-mode" value="A3"> Graph-as-corpus</label>
+              </fieldset>
+              <button id="scenario-a-run-btn" data-action="scenario-a-run">Run</button>
+              <button id="scenario-a-analyze-btn" data-action="scenario-a-analyze" hidden>Analyze Results</button>
+              <span id="scenario-a-status" class="scenario-a-status"></span>
+            </div>
+            <div class="scenario-a-panes">
+              <article class="pane pane-left">
+                <header><span class="pane-label">Dense RAG</span> <span class="badge">no graph</span></header>
+                <div class="answer" id="scenario-a-dense-answer"></div>
+                <details><summary>Retrieved chunks</summary><pre class="retrieved-context" id="scenario-a-dense-context"></pre></details>
+              </article>
+              <article class="pane pane-right">
+                <header><span class="pane-label">GraphRAG</span> <span class="badge mode-badge" id="scenario-a-mode-badge">+1-hop</span></header>
+                <div class="answer" id="scenario-a-graphrag-answer"></div>
+                <details><summary>Retrieved context</summary><pre class="retrieved-context" id="scenario-a-graphrag-context"></pre></details>
+              </article>
+            </div>
+            <aside class="scenario-a-verdict" id="scenario-a-verdict" hidden>
+              <header><span class="verdict-label">Blinded LLM judge</span></header>
+              <div class="verdict-winner" id="scenario-a-verdict-winner"></div>
+              <div class="verdict-rationales">
+                <div><strong>A (Dense):</strong> <span id="scenario-a-verdict-rationale-a"></span></div>
+                <div><strong>B (GraphRAG):</strong> <span id="scenario-a-verdict-rationale-b"></span></div>
+              </div>
+              <div class="verdict-summary" id="scenario-a-verdict-summary"></div>
+            </aside>
+          </section>
+
+          <!-- Scenario B — Multi-hop with Decomposition. -->
+          <section class="scenario-b" data-region="scenario-b">
+            <header>
+              <h2>Scenario B — Multi-hop Decomposition</h2>
+              <p class="rubric">Templated multi-hop scenarios. Compare an agentic dense baseline (Search-o1-style) vs the paper-mirror dual-channel pipeline (arXiv:2509.22009).</p>
+            </header>
+            <div class="scenario-b-controls">
+              <select id="scenario-b-template-picker" data-change-action="scenario-b-template-picker">
+                <option value="">— Select scenario —</option>
+              </select>
+              <select id="scenario-b-ticker-picker" data-change-action="scenario-b-ticker-picker">
+                <option value="">— Select ticker —</option>
+              </select>
+              <button id="scenario-b-run-btn" data-action="scenario-b-run">Run Multi-Hop</button>
+              <button id="scenario-b-show-advanced-btn" data-action="scenario-b-show-advanced">Show advanced: tool-agent</button>
+              <button id="scenario-b-analyze-btn" data-action="scenario-b-analyze" hidden>Analyze Results</button>
+              <span id="scenario-b-status" class="scenario-b-status"></span>
+            </div>
+            <div class="resolved-question" id="scenario-b-resolved-question" hidden>
+              <span class="question-text" id="scenario-b-question-text"></span>
+              <span class="gold-badge" id="scenario-b-gold-badge" hidden>⭐ Gold available — F1 will be computed</span>
+              <span class="no-gold-badge" id="scenario-b-no-gold-badge" hidden>No gold for this ticker — qualitative LLM-judge only</span>
+            </div>
+            <div class="scenario-b-panes" id="scenario-b-panes" data-pane-mode="two">
+              <article class="pane pane-left" data-pane-name="agentic_dense">
+                <header><span>Agentic Dense RAG</span> <span class="badge">Search-o1</span></header>
+                <div class="answer" id="scenario-b-agentic-answer">—</div>
+                <div class="progress-strip" id="scenario-b-agentic-progress"></div>
+                <details><summary>Decomposition trace</summary><pre id="scenario-b-agentic-trace"></pre></details>
+              </article>
+              <article class="pane pane-center" data-pane-name="paper_mirror">
+                <header><span>Paper-mirror GraphSearch</span> <span class="badge badge-paper">arXiv:2509.22009</span></header>
+                <div class="answer" id="scenario-b-paper-answer">—</div>
+                <div class="progress-strip" id="scenario-b-paper-progress"></div>
+                <details><summary>Text channel</summary><pre id="scenario-b-paper-text-history"></pre></details>
+                <details><summary>KG channel</summary><pre id="scenario-b-paper-kg-history"></pre></details>
+              </article>
+              <article class="pane pane-right" data-pane-name="tool_agent" hidden>
+                <header><span>Tool-agent GraphRAG</span> <span class="badge badge-advanced">advanced</span></header>
+                <div class="phase-5b-preview">
+                  <p>Phase 5B preview. Architectural commentary: a ReAct-style agent with <code>retrieve_text</code> + <code>retrieve_graph</code> tools — the pattern most modern AI engineers would build. <strong>The paper does NOT use this pattern</strong>; the dual-channel pipeline (center) is the paper's architecture and the demo's primary value-prop.</p>
+                  <p class="coming-soon">Live wiring lands in Phase 5B.</p>
+                </div>
+              </article>
+            </div>
+            <aside class="scenario-b-verdict" id="scenario-b-verdict" hidden>
+              <div class="f1-block" id="scenario-b-f1-block"></div>
+              <div class="rationale-block" id="scenario-b-rationale-block"></div>
+              <div class="recovery-narrative" id="scenario-b-recovery" hidden></div>
+              <div class="methodology-note">Illustrative F1 (n=11, see methodology) — directional check, not a benchmark. The value-prop is paper fidelity and dual-channel transparency.</div>
+            </aside>
+          </section>
+
         </div>
-        <div class="multihop-talking-track" id="multihop-talking-track" hidden></div>
-        <section class="multihop-answers" data-region="multihop-answers" hidden>
-            <article class="multihop-answer" data-answer-slot="A">
-                <header>
-                    <span class="answer-label">Answer A</span>
-                    <span class="pipeline-reveal" hidden></span>
-                    <button class="health-badge multihop-health-badge" data-action="open-health-drawer" data-source="multihop" data-answer-slot="A" hidden>—</button>
-                </header>
-                <div class="answer-text"></div>
-                <footer>
-                    <span class="answer-latency"></span>
-                    <span class="answer-cost"></span>
-                    <span class="answer-tokens"></span>
-                </footer>
-            </article>
-            <article class="multihop-answer" data-answer-slot="B">
-                <header>
-                    <span class="answer-label">Answer B</span>
-                    <span class="pipeline-reveal" hidden></span>
-                    <button class="health-badge multihop-health-badge" data-action="open-health-drawer" data-source="multihop" data-answer-slot="B" hidden>—</button>
-                </header>
-                <div class="answer-text"></div>
-                <footer>
-                    <span class="answer-latency"></span>
-                    <span class="answer-cost"></span>
-                    <span class="answer-tokens"></span>
-                </footer>
-            </article>
-            <article class="multihop-answer" data-answer-slot="C">
-                <header>
-                    <span class="answer-label">Answer C</span>
-                    <span class="pipeline-reveal" hidden></span>
-                    <button class="health-badge multihop-health-badge" data-action="open-health-drawer" data-source="multihop" data-answer-slot="C" hidden>—</button>
-                </header>
-                <div class="answer-text"></div>
-                <footer>
-                    <span class="answer-latency"></span>
-                    <span class="answer-cost"></span>
-                    <span class="answer-tokens"></span>
-                </footer>
-            </article>
-        </section>
-        <aside class="judge-verdict" id="judge-verdict" hidden>
-            <header><span class="judge-label">LLM-as-judge ranking</span><span class="judge-model">Gemini Flash 2.5 · blinded</span></header>
-            <ol class="judge-ranking"></ol>
-            <div class="judge-error" hidden></div>
-        </aside>
         <!-- Performance Delta — Pairwise Matrix -->
         <div id="diagnostic-scores" style="display:none;">
             <h3 style="color:#9B59B6; margin:0 0 12px 0; font-size:15px;">Pairwise Performance Delta</h3>
@@ -2650,6 +2894,8 @@ body {
 <script src="/static/js/intelligence.js"></script>
 <script src="/static/js/impact.js"></script>
 <script src="/static/js/compare-runner.js"></script>
+<script src="/static/js/scenario-a-runner.js"></script>
+<script src="/static/js/scenario-b-runner.js"></script>
 <div id="engine-version" class="engine-version" style="display:none;"></div>
 </body>
 </html>

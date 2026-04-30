@@ -1,0 +1,29 @@
+{
+  "scenario_id": "stelara_adverse_events_cohort_v5",
+  "ticker": "JNJ-Stelara",
+  "resolved_question": "In Centocor, Inc.'s Stelara trial (NCT00174785), which serious adverse events were reported in patients aged 65+, and how do their incidence rates compare to the overall trial population?",
+  "bindings": {
+    "company": "Johnson & Johnson",
+    "drug": "Stelara",
+    "sponsor": "Centocor, Inc.",
+    "trial_id": "NCT00174785"
+  },
+  "expected_answer": {
+    "summary": "Centocor's NCT00174785 (Stelara phase 3 in psoriasis) reports serious adverse events including infections, malignancies, and cardiovascular events. The trial typically does not stratify SAE incidence by age 65+ in its summary results — the demographic-stratified breakdown is in the full clinical study report (CSR), not the public ClinicalTrials.gov record. Answers grounded in the public record should hedge on the 65+ stratification specifically.",
+    "structured": [
+      {"adverse_event": "Serious infection", "age_bracket": "all ages (no 65+ stratification in public record)"},
+      {"adverse_event": "Malignancy", "age_bracket": "all ages (no 65+ stratification in public record)"},
+      {"adverse_event": "Major adverse cardiovascular event (MACE)", "age_bracket": "all ages (no 65+ stratification in public record)"}
+    ]
+  },
+  "key_fields": ["adverse_event", "age_bracket"],
+  "source_spans": [
+    {"section": "Adverse events module", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Outcomes module", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "medium",
+  "narrative_recovery": "The 65+ stratification is intentionally not in the public CTG record — the gold answer hedges on this. If paper-mirror returns 'no age-stratified data available; the CSR would contain it', that's the right answer. If a pane invents specific age-65+ incidence rates, that's a hallucination teaching moment.",
+  "notes": "DRAFT — CTO HITL pending. The three SAE categories (infection / malignancy / MACE) are well-documented for Stelara across the IL-23 inhibitor trial program. CTO review should confirm against the live CTG record for NCT00174785 and adjust the structured rows if specific incidence rates ARE published.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

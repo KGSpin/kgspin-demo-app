@@ -1,0 +1,130 @@
+# PRD-004 v5 Phase 5A — Scenario B templates.
+#
+# All templates reference {company} / {ticker} / {jurisdiction_filter} /
+# {sponsor} / {drug} / {trial_id} as VARIABLES. Hardcoded ticker
+# literals (JNJ, AAPL, etc.) are an anti-pattern here — they were
+# genericized during the 2026-04-27 multihop YAML migration. This file
+# adds the 5 Phase-5A fin templates and 1 clinical hedge.
+#
+# Schema (consumed by services/scenario_resolver.py):
+#   scenario_id:       unique key (snake_case)
+#   domain:            'fin' | 'clinical'
+#   question_template: free text with {placeholder} variables
+#   expected_hops:     int — number of section/entity crossings the
+#                      answer requires
+#   placeholders:      list[str] — required bindings for resolution
+#   key_fields:        list[str] — F1 set-of-tuples key, drives gold
+#                      fixture validation + the deterministic F1 score
+#   expected_difficulty: 'easy' | 'medium' | 'hard'
+#   talking_track:     demo-presenter copy (one paragraph, plain
+#                      English)
+#
+# Adding a template: append below; bump scenarios_v5_count in
+# tests/unit/test_scenario_resolver.py.
+
+scenarios:
+  - scenario_id: subsidiaries_litigation_jurisdiction
+    domain: fin
+    expected_hops: 3
+    expected_difficulty: hard
+    placeholders: [company]
+    key_fields: [subsidiary, jurisdiction]
+    question_template: |
+      Among {company}'s subsidiaries listed in Exhibit 21, which operate in
+      jurisdictions where {company} reports active litigation in Item 3?
+    talking_track: |
+      The classic three-section join: Exhibit 21 lists every subsidiary
+      with its incorporation jurisdiction; Item 3 lists active legal
+      proceedings with their venues. The answer requires intersecting two
+      lists from different parts of the same 10-K. Pure dense RAG
+      typically retrieves chunks from one section but not both; the
+      paper-mirror's dual-channel decomposition catches the join because
+      it explicitly retrieves entities AND their relations.
+
+  - scenario_id: neo_compensation_stock_awards
+    domain: fin
+    expected_hops: 2
+    expected_difficulty: medium
+    placeholders: [company, year]
+    key_fields: [executive, total_compensation]
+    question_template: |
+      Among {company}'s named executive officers in fiscal {year} whose total
+      compensation exceeded the median S&P 500 NEO threshold, how many had
+      stock awards as the largest single component of compensation?
+    talking_track: |
+      Item 11 / proxy compensation disclosure has the named-executive
+      compensation table. The question requires reading the table,
+      identifying each executive's largest comp component, and joining
+      against the S&P 500 NEO median (which is a market reference, not
+      in the doc — answers should hedge on this missing fact).
+
+  - scenario_id: segments_revenue_litigation_accrual
+    domain: fin
+    expected_hops: 2
+    expected_difficulty: medium
+    placeholders: [company]
+    key_fields: [segment, segment_revenue]
+    question_template: |
+      Which of {company}'s reportable operating segments have annual revenue
+      exceeding the largest single litigation accrual disclosed in the
+      contingencies note?
+    talking_track: |
+      Two-section join: segment revenue (segment reporting note) vs.
+      largest single litigation accrual (contingencies note). Both are
+      typically tabular; both have natural text mentions throughout MD&A.
+      Dense RAG hits the table cells; dual-channel adds the
+      relation-aware retrieval that confirms which accrual is the largest.
+
+  - scenario_id: supplier_concentration_ma_termination
+    domain: fin
+    expected_hops: 3
+    expected_difficulty: hard
+    placeholders: [company]
+    key_fields: [counterparty, contract_term]
+    question_template: |
+      Among {company}'s top supplier or customer concentrations disclosed in
+      MD&A, which carry termination or renegotiation rights triggered by
+      {company}'s ongoing M&A activity?
+    talking_track: |
+      Three-section join: MD&A concentration disclosures + footnote
+      contract terms + Item 7 / 8-K M&A activity. Often there's no
+      explicit cross-reference; the answer is "the counterparties whose
+      contracts have a change-of-control clause AND who are mentioned in
+      the active-M&A list". Hard for dense; better with relation-aware.
+
+  - scenario_id: warrants_options_proxy_executives
+    domain: fin
+    expected_hops: 3
+    expected_difficulty: hard
+    placeholders: [company]
+    key_fields: [executive, security_count]
+    question_template: |
+      What is the intersection of {company}'s outstanding warrants and stock
+      options (per the equity-securities footnote) and the named executives
+      mentioned in the proxy compensation discussion who hold those
+      securities?
+    talking_track: |
+      Equity securities footnote lists outstanding warrants/options;
+      proxy compensation discussion lists which executives hold which
+      securities. The intersection is the named executives whose
+      individual holdings are disclosed in both places. A genuinely
+      hard cross-section question.
+
+  # Clinical hedge — Phase 5A ships 1 clinical template + 1 gold key
+  # so clinical pitches in the next 2 weeks have at least one
+  # resolvable scenario. Phase 5B adds 4 more clinical templates.
+  - scenario_id: stelara_adverse_events_cohort_v5
+    domain: clinical
+    expected_hops: 2
+    expected_difficulty: medium
+    placeholders: [drug, sponsor, trial_id]
+    key_fields: [adverse_event, age_bracket]
+    question_template: |
+      In {sponsor}'s {drug} trial ({trial_id}), which serious adverse events
+      were reported in patients aged 65+, and how do their incidence rates
+      compare to the overall trial population?
+    talking_track: |
+      ClinicalTrials.gov + the trial's adverse-event reporting tables.
+      The age-bracket filter requires demographic-stratified data, which
+      isn't always disclosed in summary form — the answer often requires
+      reasoning over multiple result tables.

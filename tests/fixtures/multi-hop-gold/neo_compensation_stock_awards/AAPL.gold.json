@@ -1,0 +1,25 @@
+{
+  "scenario_id": "neo_compensation_stock_awards",
+  "ticker": "AAPL",
+  "resolved_question": "Among Apple Inc.'s named executive officers in fiscal 2025 whose total compensation exceeded the median S&P 500 NEO threshold, how many had stock awards as the largest single component of compensation?",
+  "bindings": {"company": "Apple Inc.", "year": "2025"},
+  "expected_answer": {
+    "summary": "All five Apple Inc. NEOs in the fiscal-2025 proxy (CEO Tim Cook, CFO Luca Maestri, COO Jeff Williams, GC Katherine Adams, SVP Retail+People Deirdre O'Brien) received total compensation well above any plausible S&P 500 NEO median. Of these, all five had stock-based awards (RSUs, performance-based RSUs) as the largest single comp component — Apple's NEO comp is overwhelmingly equity-weighted.",
+    "structured": [
+      {"executive": "Tim Cook", "total_compensation": "$99M (illustrative)"},
+      {"executive": "Luca Maestri", "total_compensation": "$27M (illustrative)"},
+      {"executive": "Jeff Williams", "total_compensation": "$27M (illustrative)"},
+      {"executive": "Katherine Adams", "total_compensation": "$27M (illustrative)"},
+      {"executive": "Deirdre O'Brien", "total_compensation": "$27M (illustrative)"}
+    ]
+  },
+  "key_fields": ["executive", "total_compensation"],
+  "source_spans": [
+    {"section": "Item 11 / proxy compensation table", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "medium",
+  "narrative_recovery": "S&P 500 NEO median isn't in the 10-K — answers should hedge on this missing fact (it's a market reference). If paper-mirror invents a specific number for the median, that's a teaching moment about hallucination risk; dense RAG also can't retrieve a fact that isn't in the doc.",
+  "notes": "DRAFT — CTO HITL pending. Compensation numbers above are illustrative-shape only; actual proxy compensation requires the live document. The 'all five' answer pattern is structurally correct for Apple given equity-heavy NEO compensation, but specific count should be verified against the 2025 proxy.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

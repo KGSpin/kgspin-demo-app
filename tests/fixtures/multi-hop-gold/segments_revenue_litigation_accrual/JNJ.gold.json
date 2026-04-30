@@ -1,0 +1,23 @@
+{
+  "scenario_id": "segments_revenue_litigation_accrual",
+  "ticker": "JNJ",
+  "resolved_question": "Which of Johnson & Johnson's reportable operating segments have annual revenue exceeding the largest single litigation accrual disclosed in the contingencies note?",
+  "bindings": {"company": "Johnson & Johnson"},
+  "expected_answer": {
+    "summary": "Johnson & Johnson's two reportable operating segments after the 2023 Kenvue spin (Innovative Medicine and MedTech) each have annual revenue exceeding $25 billion. The largest single litigation accrual JNJ discloses (typically the talc-products mass tort accrual, in the low billions) is approached by but does not exceed segment revenue for either of the two operating segments. Both segments qualify.",
+    "structured": [
+      {"segment": "Innovative Medicine", "segment_revenue": "$57B+ (illustrative)"},
+      {"segment": "MedTech", "segment_revenue": "$30B+ (illustrative)"}
+    ]
+  },
+  "key_fields": ["segment", "segment_revenue"],
+  "source_spans": [
+    {"section": "Segment reporting note", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Contingencies note", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "medium",
+  "narrative_recovery": "JNJ's talc accrual is in the low billions — closer to segment revenue than Apple's accrual is to its segments. If paper-mirror returns 'only Innovative Medicine qualifies' or 'neither', that's a teaching moment about whether the largest accrual was correctly identified (vs the sum of all accruals).",
+  "notes": "DRAFT — CTO HITL pending. Post-Kenvue the Consumer Health segment is gone; gold reflects the 2-segment structure. Talc accrual amounts vary year-over-year; the qualitative answer (both segments exceed) holds for typical fiscal years.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

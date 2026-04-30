@@ -1,0 +1,23 @@
+{
+  "scenario_id": "warrants_options_proxy_executives",
+  "ticker": "JNJ",
+  "resolved_question": "What is the intersection of Johnson & Johnson's outstanding warrants and stock options (per the equity-securities footnote) and the named executives mentioned in the proxy compensation discussion who hold those securities?",
+  "bindings": {"company": "Johnson & Johnson"},
+  "expected_answer": {
+    "summary": "Johnson & Johnson's equity securities footnote discloses outstanding stock options under the long-term incentive plan, which historically did issue options to executives (more than tech firms but less than financial firms). The 2025 proxy compensation discussion lists the NEOs' option holdings (where applicable) alongside RSU and PSU awards. The CEO and CFO typically have the largest individual option holdings. JNJ does not have outstanding public warrants.",
+    "structured": [
+      {"executive": "Joaquin Duato", "security_count": "options + PSUs (count illustrative)"},
+      {"executive": "Joseph Wolk", "security_count": "options + PSUs (count illustrative)"}
+    ]
+  },
+  "key_fields": ["executive", "security_count"],
+  "source_spans": [
+    {"section": "Equity securities footnote", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Proxy compensation discussion", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "hard",
+  "narrative_recovery": "JNJ's NEO option holdings are real but the specific counts vary year-over-year. If paper-mirror returns 'Joaquin Duato + options + PSUs' as the structured row, that's the right shape. If a pane invents specific share counts, the recovery line: 'paper-mirror caught the qualitative pattern — share counts are non-deterministic year-over-year.'",
+  "notes": "DRAFT — CTO HITL pending. The number of NEOs with option holdings + the specific share counts must come from the live 2025 proxy. Two NEOs is conservative; the actual answer could be all 5.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}
