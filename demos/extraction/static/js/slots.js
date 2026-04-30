@@ -932,18 +932,43 @@ function switchModalTab(tabName) {
     }
 }
 
-// Sprint 05 HITL-round-2: Why tab inside expand modal
+// PRD-004 v5 Phase 5A fixup-20260430 commit 2 — Why tab init.
+// Replaces the Sprint-05 HITL-r2 single-Q&A init. Populates the
+// graph-identity header (slot + pipeline + ticker) and delegates
+// the per-sub-tab setup to scenario-{a,b}-runner.js's init hooks.
 function initModalWhyTab(slotIdx) {
     const slot = slotState[slotIdx];
     const meta = slot ? PIPELINE_META[slot.pipeline] : null;
-    const labelEl = document.getElementById('modal-wtm-pipeline-label');
-    const input = document.getElementById('modal-wtm-question-input');
-    if (labelEl && meta) labelEl.textContent = meta.label;
-    // Seed default question if input is empty
-    if (input && !input.value.trim()) {
-        const domain = currentDomain || 'financial';
-        input.value = WTM_DEFAULT_QUESTIONS[domain] || WTM_DEFAULT_QUESTIONS.financial;
+
+    // Graph-identity header (per fixup F12 / VP-Prod S1).
+    const slotEl = document.getElementById('modal-why-slot-label');
+    if (slotEl) slotEl.textContent = `Slot ${slotIdx}`;
+    const pipelineEl = document.getElementById('modal-wtm-pipeline-label');
+    if (pipelineEl && meta) pipelineEl.textContent = meta.label;
+    const tickerEl = document.getElementById('modal-why-ticker-label');
+    if (tickerEl) {
+        const domain = (meta && meta.domain) || document.body.dataset.currentDomain || currentDomain || 'financial';
+        const ticker = (domain === 'clinical')
+            ? (document.getElementById('trial-select') || {}).value || ''
+            : ((document.getElementById('doc-id-input') || {}).value || '').trim().toUpperCase();
+        tickerEl.textContent = ticker || '(no ticker)';
     }
+
+    // Delegate to per-sub-tab runners.
+    if (typeof window.initModalScenarioA === 'function') window.initModalScenarioA();
+    if (typeof window.initModalScenarioB === 'function') window.initModalScenarioB();
+}
+
+// Why-tab sub-tab switcher (per fixup F1).
+function switchWhySubtab(name) {
+    const wrap = document.getElementById('modal-why-content');
+    if (!wrap) return;
+    wrap.querySelectorAll('.why-subtab').forEach(b => {
+        b.classList.toggle('active', b.dataset.whySubtab === name);
+    });
+    wrap.querySelectorAll('.why-subtab-content').forEach(c => {
+        c.classList.toggle('active', c.dataset.whySubtab === name);
+    });
 }
 
 function triggerModalWhyThisMatters() {
@@ -1430,6 +1455,7 @@ registerAction('run-slot', (el) => runSlot(+el.dataset.slot));
 registerAction('slot-prev-run', (el) => slotPrevRun(+el.dataset.slot));
 registerAction('slot-next-run', (el) => slotNextRun(+el.dataset.slot));
 registerAction('switch-modal-tab', (el) => switchModalTab(el.dataset.modalTab));
+registerAction('switch-why-subtab', (el) => switchWhySubtab(el.dataset.whySubtab));
 registerAction('filter-modal-data', () => filterModalData());
 registerAction('trigger-modal-why-this-matters', () => triggerModalWhyThisMatters());
 registerAction('run-modal-intelligence', () => runModalIntelligence());

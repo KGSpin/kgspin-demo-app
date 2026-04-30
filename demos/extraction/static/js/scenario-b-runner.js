@@ -1,150 +1,190 @@
-// scenario-b-runner.js — PRD-004 v5 Phase 5A deliverable I (part 2).
+// scenario-b-runner.js — PRD-004 v5 Phase 5A fixup-20260430 commit 2.
 //
-// Wires the Scenario B view to /api/scenario-b/* endpoints. The /run
-// endpoint streams SSE; we consume via fetch+ReadableStream so we
-// can POST a JSON body (EventSource is GET-only).
-//
-// State machine:
-//   Run → POST /api/scenario-b/run → consume `stage` events, terminal
-//         `all_done` event carries pane_outputs.
-//   Analyze → POST /api/scenario-b/analyze with the pane_outputs from
-//         the last run; render F1 + rationales + (optional)
-//         narrative_recovery.
-//   Show advanced → toggle [data-pane-mode] on .scenario-b-panes;
-//         reveal the tool-agent pane (Phase 5B preview).
-//   URL hash deep-link: /compare#scenario-b?template=...&ticker=...&autorun=1
-//         pre-selects the picker(s) and (optionally) clicks Run.
+// Modal-context-aware Multi-hop runner. Lives inside the per-graph
+// modal Why tab (Multi-hop sub-tab). Reads ticker + domain from the
+// active slot binding (no ticker picker, no domain picker — slot
+// owns both). Picker shows scenarios filtered to the slot's domain;
+// scaffold entries get a "(TBD)" suffix and disable Run when
+// selected (per fixup F5). SSE consumed via fetch+ReadableStream
+// so we can POST a JSON body (EventSource is GET-only).
 
 (function () {
     'use strict';
 
-    const TICKERS = [
-        { value: 'AAPL', label: 'AAPL — Apple Inc.', goldAvailable: true },
-        { value: 'AMD', label: 'AMD — Advanced Micro Devices', goldAvailable: false },
-        { value: 'GOOGL', label: 'GOOGL — Alphabet Inc.', goldAvailable: false },
-        { value: 'JNJ', label: 'JNJ — Johnson & Johnson', goldAvailable: true },
-        { value: 'MSFT', label: 'MSFT — Microsoft Corp.', goldAvailable: false },
-        { value: 'NVDA', label: 'NVDA — NVIDIA Corp.', goldAvailable: false },
-        { value: 'UNH', label: 'UNH — UnitedHealth Group', goldAvailable: false },
-        { value: 'JNJ-Stelara', label: 'JNJ-Stelara — Stelara trial', goldAvailable: true },
-    ];
-
-    const GOLD_TICKER_BY_SCENARIO = {
-        subsidiaries_litigation_jurisdiction: ['AAPL', 'JNJ'],
-        neo_compensation_stock_awards: ['AAPL', 'JNJ'],
-        segments_revenue_litigation_accrual: ['AAPL', 'JNJ'],
-        supplier_concentration_ma_termination: ['AAPL', 'JNJ'],
-        warrants_options_proxy_executives: ['AAPL', 'JNJ'],
-        stelara_adverse_events_cohort_v5: ['JNJ-Stelara'],
-    };
-
     const scenarioBState = {
         templates: [],
-        templateById: {},
+        templatesByScenarioId: {},
         selectedScenarioId: '',
-        selectedTicker: '',
         lastResolvedQuestion: '',
         lastPaneOutputs: null,
         showAdvanced: false,
+        lockedDomain: null,
     };
     window.scenarioBState = scenarioBState;
 
-    function setStatus(msg) {
-        const el = document.getElementById('scenario-b-status');
-        if (el) el.textContent = msg || '';
+    // ----- Slot context (mirrors scenario-a-runner.js) ---------------------
+
+    function getSlotDomain() {
+        if (typeof expandedSlot !== 'undefined' && expandedSlot !== null
+            && typeof slotState !== 'undefined' && slotState[expandedSlot]) {
+            const slot = slotState[expandedSlot];
+            const meta = (typeof PIPELINE_META !== 'undefined') ? PIPELINE_META[slot.pipeline] : null;
+            if (meta && meta.domain) return meta.domain;
+        }
+        return document.body.dataset.currentDomain
+            || (typeof currentDomain !== 'undefined' ? currentDomain : '')
+            || null;
     }
 
+    function getSlotTicker() {
+        const domain = getSlotDomain();
+        if (domain === 'clinical') {
+            const sel = document.getElementById('trial-select');
+            return (sel && sel.value) ? sel.value.trim() : '';
+        }
+        const input = document.getElementById('doc-id-input');
+        return (input && input.value) ? input.value.trim().toUpperCase() : '';
+    }
+
+    function setStatus(msg) {
+        const el = document.getElementById('modal-scenario-b-status');
+        if (el) el.textContent = msg || '';
+    }
     function setText(id, text) {
         const el = document.getElementById(id);
         if (el) el.textContent = text || '';
     }
 
-    function populateTickerPicker() {
-        const picker = document.getElementById('scenario-b-ticker-picker');
-        if (!picker) return;
-        picker.innerHTML = '<option value="">— Select ticker —</option>';
-        for (const t of TICKERS) {
-            const opt = document.createElement('option');
-            opt.value = t.value;
-            opt.textContent = t.label;
-            picker.appendChild(opt);
-        }
-    }
+    // ----- Templates fetch + domain-filter ---------------------------------
 
     async function fetchTemplates() {
         try {
             const res = await fetch('/api/scenario-b/templates');
             if (!res.ok) return;
-            const templates = await res.json();
-            scenarioBState.templates = templates;
-            scenarioBState.templateById = Object.fromEntries(templates.map(t => [t.scenario_id, t]));
-            const picker = document.getElementById('scenario-b-template-picker');
-            if (!picker) return;
-            picker.innerHTML = '<option value="">— Select scenario —</option>';
-            for (const t of templates) {
-                const opt = document.createElement('option');
-                opt.value = t.scenario_id;
-                const hopBadge = t.expected_hops ? ` · ${t.expected_hops}-hop` : '';
-                opt.textContent = `[${t.domain}/${t.expected_difficulty}${hopBadge}] ${t.scenario_id}`;
-                picker.appendChild(opt);
+            const all = await res.json();
+            scenarioBState.templates = all;
+            scenarioBState.templatesByScenarioId = Object.fromEntries(
+                all.map(t => [t.scenario_id, t])
+            );
+            // Share the template index with the Single-shot sub-tab's
+            // runner so its picker prefill works without a second fetch.
+            if (window.scenarioAState) {
+                window.scenarioAState.templatesByScenarioId =
+                    scenarioBState.templatesByScenarioId;
             }
         } catch (e) {
             console.warn('[scenario-b] template fetch failed:', e);
         }
     }
 
-    function updateGoldBadge() {
-        const goldBadge = document.getElementById('scenario-b-gold-badge');
-        const noGoldBadge = document.getElementById('scenario-b-no-gold-badge');
-        if (!goldBadge || !noGoldBadge) return;
-        const sid = scenarioBState.selectedScenarioId;
-        const ticker = scenarioBState.selectedTicker;
-        if (!sid || !ticker) {
-            goldBadge.hidden = true;
-            noGoldBadge.hidden = true;
-            return;
-        }
-        const goldTickers = GOLD_TICKER_BY_SCENARIO[sid] || [];
-        const hasGold = goldTickers.includes(ticker);
-        goldBadge.hidden = !hasGold;
-        noGoldBadge.hidden = hasGold;
+    function populatePickers() {
+        const slotDomain = scenarioBState.lockedDomain;
+        // Map domain casing: PIPELINE_META uses 'financial'/'clinical';
+        // template YAML uses 'fin'/'clinical'. Normalize.
+        const wantDomain = (slotDomain === 'clinical') ? 'clinical' : 'fin';
+
+        const filtered = scenarioBState.templates.filter(t => t.domain === wantDomain);
+
+        const populate = (pickerId, leadOption) => {
+            const picker = document.getElementById(pickerId);
+            if (!picker) return;
+            picker.innerHTML = `<option value="">${leadOption}</option>`;
+            for (const t of filtered) {
+                const opt = document.createElement('option');
+                opt.value = t.scenario_id;
+                const isScaffold = (t.status === 'scaffold');
+                const tbdSuffix = isScaffold ? '   (TBD)' : '';
+                const hopBadge = t.expected_hops ? ` · ${t.expected_hops}-hop` : '';
+                const label = `[${t.expected_difficulty}${hopBadge}] ${prettyId(t.scenario_id)}${tbdSuffix}`;
+                opt.textContent = label;
+                opt.dataset.status = t.status || 'ready';
+                picker.appendChild(opt);
+            }
+        };
+
+        // Multi-hop sub-tab picker.
+        populate('modal-scenario-b-template-picker', '— Pick a scenario —');
+        // Single-shot sub-tab picker (same templates, prefill into textarea).
+        populate('modal-scenario-a-template-picker', '— Pick a templated scenario (optional) —');
     }
 
-    function refreshResolvedQuestion() {
-        const sid = scenarioBState.selectedScenarioId;
-        const ticker = scenarioBState.selectedTicker;
-        const wrap = document.getElementById('scenario-b-resolved-question');
-        const text = document.getElementById('scenario-b-question-text');
-        if (!sid || !ticker || !text || !wrap) {
+    function prettyId(scenario_id) {
+        return scenario_id.replace(/_/g, ' ').replace(/\bv5\b/g, '');
+    }
+
+    // ----- Picker change + Run-disable on scaffold -------------------------
+
+    function onTemplatePicked(el) {
+        const sid = el.value || '';
+        scenarioBState.selectedScenarioId = sid;
+        const tpl = scenarioBState.templatesByScenarioId[sid];
+        const wrap = document.getElementById('modal-scenario-b-resolved-question');
+        const text = document.getElementById('modal-scenario-b-question-text');
+        const goldBadge = document.getElementById('modal-scenario-b-gold-badge');
+        const noGoldBadge = document.getElementById('modal-scenario-b-no-gold-badge');
+        const runBtn = document.getElementById('modal-scenario-b-run-btn');
+
+        if (!tpl) {
             if (wrap) wrap.hidden = true;
+            if (runBtn) runBtn.disabled = false;
+            setStatus('');
             return;
         }
-        // Render the template's raw question_template as a preview;
-        // backend resolves it during /run. Best-effort placeholder
-        // substitution for the preview.
-        const tpl = scenarioBState.templateById[sid];
-        if (!tpl) { wrap.hidden = true; return; }
-        let preview = tpl.question_template;
+
+        // Render the resolved-question preview using the slot's ticker.
+        if (text) text.textContent = renderTemplatePreview(tpl);
+        if (wrap) wrap.hidden = false;
+
+        // Scaffold entries — disable Run + show helper-text.
+        if (tpl.status === 'scaffold') {
+            if (runBtn) runBtn.disabled = true;
+            setStatus('Scenario design pending — clinical v0 in progress.');
+            if (goldBadge) goldBadge.hidden = true;
+            if (noGoldBadge) noGoldBadge.hidden = true;
+            return;
+        }
+
+        if (runBtn) runBtn.disabled = false;
+        setStatus('');
+        // Gold-availability badges: simple lookup by (scenario_id, ticker).
+        const ticker = getSlotTicker();
+        const hasGold = goldAvailableFor(sid, ticker);
+        if (goldBadge) goldBadge.hidden = !hasGold;
+        if (noGoldBadge) noGoldBadge.hidden = hasGold;
+    }
+
+    function renderTemplatePreview(tpl) {
+        const ticker = getSlotTicker() || '{ticker}';
         const tickerToCompany = {
             AAPL: 'Apple Inc.', AMD: 'Advanced Micro Devices, Inc.',
             GOOGL: 'Alphabet Inc.', JNJ: 'Johnson & Johnson',
             MSFT: 'Microsoft Corporation', NVDA: 'NVIDIA Corporation',
             UNH: 'UnitedHealth Group', 'JNJ-Stelara': 'Johnson & Johnson',
         };
+        let preview = (tpl.question_template || '').toString();
         preview = preview.replace(/\{company\}/g, tickerToCompany[ticker] || ticker);
         preview = preview.replace(/\{ticker\}/g, ticker);
         preview = preview.replace(/\{year\}/g, '2025');
         preview = preview.replace(/\{drug\}/g, 'Stelara');
         preview = preview.replace(/\{sponsor\}/g, 'Centocor, Inc.');
         preview = preview.replace(/\{trial_id\}/g, 'NCT00174785');
-        preview = preview.replace(/\s+/g, ' ').trim();
-        text.textContent = preview;
-        wrap.hidden = false;
-        updateGoldBadge();
+        return preview.replace(/\s+/g, ' ').trim();
     }
 
+    function goldAvailableFor(scenarioId, ticker) {
+        const FIN_GOLD = ['AAPL', 'JNJ'];
+        const CLINICAL_GOLD = { stelara_adverse_events_cohort_v5: ['JNJ-Stelara'] };
+        if (CLINICAL_GOLD[scenarioId]) return CLINICAL_GOLD[scenarioId].includes(ticker);
+        return FIN_GOLD.includes(ticker);
+    }
+
+    // ----- SSE consumption + Run / Analyze ---------------------------------
+
     function appendStagePill(paneName, stageLabel, status) {
-        const map = { agentic_dense: 'scenario-b-agentic-progress', paper_mirror: 'scenario-b-paper-progress' };
+        const map = {
+            agentic_dense: 'modal-scenario-b-agentic-progress',
+            paper_mirror: 'modal-scenario-b-paper-progress',
+        };
         const containerId = map[paneName];
         if (!containerId) return;
         const container = document.getElementById(containerId);
@@ -156,7 +196,7 @@
     }
 
     function clearProgress() {
-        for (const id of ['scenario-b-agentic-progress', 'scenario-b-paper-progress']) {
+        for (const id of ['modal-scenario-b-agentic-progress', 'modal-scenario-b-paper-progress']) {
             const c = document.getElementById(id);
             if (c) c.innerHTML = '';
         }
@@ -165,21 +205,21 @@
     function renderPaneOutputs(paneOutputs) {
         if (paneOutputs.agentic_dense) {
             const a = paneOutputs.agentic_dense;
-            setText('scenario-b-agentic-answer', a.final_answer);
+            setText('modal-scenario-b-agentic-answer', a.final_answer);
             const trace = (a.decomposition_trace || []).map((q, i) => `${i + 1}. ${q}`).join('\n');
-            setText('scenario-b-agentic-trace', trace);
+            setText('modal-scenario-b-agentic-trace', trace);
         }
         if (paneOutputs.paper_mirror) {
             const p = paneOutputs.paper_mirror;
-            setText('scenario-b-paper-answer', p.final_answer);
-            const text_history = (p.retrieval_history?.text_channel || [])
+            setText('modal-scenario-b-paper-answer', p.final_answer);
+            const text_history = (p.retrieval_history && p.retrieval_history.text_channel || [])
                 .map((s, i) => `Sub-query ${i + 1}: ${s.sub_query}\nAnswer: ${s.answer}`)
                 .join('\n\n');
-            setText('scenario-b-paper-text-history', text_history);
-            const kg_history = (p.retrieval_history?.kg_channel || [])
+            setText('modal-scenario-b-paper-text-history', text_history);
+            const kg_history = (p.retrieval_history && p.retrieval_history.kg_channel || [])
                 .map((s, i) => `Sub-query ${i + 1}: ${s.sub_query}\nAnswer: ${s.answer}`)
                 .join('\n\n');
-            setText('scenario-b-paper-kg-history', kg_history);
+            setText('modal-scenario-b-paper-kg-history', kg_history);
         }
     }
 
@@ -191,7 +231,6 @@
             const { value, done } = await reader.read();
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
-            // Parse SSE message frames separated by blank lines.
             let idx;
             while ((idx = buffer.indexOf('\n\n')) >= 0) {
                 const frame = buffer.slice(0, idx);
@@ -203,11 +242,8 @@
                     else if (line.startsWith('data:')) data += line.slice(5).trim();
                 }
                 if (event && data) {
-                    try {
-                        onEvent(event, JSON.parse(data));
-                    } catch (e) {
-                        console.warn('[scenario-b] SSE parse failed:', e, frame);
-                    }
+                    try { onEvent(event, JSON.parse(data)); }
+                    catch (e) { console.warn('[scenario-b] SSE parse failed:', e, frame); }
                 }
             }
         }
@@ -215,18 +251,28 @@
 
     async function runScenarioB() {
         const sid = scenarioBState.selectedScenarioId;
-        const ticker = scenarioBState.selectedTicker;
+        const ticker = getSlotTicker();
         if (!sid || !ticker) {
-            setStatus('Select scenario and ticker first.');
+            setStatus('Pick a scenario first.');
             return;
         }
-        const runBtn = document.getElementById('scenario-b-run-btn');
-        const analyzeBtn = document.getElementById('scenario-b-analyze-btn');
+        // Scaffold guard (also fires when Run was somehow not disabled).
+        const tpl = scenarioBState.templatesByScenarioId[sid];
+        if (tpl && tpl.status === 'scaffold') {
+            setStatus('Scenario design pending — clinical v0 in progress.');
+            return;
+        }
+        const runBtn = document.getElementById('modal-scenario-b-run-btn');
+        const analyzeBtn = document.getElementById('modal-scenario-b-analyze-btn');
+        const placeholder = document.getElementById('modal-scenario-b-placeholder');
+        const verdict = document.getElementById('modal-scenario-b-verdict');
         if (runBtn) runBtn.disabled = true;
-        if (analyzeBtn) analyzeBtn.hidden = true;
+        if (analyzeBtn) analyzeBtn.disabled = true;
+        if (verdict) verdict.hidden = true;
+        if (placeholder) placeholder.hidden = false;
         clearProgress();
-        setText('scenario-b-agentic-answer', '—');
-        setText('scenario-b-paper-answer', '—');
+        setText('modal-scenario-b-agentic-answer', '—');
+        setText('modal-scenario-b-paper-answer', '—');
         setStatus('Running both panes…');
 
         const panes = ['agentic_dense', 'paper_mirror'];
@@ -254,7 +300,7 @@
                     scenarioBState.lastResolvedQuestion = payload.resolved_question || '';
                     scenarioBState.lastPaneOutputs = payload.pane_outputs || {};
                     renderPaneOutputs(scenarioBState.lastPaneOutputs);
-                    if (analyzeBtn) analyzeBtn.hidden = false;
+                    if (analyzeBtn) analyzeBtn.disabled = false;
                     setStatus('Done.');
                 } else if (eventName === 'error') {
                     setStatus(`Error: ${payload.message || ''}`);
@@ -269,7 +315,7 @@
 
     async function analyzeScenarioB() {
         const sid = scenarioBState.selectedScenarioId;
-        const ticker = scenarioBState.selectedTicker;
+        const ticker = getSlotTicker();
         const paneOutputs = scenarioBState.lastPaneOutputs;
         if (!sid || !ticker || !paneOutputs) {
             setStatus('Run a scenario first.');
@@ -280,21 +326,18 @@
             const res = await fetch('/api/scenario-b/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    scenario_id: sid,
-                    ticker,
-                    pane_outputs: paneOutputs,
-                }),
+                body: JSON.stringify({ scenario_id: sid, ticker, pane_outputs: paneOutputs }),
             });
             const data = await res.json();
             if (!res.ok || data.error) {
                 setStatus(`Analyze error: ${data.error || res.status}`);
                 return;
             }
-            const verdict = document.getElementById('scenario-b-verdict');
-            const f1Block = document.getElementById('scenario-b-f1-block');
-            const rationaleBlock = document.getElementById('scenario-b-rationale-block');
-            const recovery = document.getElementById('scenario-b-recovery');
+            const placeholder = document.getElementById('modal-scenario-b-placeholder');
+            const verdict = document.getElementById('modal-scenario-b-verdict');
+            const f1Block = document.getElementById('modal-scenario-b-f1-block');
+            const rationaleBlock = document.getElementById('modal-scenario-b-rationale-block');
+            const recovery = document.getElementById('modal-scenario-b-recovery');
 
             const f1Per = data.f1_per_pane || {};
             if (f1Block) {
@@ -333,6 +376,7 @@
                     recovery.hidden = true;
                 }
             }
+            if (placeholder) placeholder.hidden = true;
             if (verdict) verdict.hidden = false;
             setStatus('Done.');
         } catch (e) {
@@ -342,83 +386,65 @@
 
     function showAdvanced() {
         scenarioBState.showAdvanced = true;
-        const panes = document.getElementById('scenario-b-panes');
+        const panes = document.getElementById('modal-scenario-b-panes');
         if (panes) panes.dataset.paneMode = 'three';
-        document.querySelectorAll('.scenario-b-panes [data-pane-name="tool_agent"]').forEach(el => {
+        document.querySelectorAll('#modal-scenario-b-panes [data-pane-name="tool_agent"]').forEach(el => {
             el.hidden = false;
         });
-        const btn = document.getElementById('scenario-b-show-advanced-btn');
+        const btn = document.getElementById('modal-scenario-b-show-advanced-btn');
         if (btn) btn.hidden = true;
     }
 
-    // URL hash deep-link: /compare#scenario-b?template=...&ticker=...&autorun=1
-    function applyHashDeepLink() {
-        const hash = window.location.hash;
-        if (!hash.startsWith('#scenario-b')) return;
-        const qs = hash.indexOf('?');
-        if (qs < 0) return;
-        const params = new URLSearchParams(hash.slice(qs + 1));
-        const tpl = params.get('template');
-        const ticker = params.get('ticker');
-        const autorun = params.get('autorun') === '1';
+    // ----- Modal Why-tab init (called by slots.js switchModalTab) ----------
 
-        if (tpl) {
-            const picker = document.getElementById('scenario-b-template-picker');
-            if (picker) picker.value = tpl;
-            scenarioBState.selectedScenarioId = tpl;
-        }
-        if (ticker) {
-            const picker = document.getElementById('scenario-b-ticker-picker');
-            if (picker) picker.value = ticker;
-            scenarioBState.selectedTicker = ticker;
-        }
-        refreshResolvedQuestion();
-        if (autorun) {
-            // 200ms delay so the user sees the form auto-fill (per VP-Prod #2).
-            setTimeout(runScenarioB, 200);
-        }
-    }
+    window.initModalScenarioB = async function initModalScenarioB() {
+        const ticker = getSlotTicker();
+        const domain = getSlotDomain();
+        scenarioBState.lockedDomain = domain;
+        scenarioBState.selectedScenarioId = '';
+        scenarioBState.lastPaneOutputs = null;
 
-    // Picker change handlers (Wave-E delegation: the radio is data-change-action).
+        clearProgress();
+        setText('modal-scenario-b-agentic-answer', '—');
+        setText('modal-scenario-b-paper-answer', '—');
+        const placeholder = document.getElementById('modal-scenario-b-placeholder');
+        const verdict = document.getElementById('modal-scenario-b-verdict');
+        if (placeholder) placeholder.hidden = false;
+        if (verdict) verdict.hidden = true;
+        const analyzeBtn = document.getElementById('modal-scenario-b-analyze-btn');
+        if (analyzeBtn) analyzeBtn.disabled = true;
+        const wrap = document.getElementById('modal-scenario-b-resolved-question');
+        if (wrap) wrap.hidden = true;
+
+        if (!ticker || !domain) {
+            setStatus('No slot context — close and re-expand a slot from the page above.');
+            const runBtn = document.getElementById('modal-scenario-b-run-btn');
+            if (runBtn) runBtn.disabled = true;
+            return;
+        }
+        setStatus('');
+
+        // Lazy-fetch templates (cached on first call).
+        if (scenarioBState.templates.length === 0) {
+            await fetchTemplates();
+        }
+        populatePickers();
+    };
+
+    // Picker change handler.
     if (typeof registerChangeAction === 'function') {
-        registerChangeAction('scenario-b-template-picker', (el) => {
-            scenarioBState.selectedScenarioId = el.value || '';
-            refreshResolvedQuestion();
-        });
-        registerChangeAction('scenario-b-ticker-picker', (el) => {
-            scenarioBState.selectedTicker = el.value || '';
-            refreshResolvedQuestion();
-        });
+        registerChangeAction('modal-scenario-b-template-picker', (el) => onTemplatePicked(el));
     } else {
-        // Fallback wiring if registerChangeAction isn't available.
         document.addEventListener('change', (e) => {
-            const t = e.target;
-            if (!t) return;
-            if (t.id === 'scenario-b-template-picker') {
-                scenarioBState.selectedScenarioId = t.value || '';
-                refreshResolvedQuestion();
-            } else if (t.id === 'scenario-b-ticker-picker') {
-                scenarioBState.selectedTicker = t.value || '';
-                refreshResolvedQuestion();
+            if (e.target && e.target.id === 'modal-scenario-b-template-picker') {
+                onTemplatePicked(e.target);
             }
         });
     }
 
     if (typeof registerAction === 'function') {
-        registerAction('scenario-b-run', () => runScenarioB());
-        registerAction('scenario-b-analyze', () => analyzeScenarioB());
-        registerAction('scenario-b-show-advanced', () => showAdvanced());
-    }
-
-    async function init() {
-        populateTickerPicker();
-        await fetchTemplates();
-        applyHashDeepLink();
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+        registerAction('modal-scenario-b-run', () => runScenarioB());
+        registerAction('modal-scenario-b-analyze', () => analyzeScenarioB());
+        registerAction('modal-scenario-b-show-advanced', () => showAdvanced());
     }
 })();
