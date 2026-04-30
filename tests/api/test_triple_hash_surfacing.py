@@ -41,16 +41,16 @@ def test_extraction_metadata_field_order_pinned():
     from kgspin_demo_app.api.server import ExtractionMetadata
 
     m = ExtractionMetadata(
-        pipeline_version_hash="aaa",
-        bundle_version_hash="bbb",
-        installation_version_hash="ccc",
+        core_code_hash="aaa",
+        bundle_yaml_hash="bbb",
+        installation_yaml_hash="ccc",
     )
     keys = list(m.model_dump().keys())
     assert keys == [
         "schema_version",
-        "pipeline_version_hash",
-        "bundle_version_hash",
-        "installation_version_hash",
+        "core_code_hash",
+        "bundle_yaml_hash",
+        "installation_yaml_hash",
     ]
 
 
@@ -70,14 +70,14 @@ def test_build_extraction_metadata_normalizes_empty_strings_to_none():
     from kgspin_demo_app.api.server import _build_extraction_metadata
 
     provenance = SimpleNamespace(
-        pipeline_version_hash="",
-        bundle_version_hash="",
-        installation_version_hash="",
+        core_code_hash="",
+        bundle_yaml_hash="",
+        installation_yaml_hash="",
     )
     meta = _build_extraction_metadata(provenance)
-    assert meta.pipeline_version_hash is None
-    assert meta.bundle_version_hash is None
-    assert meta.installation_version_hash is None
+    assert meta.core_code_hash is None
+    assert meta.bundle_yaml_hash is None
+    assert meta.installation_yaml_hash is None
 
 
 def test_build_extraction_metadata_passes_through_real_hashes():
@@ -85,14 +85,32 @@ def test_build_extraction_metadata_passes_through_real_hashes():
     from kgspin_demo_app.api.server import _build_extraction_metadata
 
     provenance = SimpleNamespace(
-        pipeline_version_hash="00d9b544577a7abc",
-        bundle_version_hash="5e96a76e7715f5b8",
-        installation_version_hash="abc123def4567890",
+        core_code_hash="00d9b544577a7abc",
+        bundle_yaml_hash="5e96a76e7715f5b8",
+        installation_yaml_hash="abc123def4567890",
     )
     meta = _build_extraction_metadata(provenance)
-    assert meta.pipeline_version_hash == "00d9b544577a7abc"
-    assert meta.bundle_version_hash == "5e96a76e7715f5b8"
-    assert meta.installation_version_hash == "abc123def4567890"
+    assert meta.core_code_hash == "00d9b544577a7abc"
+    assert meta.bundle_yaml_hash == "5e96a76e7715f5b8"
+    assert meta.installation_yaml_hash == "abc123def4567890"
+
+
+def test_build_extraction_metadata_falls_back_to_legacy_names():
+    """While Sprint A1 migrates kgspin-core's ``Provenance`` dataclass
+    to the new ``ExtractionProvenance`` shape, this consumer reads
+    legacy attribute names as a fallback so the migration window
+    doesn't drop the wire values to ``None``."""
+    from kgspin_demo_app.api.server import _build_extraction_metadata
+
+    provenance = SimpleNamespace(
+        pipeline_version_hash="legacy-pip",
+        bundle_version_hash="legacy-bnd",
+        installation_version_hash="legacy-ins",
+    )
+    meta = _build_extraction_metadata(provenance)
+    assert meta.core_code_hash == "legacy-pip"
+    assert meta.bundle_yaml_hash == "legacy-bnd"
+    assert meta.installation_yaml_hash == "legacy-ins"
 
 
 def test_relationship_response_carries_extraction_metadata_field():
@@ -139,18 +157,18 @@ def test_mcp_extraction_metadata_dict_field_order_matches_api():
     from kgspin_demo_app.mcp_server import _extraction_metadata_dict
 
     provenance = SimpleNamespace(
-        pipeline_version_hash="aaa",
-        bundle_version_hash="bbb",
-        installation_version_hash="ccc",
+        core_code_hash="aaa",
+        bundle_yaml_hash="bbb",
+        installation_yaml_hash="ccc",
     )
     meta = _extraction_metadata_dict(provenance)
     assert list(meta.keys()) == [
         "schema_version",
-        "pipeline_version_hash",
-        "bundle_version_hash",
-        "installation_version_hash",
+        "core_code_hash",
+        "bundle_yaml_hash",
+        "installation_yaml_hash",
     ]
-    assert meta["pipeline_version_hash"] == "aaa"
+    assert meta["core_code_hash"] == "aaa"
 
 
 def test_mcp_extraction_metadata_dict_normalizes_missing_attrs_to_none():
@@ -160,9 +178,9 @@ def test_mcp_extraction_metadata_dict_normalizes_missing_attrs_to_none():
 
     provenance = SimpleNamespace()
     meta = _extraction_metadata_dict(provenance)
-    assert meta["pipeline_version_hash"] is None
-    assert meta["bundle_version_hash"] is None
-    assert meta["installation_version_hash"] is None
+    assert meta["core_code_hash"] is None
+    assert meta["bundle_yaml_hash"] is None
+    assert meta["installation_yaml_hash"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -183,27 +201,48 @@ def test_cached_runs_pre_phase_2_fallback_for_legacy_runs():
         }
     }
     meta = _extraction_metadata_from_kg(legacy_kg)
-    assert meta["pipeline_version_hash"] == "<pre-Phase-2>"
-    assert meta["bundle_version_hash"] == "<pre-Phase-2>"
-    assert meta["installation_version_hash"] == "<pre-Phase-2>"
+    assert meta["core_code_hash"] == "<pre-Phase-2>"
+    assert meta["bundle_yaml_hash"] == "<pre-Phase-2>"
+    assert meta["installation_yaml_hash"] == "<pre-Phase-2>"
 
 
 def test_cached_runs_passes_real_triple_through():
     """Post-Phase-2 cached run carries the triple in provenance —
-    pass through verbatim."""
+    pass through verbatim. Cached files written under the new shape
+    use canonical names directly."""
     from demos.extraction.routes.runs import _extraction_metadata_from_kg
 
     live_kg = {
         "provenance": {
-            "pipeline_version_hash": "pip-hash-1",
-            "bundle_version_hash": "bnd-hash-1",
-            "installation_version_hash": "ins-hash-1",
+            "core_code_hash": "pip-hash-1",
+            "bundle_yaml_hash": "bnd-hash-1",
+            "installation_yaml_hash": "ins-hash-1",
         }
     }
     meta = _extraction_metadata_from_kg(live_kg)
-    assert meta["pipeline_version_hash"] == "pip-hash-1"
-    assert meta["bundle_version_hash"] == "bnd-hash-1"
-    assert meta["installation_version_hash"] == "ins-hash-1"
+    assert meta["core_code_hash"] == "pip-hash-1"
+    assert meta["bundle_yaml_hash"] == "bnd-hash-1"
+    assert meta["installation_yaml_hash"] == "ins-hash-1"
+
+
+def test_cached_runs_falls_back_to_legacy_field_names():
+    """Cached run JSON written before
+    sprint-domain-model-contracts-20260430 carries the legacy field
+    names. Read them as a fallback so old cached runs still surface
+    their hashes (no data migration)."""
+    from demos.extraction.routes.runs import _extraction_metadata_from_kg
+
+    legacy_kg = {
+        "provenance": {
+            "pipeline_version_hash": "pip-legacy",
+            "bundle_version_hash": "bnd-legacy",
+            "installation_version_hash": "ins-legacy",
+        }
+    }
+    meta = _extraction_metadata_from_kg(legacy_kg)
+    assert meta["core_code_hash"] == "pip-legacy"
+    assert meta["bundle_yaml_hash"] == "bnd-legacy"
+    assert meta["installation_yaml_hash"] == "ins-legacy"
 
 
 def test_cached_runs_empty_string_in_provenance_falls_back_to_pre_phase_2():
@@ -213,15 +252,15 @@ def test_cached_runs_empty_string_in_provenance_falls_back_to_pre_phase_2():
 
     drift_kg = {
         "provenance": {
-            "pipeline_version_hash": "",
-            "bundle_version_hash": "",
-            "installation_version_hash": "",
+            "core_code_hash": "",
+            "bundle_yaml_hash": "",
+            "installation_yaml_hash": "",
         }
     }
     meta = _extraction_metadata_from_kg(drift_kg)
-    assert meta["pipeline_version_hash"] == "<pre-Phase-2>"
-    assert meta["bundle_version_hash"] == "<pre-Phase-2>"
-    assert meta["installation_version_hash"] == "<pre-Phase-2>"
+    assert meta["core_code_hash"] == "<pre-Phase-2>"
+    assert meta["bundle_yaml_hash"] == "<pre-Phase-2>"
+    assert meta["installation_yaml_hash"] == "<pre-Phase-2>"
 
 
 # ---------------------------------------------------------------------------
@@ -233,9 +272,9 @@ def _fake_extraction_result(pipeline="pip", bundle="bnd", install="ins"):
     """Build a minimal ExtractionResult-shaped namespace that the
     replay endpoint can lift the triple from."""
     provenance = SimpleNamespace(
-        pipeline_version_hash=pipeline,
-        bundle_version_hash=bundle,
-        installation_version_hash=install,
+        core_code_hash=pipeline,
+        bundle_yaml_hash=bundle,
+        installation_yaml_hash=install,
     )
     return SimpleNamespace(
         entities=[],
@@ -284,16 +323,16 @@ def test_replay_endpoint_returns_200_on_triple_match(replay_app):
         json={
             "text": "doc body",
             "source_document": "test-doc",
-            "pipeline_version_hash": "pip",
-            "bundle_version_hash": "bnd",
-            "installation_version_hash": "ins",
+            "core_code_hash": "pip",
+            "bundle_yaml_hash": "bnd",
+            "installation_yaml_hash": "ins",
         },
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert body["extraction_metadata"]["pipeline_version_hash"] == "pip"
-    assert body["extraction_metadata"]["bundle_version_hash"] == "bnd"
-    assert body["extraction_metadata"]["installation_version_hash"] == "ins"
+    assert body["extraction_metadata"]["core_code_hash"] == "pip"
+    assert body["extraction_metadata"]["bundle_yaml_hash"] == "bnd"
+    assert body["extraction_metadata"]["installation_yaml_hash"] == "ins"
 
 
 def test_replay_endpoint_409_on_pipeline_mismatch_with_installed_echo(replay_app):
@@ -305,16 +344,16 @@ def test_replay_endpoint_409_on_pipeline_mismatch_with_installed_echo(replay_app
         json={
             "text": "doc body",
             "source_document": "test-doc",
-            "pipeline_version_hash": "pip-old",  # mismatch
-            "bundle_version_hash": "bnd",
-            "installation_version_hash": "ins",
+            "core_code_hash": "pip-old",  # mismatch
+            "bundle_yaml_hash": "bnd",
+            "installation_yaml_hash": "ins",
         },
     )
     assert resp.status_code == 409, resp.text
     detail = resp.json()["detail"]
     assert detail["error"] == "triple_hash_mismatch"
-    assert detail["requested"]["pipeline_version_hash"] == "pip-old"
-    assert detail["installed"]["pipeline_version_hash"] == "pip"
+    assert detail["requested"]["core_code_hash"] == "pip-old"
+    assert detail["installed"]["core_code_hash"] == "pip"
 
 
 def test_replay_endpoint_409_on_bundle_mismatch(replay_app):
@@ -323,9 +362,9 @@ def test_replay_endpoint_409_on_bundle_mismatch(replay_app):
         json={
             "text": "doc body",
             "source_document": "test-doc",
-            "pipeline_version_hash": "pip",
-            "bundle_version_hash": "bnd-old",  # mismatch
-            "installation_version_hash": "ins",
+            "core_code_hash": "pip",
+            "bundle_yaml_hash": "bnd-old",  # mismatch
+            "installation_yaml_hash": "ins",
         },
     )
     assert resp.status_code == 409
@@ -337,9 +376,9 @@ def test_replay_endpoint_409_on_installation_mismatch(replay_app):
         json={
             "text": "doc body",
             "source_document": "test-doc",
-            "pipeline_version_hash": "pip",
-            "bundle_version_hash": "bnd",
-            "installation_version_hash": "ins-old",  # mismatch
+            "core_code_hash": "pip",
+            "bundle_yaml_hash": "bnd",
+            "installation_yaml_hash": "ins-old",  # mismatch
         },
     )
     assert resp.status_code == 409

@@ -65,24 +65,36 @@ class ExtractionMetadata(BaseModel):
     preserves declaration order). Any of the hash fields may be ``None``
     on legacy paths or when admin is unreachable; the customer-facing
     doc explains the semantics.
+
+    Field names follow the canonical kgspin-interface
+    ``ExtractionProvenance`` naming (renamed in
+    sprint-domain-model-contracts-20260430): ``core_code_hash`` /
+    ``bundle_yaml_hash`` / ``installation_yaml_hash``.
     """
     schema_version: int = Field(
         default=INSTALLATION_CONFIG_SCHEMA_V1,
         description="kgspin-interface InstallationConfig schema version",
     )
-    pipeline_version_hash: Optional[str] = Field(
-        None, description="pipeline version (kgspin-core git commit + interface schema)"
+    core_code_hash: Optional[str] = Field(
+        None, description="kgspin-core git commit hash"
     )
-    bundle_version_hash: Optional[str] = Field(
-        None, description="domain bundle version (canonical bundle YAML hash)"
+    bundle_yaml_hash: Optional[str] = Field(
+        None, description="canonicalized BUNDLE YAML content hash"
     )
-    installation_version_hash: Optional[str] = Field(
-        None, description="deployment configuration version (admin InstallationConfig hash)"
+    installation_yaml_hash: Optional[str] = Field(
+        None, description="canonicalized INSTALLATION YAML content hash"
     )
 
 
 def _build_extraction_metadata(provenance: Any) -> ExtractionMetadata:
     """Lift the triple-hash off ``result.provenance`` into the wire shape.
+
+    Reads new-canonical names first; falls back to the legacy names on
+    the kgspin-core ``Provenance`` dataclass while Sprint A1 is in
+    flight. Once kgspin-core is on ``ExtractionProvenance``, the new
+    names are real fields and the fallback path goes silent (the
+    interface migration shim's ``DeprecationWarning`` is never reached
+    because we prefer the canonical name).
 
     Empty strings (the kgspin-core migration-window default) are
     surfaced as ``None`` so the customer-facing surface has one
@@ -91,11 +103,17 @@ def _build_extraction_metadata(provenance: Any) -> ExtractionMetadata:
     def _norm(value: Optional[str]) -> Optional[str]:
         return value if value else None
 
+    def _read(new_name: str, old_name: str) -> Optional[str]:
+        value = getattr(provenance, new_name, None)
+        if value is not None:
+            return value
+        return getattr(provenance, old_name, None)
+
     return ExtractionMetadata(
         schema_version=INSTALLATION_CONFIG_SCHEMA_V1,
-        pipeline_version_hash=_norm(getattr(provenance, "pipeline_version_hash", None)),
-        bundle_version_hash=_norm(getattr(provenance, "bundle_version_hash", None)),
-        installation_version_hash=_norm(getattr(provenance, "installation_version_hash", None)),
+        core_code_hash=_norm(_read("core_code_hash", "pipeline_version_hash")),
+        bundle_yaml_hash=_norm(_read("bundle_yaml_hash", "bundle_version_hash")),
+        installation_yaml_hash=_norm(_read("installation_yaml_hash", "installation_version_hash")),
     )
 
 
@@ -123,7 +141,7 @@ class RelationshipResponse(BaseModel):
     entities: List[Dict[str, Any]]
     relationships: List[Dict[str, Any]]
     # Deprecated: kept flat for one release window so existing callers
-    # don't break when extraction_metadata.bundle_version_hash arrives.
+    # don't break when extraction_metadata.bundle_yaml_hash arrives.
     bundle_version: str
     processing_time_ms: float
     extraction_metadata: ExtractionMetadata
@@ -140,9 +158,9 @@ class ReplayRequest(BaseModel):
     text: str = Field(..., description="Document text to re-extract from")
     source_document: str = Field(default="api-replay")
     bundle_name: Optional[str] = Field(None)
-    pipeline_version_hash: str = Field(..., description="Required pin")
-    bundle_version_hash: str = Field(..., description="Required pin")
-    installation_version_hash: str = Field(..., description="Required pin")
+    core_code_hash: str = Field(..., description="Required pin")
+    bundle_yaml_hash: str = Field(..., description="Required pin")
+    installation_yaml_hash: str = Field(..., description="Required pin")
 
 
 class EstablishRelationshipRequest(BaseModel):
@@ -400,9 +418,9 @@ def create_app() -> "FastAPI":
 
         metadata = ExtractionMetadata(
             schema_version=INSTALLATION_CONFIG_SCHEMA_V1,
-            pipeline_version_hash=None,
-            bundle_version_hash=bundle_hash,
-            installation_version_hash=None,
+            core_code_hash=None,
+            bundle_yaml_hash=bundle_hash,
+            installation_yaml_hash=None,
         ).model_dump()
 
         if result:
@@ -449,14 +467,14 @@ def create_app() -> "FastAPI":
         installed_meta = _build_extraction_metadata(result.provenance)
 
         requested = (
-            request.pipeline_version_hash,
-            request.bundle_version_hash,
-            request.installation_version_hash,
+            request.core_code_hash,
+            request.bundle_yaml_hash,
+            request.installation_yaml_hash,
         )
         installed = (
-            installed_meta.pipeline_version_hash or "",
-            installed_meta.bundle_version_hash or "",
-            installed_meta.installation_version_hash or "",
+            installed_meta.core_code_hash or "",
+            installed_meta.bundle_yaml_hash or "",
+            installed_meta.installation_yaml_hash or "",
         )
         if requested != installed:
             raise HTTPException(
@@ -470,9 +488,9 @@ def create_app() -> "FastAPI":
                         "pinning workflow."
                     ),
                     "requested": {
-                        "pipeline_version_hash": requested[0],
-                        "bundle_version_hash": requested[1],
-                        "installation_version_hash": requested[2],
+                        "core_code_hash": requested[0],
+                        "bundle_yaml_hash": requested[1],
+                        "installation_yaml_hash": requested[2],
                     },
                     "installed": installed_meta.model_dump(),
                 },
