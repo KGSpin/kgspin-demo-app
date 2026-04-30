@@ -1,0 +1,23 @@
+{
+  "scenario_id": "supplier_concentration_ma_termination",
+  "ticker": "JNJ",
+  "resolved_question": "Among Johnson & Johnson's top supplier or customer concentrations disclosed in MD&A, which carry termination or renegotiation rights triggered by Johnson & Johnson's ongoing M&A activity?",
+  "bindings": {"company": "Johnson & Johnson"},
+  "expected_answer": {
+    "summary": "JNJ typically discloses customer concentration in MD&A — large pharmacy benefit managers (PBMs) and the major drug wholesalers (McKesson, AmerisourceBergen, Cardinal Health) account for a meaningful share of revenue. These contracts have industry-standard change-of-control provisions but JNJ's 10-K MD&A does not specifically tie them to JNJ's M&A activity. Where JNJ has acquired companies (e.g., Shockwave Medical), the integrated supplier contracts may have triggered renegotiation, but these are not usually called out in MD&A.",
+    "structured": [
+      {"counterparty": "McKesson Corporation", "contract_term": "wholesaler with industry-standard change-of-control"},
+      {"counterparty": "AmerisourceBergen", "contract_term": "wholesaler with industry-standard change-of-control"},
+      {"counterparty": "Cardinal Health", "contract_term": "wholesaler with industry-standard change-of-control"}
+    ]
+  },
+  "key_fields": ["counterparty", "contract_term"],
+  "source_spans": [
+    {"section": "MD&A — concentration / customer risk", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "hard",
+  "narrative_recovery": "If paper-mirror returns the three big drug wholesalers + the qualifier 'industry-standard change-of-control', that's a strong answer. If it invents specific termination clauses or names the wrong counterparties, the recovery line is: 'this scenario is at the boundary of what's disclosed — paper-mirror's caution here is the right behavior.'",
+  "notes": "DRAFT — CTO HITL pending. Wholesaler concentration is a JNJ MD&A staple; the M&A-trigger angle is intentionally underspecified to test how panes handle the missing intersection.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

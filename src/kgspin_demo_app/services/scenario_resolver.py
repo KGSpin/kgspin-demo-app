@@ -231,9 +231,12 @@ def resolve(
 
     resolved_question = _PLACEHOLDER_RE.sub(_sub, template.question_template).strip()
 
-    # Strip trailing whitespace from collapsed multi-line templates.
-    resolved_question = re.sub(r"[ \t]+\n", "\n", resolved_question)
-    resolved_question = re.sub(r"\n{2,}", "\n", resolved_question)
+    # Collapse soft-wrapped YAML literal-block newlines into single spaces
+    # so the resolved question is a clean one-liner. The YAML uses ``|``
+    # blocks for readability in source, but the demo and gold both want a
+    # single-line question string.
+    resolved_question = re.sub(r"\s*\n\s*", " ", resolved_question)
+    resolved_question = re.sub(r"\s+", " ", resolved_question).strip()
 
     return ResolvedScenario(
         scenario_id=template.scenario_id,

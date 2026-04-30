@@ -1,0 +1,26 @@
+{
+  "scenario_id": "segments_revenue_litigation_accrual",
+  "ticker": "AAPL",
+  "resolved_question": "Which of Apple Inc.'s reportable operating segments have annual revenue exceeding the largest single litigation accrual disclosed in the contingencies note?",
+  "bindings": {"company": "Apple Inc."},
+  "expected_answer": {
+    "summary": "Apple Inc.'s five geographic operating segments (Americas, Europe, Greater China, Japan, Rest of Asia Pacific) each have annual revenue in the tens of billions, far exceeding any individual litigation accrual Apple discloses (typical accruals are in the low hundreds of millions for App Store antitrust and various IP suits). All five segments exceed the largest single accrual.",
+    "structured": [
+      {"segment": "Americas", "segment_revenue": "$170B+ (illustrative)"},
+      {"segment": "Europe", "segment_revenue": "$95B+ (illustrative)"},
+      {"segment": "Greater China", "segment_revenue": "$70B+ (illustrative)"},
+      {"segment": "Japan", "segment_revenue": "$25B+ (illustrative)"},
+      {"segment": "Rest of Asia Pacific", "segment_revenue": "$30B+ (illustrative)"}
+    ]
+  },
+  "key_fields": ["segment", "segment_revenue"],
+  "source_spans": [
+    {"section": "Segment reporting note", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Contingencies note", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "medium",
+  "narrative_recovery": "Apple's segment revenue dwarfs its litigation accruals; this scenario is intentionally easy (every segment qualifies). If a pane returns 'no segments qualify', it indicates a parsing failure on the contingencies-note dollar figures.",
+  "notes": "DRAFT — CTO HITL pending. Segment revenues are illustrative; the live document has the exact figures. The qualitative answer (all 5 segments exceed any single accrual) holds based on Apple's typical 10-K disclosures.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

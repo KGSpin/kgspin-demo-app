@@ -1,0 +1,23 @@
+{
+  "scenario_id": "subsidiaries_litigation_jurisdiction",
+  "ticker": "AAPL",
+  "resolved_question": "Among Apple Inc.'s subsidiaries listed in Exhibit 21, which operate in jurisdictions where Apple Inc. reports active litigation in Item 3?",
+  "bindings": {"company": "Apple Inc."},
+  "expected_answer": {
+    "summary": "Apple Operations International (Ireland) and Apple Distribution International (Ireland) operate in Ireland. Apple Inc. discloses ongoing antitrust proceedings in the European Union (which includes Ireland) under Item 3 of its 10-K. No other Exhibit-21 subsidiaries are sited in jurisdictions named explicitly in the active-litigation disclosures.",
+    "structured": [
+      {"subsidiary": "Apple Operations International", "jurisdiction": "Ireland", "litigation_ref": "Item 3 — EU/Ireland antitrust"},
+      {"subsidiary": "Apple Distribution International", "jurisdiction": "Ireland", "litigation_ref": "Item 3 — EU/Ireland antitrust"}
+    ]
+  },
+  "key_fields": ["subsidiary", "jurisdiction"],
+  "source_spans": [
+    {"section": "Exhibit 21", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Item 3", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "hard",
+  "narrative_recovery": "If paper-mirror underperforms here, lead with: 'this scenario requires section-crossing — Exhibit 21 listings are tabular, Item 3 narrative; even paper-mirror's dual-channel can struggle when the subsidiary→jurisdiction join requires inferring \"EU includes Ireland\".'",
+  "notes": "DRAFT — CTO HITL pending. The structured rows reflect the Apple Inc. 10-K subsidiary disclosures' typical Irish footprint and the EU antitrust posture. source_spans use placeholder offsets; corpus builder fills them at fixture-build time. Update after the live corpus build lands.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}

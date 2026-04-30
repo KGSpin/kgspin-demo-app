@@ -1,0 +1,23 @@
+{
+  "scenario_id": "subsidiaries_litigation_jurisdiction",
+  "ticker": "JNJ",
+  "resolved_question": "Among Johnson & Johnson's subsidiaries listed in Exhibit 21, which operate in jurisdictions where Johnson & Johnson reports active litigation in Item 3?",
+  "bindings": {"company": "Johnson & Johnson"},
+  "expected_answer": {
+    "summary": "Johnson & Johnson Consumer Inc. (US-based) is named in Item 3 talc-products mass tort proceedings in multiple US state and federal courts. Janssen Biotech, Inc. (US) is named in opioid-related Item 3 proceedings in several US states. Various international subsidiaries (e.g., Janssen-Cilag GmbH in Germany) are named in pricing litigation reported in Item 3.",
+    "structured": [
+      {"subsidiary": "Johnson & Johnson Consumer Inc.", "jurisdiction": "United States", "litigation_ref": "Item 3 — talc products mass tort"},
+      {"subsidiary": "Janssen Biotech, Inc.", "jurisdiction": "United States", "litigation_ref": "Item 3 — opioid litigation"}
+    ]
+  },
+  "key_fields": ["subsidiary", "jurisdiction"],
+  "source_spans": [
+    {"section": "Exhibit 21", "char_offset_start": 0, "char_offset_end": 0},
+    {"section": "Item 3", "char_offset_start": 0, "char_offset_end": 0}
+  ],
+  "expected_difficulty": "hard",
+  "narrative_recovery": "JNJ's Item 3 is dense — talc, opioid, and various pharma-pricing actions all live there. If paper-mirror returns a subset (just talc, just opioid), the recovery line is: 'the dual-channel pipeline retrieved partial — the value is that it found the subsidiary/jurisdiction join at all; dense RAG would have hit one section but not both.'",
+  "notes": "DRAFT — CTO HITL pending. Talc + opioid pickup is conservative; the JNJ 10-K Item 3 typically has 5+ proceedings. CTO review should expand the structured list and confirm subsidiary names exactly match Exhibit 21 spelling.",
+  "authored_by": "dev team 2026-04-30 — CTO HITL pending",
+  "confidence": "partial"
+}
