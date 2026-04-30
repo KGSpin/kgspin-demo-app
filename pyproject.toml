@@ -20,6 +20,16 @@ dependencies = [
     "pydantic-settings>=2.2",  # ADR-001: YAML-backed settings
     "edgartools>=2.0", # SEC EDGAR lander — filing.html() + Company metadata (2026-04-22 restore after Wave A regression)
     "kgspin-tuner",    # HITL feedback store (PRD-042) — canonical home post-`kgenskills` carve.
+    # PRD-004 v5 Phase 5A — RAG retrieval corpus.
+    # `sentence-transformers` provides the local `all-MiniLM-L6-v2` (384-dim)
+    # encoder used by `scripts/build_rag_corpus.py` and the dense/graph
+    # RAG services. Pulled in transitively today via kgspin-tuner; declared
+    # explicitly so the demo's runtime contract is stable.
+    "sentence-transformers>=2.7",
+    # `rank_bm25` provides the BM25Okapi index used by dense_rag + graph_rag
+    # for the lexical leg of the BM25+cosine RRF hybrid (per PRD-004 v5
+    # Data Layer §4).
+    "rank-bm25>=0.2.2",
 ]
 # GLiREL is the optional zero-shot relation extractor used by the KGSpin
 # Base / Emergent / Structural pipelines. kgspin-core gracefully degrades
