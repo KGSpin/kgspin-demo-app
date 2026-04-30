@@ -1650,7 +1650,14 @@ body {
     background: #1a1a3e; color: #888; text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-.scenario-b-panes .badge.badge-paper { background: #2a3a15; color: #d4a017; }
+/* Dual-channel badge — neutral grey-blue (was green/gold pre-fixup
+   when the badge text was "arXiv:2509.22009"; with the new ℹ glyph
+   the gold reads as "info success" and overstates the affordance,
+   so swap to neutral). Per VP-Eng nit-S3 / fixup F7. */
+.scenario-b-panes .badge.badge-paper {
+    background: #1a1a3e; color: #5B9FE6;
+    cursor: help;
+}
 .scenario-b-panes .badge.badge-advanced { background: #3a1a4a; color: #b48fd6; }
 .scenario-a-panes .answer, .scenario-b-panes .answer {
     color: #c9d1d9; font-size: 13px; line-height: 1.5;
