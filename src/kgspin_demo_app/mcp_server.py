@@ -48,15 +48,26 @@ def _extraction_metadata_dict(provenance: Any) -> dict:
     MCP tool outputs. Mirrors the api/server.py ExtractionMetadata Pydantic
     model. Empty strings (kgspin-core's migration-window default) surface
     as ``None`` so downstream callers see one "unset" representation.
+
+    Reads new-canonical names first; falls back to legacy names while
+    Sprint A1 migrates kgspin-core's ``Provenance`` dataclass to the
+    ``ExtractionProvenance`` shape (rename per
+    sprint-domain-model-contracts-20260430).
     """
     def _norm(value: Optional[str]) -> Optional[str]:
         return value if value else None
 
+    def _read(new_name: str, old_name: str) -> Optional[str]:
+        value = getattr(provenance, new_name, None)
+        if value is not None:
+            return value
+        return getattr(provenance, old_name, None)
+
     return {
         "schema_version": INSTALLATION_CONFIG_SCHEMA_V1,
-        "pipeline_version_hash": _norm(getattr(provenance, "pipeline_version_hash", None)),
-        "bundle_version_hash": _norm(getattr(provenance, "bundle_version_hash", None)),
-        "installation_version_hash": _norm(getattr(provenance, "installation_version_hash", None)),
+        "core_code_hash": _norm(_read("core_code_hash", "pipeline_version_hash")),
+        "bundle_yaml_hash": _norm(_read("bundle_yaml_hash", "bundle_version_hash")),
+        "installation_yaml_hash": _norm(_read("installation_yaml_hash", "installation_version_hash")),
     }
 
 
@@ -412,9 +423,9 @@ async def _establish_relationship(
                 bundle_hash = None
         meta = {
             "schema_version": INSTALLATION_CONFIG_SCHEMA_V1,
-            "pipeline_version_hash": None,
-            "bundle_version_hash": bundle_hash,
-            "installation_version_hash": None,
+            "core_code_hash": None,
+            "bundle_yaml_hash": bundle_hash,
+            "installation_yaml_hash": None,
         }
 
         if result:

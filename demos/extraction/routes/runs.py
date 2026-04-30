@@ -25,20 +25,28 @@ def _extraction_metadata_from_kg(kg: dict) -> dict:
     we render a ``<pre-Phase-2>`` placeholder so the UI doesn't show
     empty strings (which look like a bug). Live runs (post-Phase-2)
     pass the orchestrator's stamped values through verbatim.
+
+    Reads new-canonical names first then falls back to legacy names
+    (sprint-domain-model-contracts-20260430 rename). Cached run JSON
+    files written before the rename carry the old names; new files
+    will carry the new names. Both are honored without a data
+    migration.
     """
     prov = kg.get("provenance", {}) if isinstance(kg, dict) else {}
 
-    def _lift(name: str) -> str | None:
-        value = prov.get(name)
+    def _lift(new_name: str, old_name: str) -> str | None:
+        value = prov.get(new_name)
         if value is None:
-            return _PRE_PHASE_2
+            value = prov.get(old_name)
+            if value is None:
+                return _PRE_PHASE_2
         return value if value else _PRE_PHASE_2
 
     return {
         "schema_version": prov.get("schema_version", 1),
-        "pipeline_version_hash": _lift("pipeline_version_hash"),
-        "bundle_version_hash": _lift("bundle_version_hash"),
-        "installation_version_hash": _lift("installation_version_hash"),
+        "core_code_hash": _lift("core_code_hash", "pipeline_version_hash"),
+        "bundle_yaml_hash": _lift("bundle_yaml_hash", "bundle_version_hash"),
+        "installation_yaml_hash": _lift("installation_yaml_hash", "installation_version_hash"),
     }
 
 from cache.run_log import (
