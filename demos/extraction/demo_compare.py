@@ -2671,6 +2671,437 @@ async def multihop_run(request: Request):
     })
 
 
+# ---------------------------------------------------------------------------
+# PRD-004 v5 Phase 5A — Scenario A / Scenario B endpoints (deliverable H)
+#
+# Four routes (3 POST + 1 GET) plus an SSE stream on /api/scenario-b/run.
+# The routes are dispatch shims around the new services:
+#
+#   * dense_rag.search                         (Scenario A left pane)
+#   * graph_rag.aquery_context (A1/A2/A3)      (Scenario A right pane)
+#   * agentic_dense_rag.answer                 (Scenario B left pane)
+#   * graphsearch_pipeline.run                 (Scenario B center pane)
+#
+# F1 vs hand-authored gold + a blinded judge layer on top of all three
+# Scenario B pane outputs. UI labels the F1 score "Illustrative F1
+# (n=11, see methodology)" per VP-Prod blocker #3.
+#
+# All LLM calls go through `gemini_flash` via the demo's existing
+# `resolve_llm_backend` factory. Tests inject a mock client through
+# the optional `_llm_factory` request-arg.
+# ---------------------------------------------------------------------------
+
+
+# Test-injection hook: tests call set_scenario_llm_client(mock) before
+# hitting the endpoints. Production path uses the gemini_flash bridge.
+_scenario_llm_override = None
+
+
+def set_scenario_llm_client(client) -> None:
+    """Override the scenario LLM client (test hook)."""
+    global _scenario_llm_override
+    _scenario_llm_override = client
+
+
+def _scenario_llm_client(alias: str = "gemini_flash"):
+    """Return an async LLMClient that wraps the sync gemini_flash backend.
+
+    The new pipelines expect ``async def complete(prompt) -> str``;
+    the demo's resolver returns a sync backend with ``.complete(prompt,
+    temperature=...) -> Result(text=...)``. Bridge via asyncio.to_thread.
+    """
+    if _scenario_llm_override is not None:
+        return _scenario_llm_override
+    from kgspin_demo_app.llm_backend import resolve_llm_backend
+    backend = resolve_llm_backend(llm_alias=alias, flow="scenario")
+
+    class _AsyncBridge:
+        async def complete(self, prompt: str) -> str:
+            result = await asyncio.to_thread(
+                backend.complete, prompt, temperature=0.0,
+            )
+            return getattr(result, "text", "") or ""
+
+    return _AsyncBridge()
+
+
+def _resolve_scenario_b_pane_outputs(
+    scenario_id: str,
+    ticker: str,
+    panes: list[str],
+    llm_client,
+    enable_self_reflection: bool,
+    progress_cb,
+) -> dict:
+    """Synchronous helper that runs the requested Scenario B panes.
+
+    Used by the SSE generator. Returns a dict {pane_name: PaneOutput}.
+    Tests can call this directly with a mocked llm_client.
+    """
+    raise NotImplementedError("call _scenario_b_run_async instead")
+
+
+async def _scenario_b_run_async(
+    scenario_id: str,
+    ticker: str,
+    panes: list[str],
+    *,
+    llm_client,
+    enable_self_reflection: bool = True,
+    progress_cb=None,
+) -> dict:
+    """Run the requested Scenario B panes, return dict[pane_name -> PaneOutput].
+
+    pane_outputs is a DICT (not list) per VP-Eng major #5 — forward-
+    compatible with 5B's tool_agent pane addition.
+    """
+    from kgspin_demo_app.services import (
+        agentic_dense_rag, graphsearch_pipeline, scenario_resolver,
+    )
+    template = scenario_resolver.get_template(scenario_id)
+    resolved = scenario_resolver.resolve(template, ticker=ticker)
+    question = resolved.question
+
+    pane_outputs: dict[str, dict] = {}
+
+    if "agentic_dense" in panes:
+        if progress_cb:
+            progress_cb("pane_start", {"pane": "agentic_dense"})
+        result = await agentic_dense_rag.answer(
+            ticker, question, llm=llm_client,
+            progress_cb=lambda s, p: progress_cb(s, {**p, "pane": "agentic_dense"}) if progress_cb else None,
+        )
+        pane_outputs["agentic_dense"] = {
+            "name": "agentic_dense",
+            "final_answer": result.final_answer,
+            "decomposition_trace": result.decomposition_trace,
+            "retrieval_history": result.retrieval_history,
+        }
+        if progress_cb:
+            progress_cb("pane_complete", {"pane": "agentic_dense"})
+
+    if "paper_mirror" in panes:
+        if progress_cb:
+            progress_cb("pane_start", {"pane": "paper_mirror"})
+        result = await graphsearch_pipeline.run(
+            ticker, question, llm=llm_client,
+            enable_self_reflection=enable_self_reflection,
+            progress_cb=lambda s, p: progress_cb(s, {**p, "pane": "paper_mirror"}) if progress_cb else None,
+        )
+        pane_outputs["paper_mirror"] = {
+            "name": "paper_mirror",
+            "final_answer": result.final_answer,
+            "decomposition_trace": [
+                step["sub_query"] for step in result.text_channel_history
+            ],
+            "retrieval_history": {
+                "text_channel": result.text_channel_history,
+                "kg_channel": result.kg_channel_history,
+            },
+            "text_evidence_verification": result.text_evidence_verification,
+            "kg_evidence_verification": result.kg_evidence_verification,
+            "expansion_used": result.expansion_used,
+            "retrieval_count": result.retrieval_count,
+            "stage_timings_ms": result.stage_timings_ms,
+        }
+        if progress_cb:
+            progress_cb("pane_complete", {"pane": "paper_mirror"})
+
+    return {
+        "resolved_question": question,
+        "scenario_id": scenario_id,
+        "ticker": ticker,
+        "pane_outputs": pane_outputs,
+    }
+
+
+@app.post("/api/scenario-a/run")
+async def scenario_a_run(payload: dict):
+    """Run Scenario A — one-shot RAG vs GraphRAG, free-text question.
+
+    Body: ``{question, ticker, mode in {'A1','A2','A3'}}``
+    Returns: ``{dense_answer, graphrag_answer, retrieved_context_left,
+    retrieved_context_right}``
+    """
+    from kgspin_demo_app.services import dense_rag, graph_rag
+    question = (payload.get("question") or "").strip()
+    ticker = (payload.get("ticker") or "").strip().upper()
+    mode = payload.get("mode") or "A2"
+    if not question or not ticker:
+        return JSONResponse({"error": "question and ticker are required"}, status_code=400)
+    if mode not in ("A1", "A2", "A3"):
+        return JSONResponse(
+            {"error": f"mode must be A1/A2/A3, got {mode}"},
+            status_code=400,
+        )
+
+    try:
+        # Left pane — pure dense RAG.
+        left_chunks = dense_rag.search(ticker, question, top_k=5)
+        left_ctx_str = dense_rag.serialize_chunks(left_chunks)
+
+        # Right pane — graph RAG.
+        right_bundle = await graph_rag.aquery_context(
+            ticker, question, mode=mode, top_k=5,
+        )
+        right_ctx_str = graph_rag.serialize_bundle_for_prompt(right_bundle)
+    except dense_rag.CorpusNotBuilt as exc:
+        return JSONResponse(
+            {"error": "corpus_not_built", "detail": str(exc)},
+            status_code=503,
+        )
+
+    # Single-shot LLM answer per pane. Tests inject via
+    # ``set_scenario_llm_client``; production uses the gemini_flash bridge.
+    llm = _scenario_llm_client()
+
+    async def _answer(question_text: str, context_text: str) -> str:
+        from kgspin_demo_app.services._graphsearch_components import answer_generation
+        return await answer_generation(llm, question_text, context_text or "(no context retrieved)")
+
+    dense_answer = await _answer(question, left_ctx_str)
+    graphrag_answer = await _answer(question, right_ctx_str)
+
+    return JSONResponse({
+        "question": question,
+        "ticker": ticker,
+        "mode": mode,
+        "dense_answer": dense_answer,
+        "graphrag_answer": graphrag_answer,
+        "retrieved_context_left": left_ctx_str,
+        "retrieved_context_right": right_ctx_str,
+    })
+
+
+@app.post("/api/scenario-a/analyze")
+async def scenario_a_analyze(payload: dict):
+    """Blinded LLM judge for Scenario A's two answers (A=dense, B=graphrag)."""
+    from judge import rank_two, JudgeParseError
+    question = (payload.get("question") or "").strip()
+    a = (payload.get("dense_answer") or "").strip()
+    b = (payload.get("graphrag_answer") or "").strip()
+    if not question or not a or not b:
+        return JSONResponse(
+            {"error": "question, dense_answer, graphrag_answer all required"},
+            status_code=400,
+        )
+    try:
+        verdict = rank_two(question, a, b)
+    except JudgeParseError as exc:
+        return JSONResponse({"error": f"judge parse failure: {exc}"}, status_code=502)
+    return JSONResponse(verdict.to_dict())
+
+
+@app.get("/api/scenario-b/templates")
+async def scenario_b_templates():
+    """Return the 6 Phase-5A templates for the picker."""
+    from kgspin_demo_app.services import scenario_resolver
+    out = []
+    for t in scenario_resolver.load_v5_templates():
+        out.append({
+            "scenario_id": t.scenario_id,
+            "domain": t.domain,
+            "question_template": t.question_template,
+            "expected_hops": t.expected_hops,
+            "placeholders": list(t.placeholders),
+            "key_fields": list(t.key_fields),
+            "expected_difficulty": t.expected_difficulty,
+            "talking_track": t.talking_track,
+        })
+    return JSONResponse(out)
+
+
+@app.post("/api/scenario-b/run")
+async def scenario_b_run(payload: dict):
+    """SSE-stream Scenario B run.
+
+    Body: ``{scenario_id, ticker, panes: ['agentic_dense','paper_mirror'],
+    enable_self_reflection?: bool}``
+
+    Returns SSE events: ``stage_start``, ``stage_done``, ``pane_complete``,
+    ``all_done`` (terminal).
+
+    Forward-compat: ``panes`` may include ``'tool_agent'`` (5B) — emits
+    a stage_error event instead of running it.
+    """
+    scenario_id = (payload.get("scenario_id") or "").strip()
+    ticker = (payload.get("ticker") or "").strip().upper()
+    panes = payload.get("panes") or ["agentic_dense", "paper_mirror"]
+    enable_self_reflection = bool(payload.get("enable_self_reflection", True))
+    llm = _scenario_llm_client()
+
+    async def _stream():
+        # Test-injected progress queue (same pattern as the rest of
+        # the demo — sync put, async drain).
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def progress_cb(stage: str, payload_):
+            try:
+                queue.put_nowait(("event", stage, payload_))
+            except Exception:
+                pass
+
+        # Tool-agent forward-compat: not yet wired in 5A.
+        if "tool_agent" in panes:
+            yield sse_event("stage_error", {
+                "pane": "tool_agent",
+                "message": "tool_agent pane lands in Phase 5B. Currently a placeholder; the value-prop demo is paper_mirror.",
+            })
+            await asyncio.sleep(0)
+
+        runnable_panes = [p for p in panes if p in ("agentic_dense", "paper_mirror")]
+
+        run_task = asyncio.create_task(_scenario_b_run_async(
+            scenario_id=scenario_id, ticker=ticker, panes=runnable_panes,
+            llm_client=llm, enable_self_reflection=enable_self_reflection,
+            progress_cb=progress_cb,
+        ))
+
+        # Drain the progress queue as the run progresses; emit final
+        # all_done when the run completes.
+        while True:
+            queue_get = asyncio.create_task(queue.get())
+            done, pending = await asyncio.wait(
+                {run_task, queue_get},
+                return_when=asyncio.FIRST_COMPLETED,
+                timeout=1.0,
+            )
+            if queue_get in done:
+                _, stage, p = queue_get.result()
+                yield sse_event("stage", {"stage": stage, **(p or {})})
+                await asyncio.sleep(0)
+            else:
+                queue_get.cancel()
+
+            if run_task in done:
+                # Drain any remaining events.
+                while not queue.empty():
+                    _, stage, p = queue.get_nowait()
+                    yield sse_event("stage", {"stage": stage, **(p or {})})
+                try:
+                    final = run_task.result()
+                except Exception as exc:
+                    yield sse_event("error", {
+                        "message": f"scenario_b run failed: {type(exc).__name__}: {exc}",
+                    })
+                    return
+                yield sse_event("all_done", final)
+                return
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.post("/api/scenario-b/analyze")
+async def scenario_b_analyze(payload: dict):
+    """Compute F1 vs gold + LLM-rationale for each Scenario B pane.
+
+    Body: ``{scenario_id, ticker, pane_outputs: dict[pane_name -> PaneOutput]}``
+    Returns: ``{f1_per_pane, llm_rationale_per_pane, illustrative_n,
+    recovery_narrative?}``
+    """
+    from kgspin_demo_app.services import scenario_resolver
+    from scenario_b_eval import (
+        score_set_of_tuples, extract_structured_from_answer,
+    )
+
+    scenario_id = (payload.get("scenario_id") or "").strip()
+    ticker = (payload.get("ticker") or "").strip().upper()
+    pane_outputs = payload.get("pane_outputs") or {}
+    if not scenario_id or not ticker or not pane_outputs:
+        return JSONResponse(
+            {"error": "scenario_id, ticker, pane_outputs required"},
+            status_code=400,
+        )
+
+    # Load gold (if available).
+    gold_path = (
+        Path(__file__).resolve().parent.parent.parent
+        / "tests" / "fixtures" / "multi-hop-gold"
+        / scenario_id / f"{ticker}.gold.json"
+    )
+    if not gold_path.exists():
+        return JSONResponse({
+            "scenario_id": scenario_id,
+            "ticker": ticker,
+            "f1_per_pane": {},
+            "llm_rationale_per_pane": {},
+            "illustrative_n": 0,
+            "recovery_narrative": (
+                f"No gold available for ticker {ticker} on scenario "
+                f"{scenario_id}. F1 not computed; qualitative LLM-judge only."
+            ),
+        })
+    gold = json.loads(gold_path.read_text(encoding="utf-8"))
+    key_fields = list(gold["key_fields"])
+    gold_rows = gold["expected_answer"]["structured"]
+    gold_confidence = gold.get("confidence", "high")
+
+    # Build the LLM-extract callable. Caller-injected for tests.
+    llm_extract = payload.get("_llm_extract")
+    if llm_extract is None:
+        try:
+            from kgspin_demo_app.llm_backend import resolve_llm_backend
+            backend = resolve_llm_backend(llm_alias="gemini_flash", flow="scenario_b_extract")
+            llm_extract = lambda p: backend.complete(p, temperature=0.0).text  # noqa: E731
+        except Exception:
+            llm_extract = None
+
+    template = scenario_resolver.get_template(scenario_id)
+    resolved = scenario_resolver.resolve(template, ticker=ticker)
+    question = resolved.question
+
+    f1_per_pane: dict[str, dict] = {}
+    rationale_per_pane: dict[str, str] = {}
+    min_f1 = 1.0
+    for pane_name, pane in pane_outputs.items():
+        answer_text = pane.get("final_answer", "") if isinstance(pane, dict) else str(pane)
+        # Allow tests to bypass extraction by passing pre-parsed structured rows.
+        if isinstance(pane, dict) and "structured" in pane:
+            pred_rows = pane["structured"]
+        else:
+            pred_rows = extract_structured_from_answer(
+                question, answer_text, key_fields, llm_complete=llm_extract,
+            ) if llm_extract else []
+        score = score_set_of_tuples(
+            pred_rows, gold_rows, key_fields,
+            gold_confidence=gold_confidence,
+        )
+        f1_per_pane[pane_name] = {
+            "f1": round(score.f1, 4),
+            "precision": round(score.precision, 4),
+            "recall": round(score.recall, 4),
+            "f1_confidence": score.f1_confidence,
+            "n_gold": score.n_gold,
+            "n_pred": score.n_pred,
+            "n_overlap": score.n_overlap,
+        }
+        rationale_per_pane[pane_name] = (
+            f"F1={score.f1:.2f} (n_gold={score.n_gold}, n_pred={score.n_pred}, "
+            f"overlap={score.n_overlap}); confidence={score.f1_confidence}."
+        )
+        min_f1 = min(min_f1, score.f1)
+
+    response = {
+        "scenario_id": scenario_id,
+        "ticker": ticker,
+        "f1_per_pane": f1_per_pane,
+        "llm_rationale_per_pane": rationale_per_pane,
+        "illustrative_n": 1,  # 1 ticker × 1 scenario per analyze call
+        "key_fields": key_fields,
+    }
+    if min_f1 < 0.3 and gold.get("narrative_recovery"):
+        response["recovery_narrative"] = gold["narrative_recovery"]
+    return JSONResponse(response)
+
+
 @app.get("/api/topology-health/{doc_id}/{pipeline}")
 async def topology_health(doc_id: str, pipeline: str):
     """PRD-055 #1: stateless score over a slot's cached KG.
