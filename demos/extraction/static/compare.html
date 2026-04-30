@@ -1687,6 +1687,63 @@ body {
 }
 .verdict-rationales div { margin: 4px 0; }
 .verdict-summary { margin-top: 8px; color: #aaa; font-style: italic; }
+
+/* PRD-004 v5 Phase 5A — Scenario B specifics (commit 10). */
+.resolved-question {
+    background: #0f0f23;
+    border: 1px solid #2a2a4e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    color: #c9d1d9;
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.resolved-question .gold-badge {
+    color: #d4a017; font-size: 10px; padding: 2px 8px;
+    background: #2a3015; border-radius: 3px;
+    border: 1px solid #4a5a20;
+}
+.resolved-question .no-gold-badge {
+    color: #888; font-size: 10px; padding: 2px 8px;
+    background: #1a1a3e; border-radius: 3px;
+}
+.scenario-b-panes .progress-strip {
+    margin: 6px 0;
+    min-height: 18px;
+    font-size: 10px;
+    color: #888;
+    display: flex; flex-wrap: wrap; gap: 4px;
+}
+.scenario-b-panes .progress-strip .stage-pill {
+    padding: 1px 6px;
+    background: #1a1a3e;
+    border-radius: 8px;
+    border: 1px solid #2a2a4e;
+}
+.scenario-b-panes .progress-strip .stage-pill.active {
+    background: #2a3a5a; color: #c9d1d9; border-color: #5B9FE6;
+}
+.scenario-b-panes .progress-strip .stage-pill.done {
+    background: #1a3a25; color: #5ED68A; border-color: #2a5a3a;
+}
+.phase-5b-preview { color: #c9d1d9; font-size: 12px; line-height: 1.5; padding: 8px 12px; }
+.phase-5b-preview .coming-soon { color: #b48fd6; font-style: italic; margin-top: 8px; }
+.scenario-b-verdict .f1-block { font-size: 13px; color: #c9d1d9; margin-bottom: 8px; }
+.scenario-b-verdict .f1-pane-row {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 4px 0; border-bottom: 1px dotted #2a2a4e;
+}
+.scenario-b-verdict .f1-pane-row:last-child { border-bottom: none; }
+.scenario-b-verdict .f1-pane-row .pane-name { font-weight: 600; color: #5B9FE6; min-width: 140px; }
+.scenario-b-verdict .f1-pane-row .f1-score { color: #d4a017; font-weight: 600; }
+.scenario-b-verdict .rationale-block { margin-top: 6px; font-size: 12px; color: #aaa; }
+.scenario-b-verdict .recovery-narrative {
+    margin-top: 8px; padding: 8px 12px; background: #2a3015; border-radius: 4px;
+    color: #d4a017; font-size: 11px; font-style: italic;
+}
+.scenario-b-verdict .methodology-note { margin-top: 10px; font-size: 10px; color: #6e7681; }
 </style>
 </head>
 <body>
@@ -2043,6 +2100,59 @@ body {
                 <div><strong>B (GraphRAG):</strong> <span id="scenario-a-verdict-rationale-b"></span></div>
               </div>
               <div class="verdict-summary" id="scenario-a-verdict-summary"></div>
+            </aside>
+          </section>
+
+          <!-- Scenario B — Multi-hop with Decomposition. -->
+          <section class="scenario-b" data-region="scenario-b">
+            <header>
+              <h2>Scenario B — Multi-hop Decomposition</h2>
+              <p class="rubric">Templated multi-hop scenarios. Compare an agentic dense baseline (Search-o1-style) vs the paper-mirror dual-channel pipeline (arXiv:2509.22009).</p>
+            </header>
+            <div class="scenario-b-controls">
+              <select id="scenario-b-template-picker" data-change-action="scenario-b-template-picker">
+                <option value="">— Select scenario —</option>
+              </select>
+              <select id="scenario-b-ticker-picker" data-change-action="scenario-b-ticker-picker">
+                <option value="">— Select ticker —</option>
+              </select>
+              <button id="scenario-b-run-btn" data-action="scenario-b-run">Run Multi-Hop</button>
+              <button id="scenario-b-show-advanced-btn" data-action="scenario-b-show-advanced">Show advanced: tool-agent</button>
+              <button id="scenario-b-analyze-btn" data-action="scenario-b-analyze" hidden>Analyze Results</button>
+              <span id="scenario-b-status" class="scenario-b-status"></span>
+            </div>
+            <div class="resolved-question" id="scenario-b-resolved-question" hidden>
+              <span class="question-text" id="scenario-b-question-text"></span>
+              <span class="gold-badge" id="scenario-b-gold-badge" hidden>⭐ Gold available — F1 will be computed</span>
+              <span class="no-gold-badge" id="scenario-b-no-gold-badge" hidden>No gold for this ticker — qualitative LLM-judge only</span>
+            </div>
+            <div class="scenario-b-panes" id="scenario-b-panes" data-pane-mode="two">
+              <article class="pane pane-left" data-pane-name="agentic_dense">
+                <header><span>Agentic Dense RAG</span> <span class="badge">Search-o1</span></header>
+                <div class="answer" id="scenario-b-agentic-answer">—</div>
+                <div class="progress-strip" id="scenario-b-agentic-progress"></div>
+                <details><summary>Decomposition trace</summary><pre id="scenario-b-agentic-trace"></pre></details>
+              </article>
+              <article class="pane pane-center" data-pane-name="paper_mirror">
+                <header><span>Paper-mirror GraphSearch</span> <span class="badge badge-paper">arXiv:2509.22009</span></header>
+                <div class="answer" id="scenario-b-paper-answer">—</div>
+                <div class="progress-strip" id="scenario-b-paper-progress"></div>
+                <details><summary>Text channel</summary><pre id="scenario-b-paper-text-history"></pre></details>
+                <details><summary>KG channel</summary><pre id="scenario-b-paper-kg-history"></pre></details>
+              </article>
+              <article class="pane pane-right" data-pane-name="tool_agent" hidden>
+                <header><span>Tool-agent GraphRAG</span> <span class="badge badge-advanced">advanced</span></header>
+                <div class="phase-5b-preview">
+                  <p>Phase 5B preview. Architectural commentary: a ReAct-style agent with <code>retrieve_text</code> + <code>retrieve_graph</code> tools — the pattern most modern AI engineers would build. <strong>The paper does NOT use this pattern</strong>; the dual-channel pipeline (center) is the paper's architecture and the demo's primary value-prop.</p>
+                  <p class="coming-soon">Live wiring lands in Phase 5B.</p>
+                </div>
+              </article>
+            </div>
+            <aside class="scenario-b-verdict" id="scenario-b-verdict" hidden>
+              <div class="f1-block" id="scenario-b-f1-block"></div>
+              <div class="rationale-block" id="scenario-b-rationale-block"></div>
+              <div class="recovery-narrative" id="scenario-b-recovery" hidden></div>
+              <div class="methodology-note">Illustrative F1 (n=11, see methodology) — directional check, not a benchmark. The value-prop is paper fidelity and dual-channel transparency.</div>
             </aside>
           </section>
 
@@ -2778,6 +2888,7 @@ body {
 <script src="/static/js/impact.js"></script>
 <script src="/static/js/compare-runner.js"></script>
 <script src="/static/js/scenario-a-runner.js"></script>
+<script src="/static/js/scenario-b-runner.js"></script>
 <div id="engine-version" class="engine-version" style="display:none;"></div>
 </body>
 </html>
