@@ -1856,63 +1856,14 @@ body {
                 <div class="legend rel-legend" id="slot-2-rel-legend"></div>
             </div>
         </div>
-        <!-- PRD-004 v4 #12 / PRD-055 #3: Multi-hop comparison row -->
-        <div class="multihop-bar" data-region="multihop-controls" hidden>
-            <label for="multihop-scenario-picker" class="multihop-label">Multi-hop scenario:</label>
-            <select id="multihop-scenario-picker" data-change-action="pick-multihop-scenario">
-                <option value="">— Select a scenario —</option>
-            </select>
-            <button id="run-multihop-btn" data-action="run-multihop" disabled>Run Multi-Hop</button>
-            <button id="reveal-pipelines-btn" data-action="reveal-pipelines" hidden>Reveal Pipelines</button>
-            <span id="multihop-status" class="multihop-status"></span>
-        </div>
-        <div class="multihop-talking-track" id="multihop-talking-track" hidden></div>
-        <section class="multihop-answers" data-region="multihop-answers" hidden>
-            <article class="multihop-answer" data-answer-slot="A">
-                <header>
-                    <span class="answer-label">Answer A</span>
-                    <span class="pipeline-reveal" hidden></span>
-                    <button class="health-badge multihop-health-badge" data-action="open-health-drawer" data-source="multihop" data-answer-slot="A" hidden>—</button>
-                </header>
-                <div class="answer-text"></div>
-                <footer>
-                    <span class="answer-latency"></span>
-                    <span class="answer-cost"></span>
-                    <span class="answer-tokens"></span>
-                </footer>
-            </article>
-            <article class="multihop-answer" data-answer-slot="B">
-                <header>
-                    <span class="answer-label">Answer B</span>
-                    <span class="pipeline-reveal" hidden></span>
-                    <button class="health-badge multihop-health-badge" data-action="open-health-drawer" data-source="multihop" data-answer-slot="B" hidden>—</button>
-                </header>
-                <div class="answer-text"></div>
-                <footer>
-                    <span class="answer-latency"></span>
-                    <span class="answer-cost"></span>
-                    <span class="answer-tokens"></span>
-                </footer>
-            </article>
-            <article class="multihop-answer" data-answer-slot="C">
-                <header>
-                    <span class="answer-label">Answer C</span>
-                    <span class="pipeline-reveal" hidden></span>
-                    <button class="health-badge multihop-health-badge" data-action="open-health-drawer" data-source="multihop" data-answer-slot="C" hidden>—</button>
-                </header>
-                <div class="answer-text"></div>
-                <footer>
-                    <span class="answer-latency"></span>
-                    <span class="answer-cost"></span>
-                    <span class="answer-tokens"></span>
-                </footer>
-            </article>
-        </section>
-        <aside class="judge-verdict" id="judge-verdict" hidden>
-            <header><span class="judge-label">LLM-as-judge ranking</span><span class="judge-model">Gemini Flash 2.5 · blinded</span></header>
-            <ol class="judge-ranking"></ol>
-            <div class="judge-error" hidden></div>
-        </aside>
+        <!-- PRD-004 v4 multi-hop UI removed in v5 Phase 5A (commit 9a).
+             The 3-pane "all-displayed-plays" cross-KG-pipeline comparison
+             is migrating to the per-graph view (PRD-002 territory).
+             Backend routes (/api/multihop/*, /api/compare-qa/*) stay
+             alive until Phase 5B per plan §2.3 / VP-Prod major #4.
+             Scenario A + Scenario B views inserted by commit 9b/10. -->
+        <!-- PRD-004 v5 Phase 5A — Scenario A + Scenario B inserted below by commit 9b/10. -->
+        <div data-region="prd004-v5" id="prd004-v5-region"></div>
         <!-- Performance Delta — Pairwise Matrix -->
         <div id="diagnostic-scores" style="display:none;">
             <h3 style="color:#9B59B6; margin:0 0 12px 0; font-size:15px;">Pairwise Performance Delta</h3>

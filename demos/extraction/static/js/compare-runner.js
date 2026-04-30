@@ -2595,215 +2595,23 @@ registerAction('kgen-refresh', () => kgenRefresh());
 
 
 // ====================================================================
-// Wave G — Multi-hop comparison + Topological Health badge & drawer
-// PRD-004 v4 #12 (viewer-first comparison UI)
-// PRD-055 #2-#5 (topology badge, drilldown drawer, RAGSearch citation)
+// Topological Health badge + drawer (Wave G remnant kept after PRD-004
+// v5 Phase 5A removed the multihop UI in commit 9a). Slot panels still
+// surface the topology score; drawer logic is unchanged.
+//
+// The v4 multihop runner (multihopState, initMultihop, runMultihop,
+// renderMultihopAnswers, renderJudge, revealPipelines, picker, etc.)
+// was removed here. Backend routes (/api/multihop/*) stay alive until
+// Phase 5B per plan §2.3 — no UI calls them in 5A.
 // ====================================================================
 
-const multihopState = {
-    scenarios: [],
-    scenarioById: {},
-    selectedScenarioId: '',
-    lastResult: null,
-    revealed: false,
-    healthBySource: {},
+const slotHealthState = {
+    healthBySource: {},  // key: 'slot:N' → {health, title, pipeline}
 };
-
-async function initMultihop() {
-    try {
-        const res = await fetch('/api/multihop/scenarios');
-        if (!res.ok) return;
-        const data = await res.json();
-        const scenarios = Array.isArray(data.scenarios) ? data.scenarios : [];
-        multihopState.scenarios = scenarios;
-        multihopState.scenarioById = Object.fromEntries(scenarios.map(s => [s.scenario_id, s]));
-        const picker = document.getElementById('multihop-scenario-picker');
-        if (!picker) return;
-        scenarios.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.scenario_id;
-            const hops = s.expected_hops ? ` · ${s.expected_hops} hops` : '';
-            opt.textContent = `[${s.domain}${hops}] ${s.question}`;
-            picker.appendChild(opt);
-        });
-        const bar = document.querySelector('.multihop-bar');
-        if (bar) bar.hidden = false;
-    } catch (e) {
-        console.warn('initMultihop failed:', e);
-    }
-}
-
-function pickMultihopScenario(el) {
-    multihopState.selectedScenarioId = el.value || '';
-    const trackEl = document.getElementById('multihop-talking-track');
-    const scenario = multihopState.scenarioById[multihopState.selectedScenarioId];
-    if (scenario && scenario.talking_track) {
-        trackEl.textContent = scenario.talking_track;
-        trackEl.hidden = false;
-    } else {
-        trackEl.textContent = '';
-        trackEl.hidden = true;
-    }
-    refreshRunMultihopButton();
-}
 
 function getCurrentDocId() {
     const input = document.getElementById('doc-id-input');
     return input ? input.value.trim().toUpperCase() : '';
-}
-
-function getMultihopSlotPipelines() {
-    if (typeof slotState === 'undefined' || !Array.isArray(slotState)) return [];
-    return slotState.map(s => (s && s.pipeline) ? s.pipeline : null);
-}
-
-function refreshRunMultihopButton() {
-    const btn = document.getElementById('run-multihop-btn');
-    const statusEl = document.getElementById('multihop-status');
-    if (!btn) return;
-    const pipelines = getMultihopSlotPipelines();
-    const filled = pipelines.filter(Boolean);
-    const docId = getCurrentDocId();
-    let reason = '';
-    if (!multihopState.selectedScenarioId) reason = 'Pick a scenario.';
-    else if (!docId) reason = 'Enter a ticker first.';
-    else if (filled.length < 3) reason = `Pick a pipeline in all 3 slots (${filled.length}/3).`;
-    btn.disabled = !!reason;
-    if (statusEl) statusEl.textContent = reason;
-}
-
-async function runMultihop() {
-    const scenarioId = multihopState.selectedScenarioId;
-    const docId = getCurrentDocId();
-    const pipelines = getMultihopSlotPipelines();
-    if (!scenarioId || !docId || pipelines.filter(Boolean).length < 3) {
-        refreshRunMultihopButton();
-        return;
-    }
-    const btn = document.getElementById('run-multihop-btn');
-    const statusEl = document.getElementById('multihop-status');
-    const revealBtn = document.getElementById('reveal-pipelines-btn');
-    btn.disabled = true;
-    if (statusEl) statusEl.textContent = 'Running 3 pipelines in parallel + judge…';
-    revealBtn.hidden = true;
-    multihopState.revealed = false;
-    multihopState.healthBySource = {};
-    try {
-        const res = await fetch('/api/multihop/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                doc_id: docId,
-                scenario_id: scenarioId,
-                slot_pipelines: pipelines,
-            }),
-        });
-        const data = await res.json();
-        if (!res.ok || data.error) {
-            const msg = data.error || `HTTP ${res.status}`;
-            if (statusEl) statusEl.textContent = `Run failed: ${msg}`;
-            if (typeof showToast === 'function') showToast(`Multi-hop failed: ${msg}`, 'fp');
-            return;
-        }
-        multihopState.lastResult = data;
-        renderMultihopAnswers(data);
-        // PRD-004 v4 #12: stagger the judge render so the viewer reads the
-        // 3 answers before the verdict slides in. Single-payload response,
-        // UI-side sequencing only.
-        setTimeout(() => renderJudge(data), 250);
-        revealBtn.hidden = false;
-        revealBtn.textContent = 'Reveal Pipelines';
-        if (statusEl) statusEl.textContent = 'Done.';
-    } catch (e) {
-        if (statusEl) statusEl.textContent = `Run failed: ${e.message}`;
-    } finally {
-        btn.disabled = false;
-        refreshRunMultihopButton();
-    }
-}
-
-function renderMultihopAnswers(data) {
-    const section = document.querySelector('.multihop-answers');
-    if (!section) return;
-    section.hidden = false;
-    const labels = ['A', 'B', 'C'];
-    const answers = Array.isArray(data.answers) ? data.answers : [];
-    labels.forEach((label, i) => {
-        const article = section.querySelector(`[data-answer-slot="${label}"]`);
-        if (!article) return;
-        const a = answers[i] || {};
-        article.dataset.pipeline = a.pipeline || '';
-        const reveal = article.querySelector('.pipeline-reveal');
-        const meta = (typeof PIPELINE_META !== 'undefined' && a.pipeline) ? PIPELINE_META[a.pipeline] : null;
-        reveal.textContent = meta ? meta.label : (a.pipeline || '—');
-        reveal.hidden = true;
-        const txtEl = article.querySelector('.answer-text');
-        if (a.error) {
-            txtEl.textContent = `[${a.error}]`;
-            txtEl.style.color = '#ff6b6b';
-        } else {
-            txtEl.textContent = a.answer_text || '(no answer)';
-            txtEl.style.color = '';
-        }
-        const lat = article.querySelector('.answer-latency');
-        const cost = article.querySelector('.answer-cost');
-        const tok = article.querySelector('.answer-tokens');
-        lat.textContent = a.latency_ms ? `${(a.latency_ms / 1000).toFixed(2)}s` : '';
-        cost.textContent = a.cost_usd ? `$${a.cost_usd.toFixed(4)}` : '';
-        tok.textContent = a.tokens_used ? `${a.tokens_used.toLocaleString()} tok` : '';
-        const badge = article.querySelector('.multihop-health-badge');
-        const sourceKey = `multihop:${label}`;
-        if (a.topology_health) {
-            multihopState.healthBySource[sourceKey] = {
-                health: a.topology_health,
-                title: meta ? `Answer ${label} (${meta.label})` : `Answer ${label}`,
-                pipeline: a.pipeline || '',
-            };
-            applyHealthBadge(badge, a.topology_health);
-            badge.hidden = false;
-        } else {
-            badge.hidden = true;
-        }
-    });
-}
-
-function renderJudge(data) {
-    const verdict = document.getElementById('judge-verdict');
-    if (!verdict) return;
-    const list = verdict.querySelector('.judge-ranking');
-    const errEl = verdict.querySelector('.judge-error');
-    list.innerHTML = '';
-    errEl.hidden = true;
-    errEl.textContent = '';
-    const judge = data.judge || {};
-    if (judge.error) {
-        verdict.hidden = false;
-        errEl.textContent = judge.error;
-        errEl.hidden = false;
-        return;
-    }
-    const ranking = Array.isArray(judge.ranking) ? judge.ranking : [];
-    const rationales = judge.rationales || {};
-    if (!ranking.length) { verdict.hidden = true; return; }
-    verdict.hidden = false;
-    ranking.forEach(letter => {
-        const li = document.createElement('li');
-        const pick = document.createElement('span');
-        pick.className = 'judge-rank-pick';
-        pick.textContent = `Answer ${letter}:`;
-        li.appendChild(pick);
-        li.appendChild(document.createTextNode(' ' + (rationales[letter] || '')));
-        list.appendChild(li);
-    });
-}
-
-function revealPipelines() {
-    const section = document.querySelector('.multihop-answers');
-    if (!section) return;
-    multihopState.revealed = true;
-    section.querySelectorAll('.pipeline-reveal').forEach(el => { el.hidden = false; });
-    const btn = document.getElementById('reveal-pipelines-btn');
-    if (btn) btn.textContent = 'Pipelines Revealed';
 }
 
 function applyHealthBadge(el, health) {
@@ -2836,7 +2644,7 @@ async function loadSlotHealth(slotIdx) {
         applyHealthBadge(badge, health);
         badge.hidden = false;
         const meta = (typeof PIPELINE_META !== 'undefined') ? PIPELINE_META[pipeline] : null;
-        multihopState.healthBySource[`slot:${slotIdx}`] = {
+        slotHealthState.healthBySource[`slot:${slotIdx}`] = {
             health,
             title: meta ? `Slot ${slotIdx} (${meta.label})` : `Slot ${slotIdx}`,
             pipeline,
@@ -2844,14 +2652,12 @@ async function loadSlotHealth(slotIdx) {
     } catch (e) {
         badge.hidden = true;
     }
-    refreshRunMultihopButton();
 }
 
 function clearSlotHealth(slotIdx) {
     const badge = document.getElementById(`slot-${slotIdx}-health-badge`);
     if (badge) badge.hidden = true;
-    delete multihopState.healthBySource[`slot:${slotIdx}`];
-    refreshRunMultihopButton();
+    delete slotHealthState.healthBySource[`slot:${slotIdx}`];
 }
 
 const HEALTH_METRIC_DEFS = [
@@ -2889,19 +2695,13 @@ function openHealthDrawer(el) {
     if (source === 'slot') {
         const slotIdx = el.dataset.slot;
         key = `slot:${slotIdx}`;
-        const cached = multihopState.healthBySource[key];
+        const cached = slotHealthState.healthBySource[key];
         title = cached ? cached.title : `Slot ${slotIdx}`;
-        pipelineNote = cached ? cached.pipeline : '';
-    } else if (source === 'multihop') {
-        const ansSlot = el.dataset.answerSlot;
-        key = `multihop:${ansSlot}`;
-        const cached = multihopState.healthBySource[key];
-        title = cached ? cached.title : `Answer ${ansSlot}`;
         pipelineNote = cached ? cached.pipeline : '';
     } else {
         return;
     }
-    const cached = multihopState.healthBySource[key];
+    const cached = slotHealthState.healthBySource[key];
     const drawer = document.getElementById('health-drawer');
     if (!drawer) return;
     document.getElementById('health-drawer-title').textContent =
@@ -2909,11 +2709,7 @@ function openHealthDrawer(el) {
             ? `Topological Health: ${cached.health.score}/100`
             : 'Topological Health';
     const sourceEl = document.getElementById('health-drawer-source');
-    if (multihopState.revealed && pipelineNote) {
-        sourceEl.textContent = `${title} · pipeline: ${pipelineNote}`;
-    } else {
-        sourceEl.textContent = title;
-    }
+    sourceEl.textContent = title + (pipelineNote ? ` · pipeline: ${pipelineNote}` : '');
     const metricsEl = document.getElementById('health-drawer-metrics');
     const emptyEl = document.getElementById('health-drawer-empty');
     metricsEl.innerHTML = '';
@@ -2962,9 +2758,7 @@ function closeHealthDrawer() {
     if (drawer) drawer.style.display = 'none';
 }
 
-registerAction('pick-multihop-scenario', (el) => pickMultihopScenario(el));
-registerAction('run-multihop', () => runMultihop());
-registerAction('reveal-pipelines', () => revealPipelines());
+// Topological Health drawer (slot-only after PRD-004 v5 commit 9a).
 registerAction('open-health-drawer', (el) => openHealthDrawer(el));
 registerAction('close-health-drawer', () => closeHealthDrawer());
 
@@ -2974,25 +2768,6 @@ document.addEventListener('keydown', (e) => {
         if (drawer && drawer.style.display === 'flex') closeHealthDrawer();
     }
 });
-
-// Refresh the Run Multi-Hop enable/disable state whenever the ticker changes
-// or a slot pipeline gets picked. We rely on existing change events bubbling.
-document.addEventListener('change', (e) => {
-    const tgt = e.target;
-    if (!tgt) return;
-    if (tgt.id === 'doc-id-input' || (tgt.classList && tgt.classList.contains('slot-pipeline-select'))) {
-        refreshRunMultihopButton();
-    }
-});
-document.addEventListener('input', (e) => {
-    if (e.target && e.target.id === 'doc-id-input') refreshRunMultihopButton();
-});
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMultihop);
-} else {
-    initMultihop();
-}
 
 
 // --- Document Explorer (Sprint 90: per-node click from graph) ---
