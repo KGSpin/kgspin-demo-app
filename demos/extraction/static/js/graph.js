@@ -1375,8 +1375,6 @@ function closeDocExplorer() {
     document.getElementById('doc-explorer-modal').style.display = 'none';
 }
 
-// --- Agentic Q&A ---
-
 // --- compare.html lines 9674-9842: Legend + buildLegend + getConfidenceFloor + IIFE badge ---
 const legendFilters = {};  // pipeline -> { entityTypes: Set, relTypes: Set }
 

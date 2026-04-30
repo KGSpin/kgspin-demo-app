@@ -640,7 +640,9 @@ function runActiveTab() {
     const activeTab = document.querySelector('.tab.active').dataset.tab;
     if (activeTab === 'compare') startComparison();
     else if (activeTab === 'intelligence') startIntelligence();
-    else if (activeTab === 'impact') startImpact();
+    // Impact tab no longer has a top-level Run handler since the
+    // Agentic Q&A entrypoint was removed in fixup-20260430 commit 6 (F8).
+    // Lineage/reproducibility sub-tabs auto-load via switchImpactSubTab.
 }
 
 // ============================================================

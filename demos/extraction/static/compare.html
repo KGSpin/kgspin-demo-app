@@ -832,70 +832,10 @@ body {
     letter-spacing: 0.5px;
     margin-top: 4px;
 }
-.impact-qa-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.impact-qa-card {
-    background: #0f0f23;
-    border: 1px solid #2a2a4e;
-    border-radius: 10px;
-    overflow: hidden;
-}
-.impact-qa-question {
-    padding: 14px 18px;
-    border-bottom: 1px solid #2a2a4e;
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-}
-.impact-qa-answers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-}
-.impact-qa-answer {
-    padding: 14px 18px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #ccc;
-}
-.impact-qa-answer:first-child {
-    border-right: 1px solid #2a2a4e;
-}
-.impact-qa-answer-header {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.impact-qa-answer-header.with-graph { color: #5B9FE6; }
-.impact-qa-answer-header.without-graph { color: #FFE066; }
-.impact-qa-answer-header .token-count {
-    font-size: 11px;
-    color: #666;
-    font-weight: 400;
-}
-.qa-expandable { margin-top: 8px; }
-.qa-expandable summary {
-    cursor: pointer; color: #5B9FE6; font-size: 11px;
-    user-select: none;
-}
-.qa-expandable pre {
-    background: #0a0a1e; border: 1px solid #2a2a4e; border-radius: 6px;
-    padding: 10px; font-size: 11px; color: #aaa; white-space: pre-wrap;
-    max-height: 300px; overflow-y: auto; margin-top: 4px;
-}
-.run-nav-btn {
-    background: #1a1a3e; border: 1px solid #3a3a6e; color: #ccc;
-    padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
-}
-.run-nav-btn:hover:not(:disabled) { background: #2a2a5e; border-color: #5B9FE6; }
-.run-nav-btn:disabled { opacity: 0.4; cursor: default; }
+/* .impact-qa-* classes (Agentic Q&A panes, "with-graph"/"without-graph"
+   answer headers) deleted in fixup-20260430 commit 6 (F8). Same for
+   .qa-expandable + .run-nav-btn (Prev/Next pager for Agentic Q&A
+   runs). Replaced by the modal Why-tab Single-shot sub-tab (PRD-004 v5). */
 
 /* Impact sub-tabs */
 .impact-subtab-bar {
@@ -2263,17 +2203,11 @@ body {
             </div>
         </div>
 
-        <!-- Sprint 91: On-Demand Q&A Section -->
-        <div id="slot-qa-section" style="margin-top:24px; padding:20px; background:#0f0f23; border:1px solid #2a2a4e; border-radius:10px;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                <h3 style="margin:0; color:#ccc; font-size:15px;">Agentic Q&amp;A Comparison</h3>
-                <button id="qa-btn" data-action="run-slot-qa" disabled title="Load at least 2 graphs to run Q&A" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#9B59B6; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">&#9654; Run Q&amp;A</button>
-                <span id="qa-status" style="color:#888; font-size:11px;"></span>
-            </div>
-            <div id="slot-qa-content">
-                <div style="color:#666; font-size:13px;">Run at least 2 pipelines, then click Run Q&amp;A for side-by-side answers to domain-specific questions.</div>
-            </div>
-        </div>
+        <!-- Sprint 91 #slot-qa-section "Agentic Q&A Comparison" deleted
+             in fixup-20260430 commit 6 (F8). The slot-level Q&A flow
+             is subsumed by the Single-shot sub-tab inside each slot's
+             modal Why tab (PRD-004 v5). Backend route /api/compare-qa/{doc_id}
+             stays alive until Phase 5B per VP-Prod #4 posture. -->
     </div>
 </div>
 
@@ -2291,29 +2225,10 @@ body {
     </div>
 </div>
 
-<!-- ======================== TAB: Agentic Q&A ======================== -->
-<div id="tab-agentic" class="tab-content">
-    <div style="padding:20px;">
-        <h2 style="color:#ccc; margin-bottom:16px;">Agentic Q&amp;A</h2>
-        <p style="color:#888; font-size:13px; margin-bottom:16px;">Ask questions grounded in the extracted knowledge graph. Select which pipeline's graph to use as context.</p>
-        <div style="display:flex; gap:12px; align-items:center; margin-bottom:16px;">
-            <label style="color:#888; font-size:12px;">Pipeline:</label>
-            <select id="agentic-pipeline-select" style="background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:6px 10px; border-radius:4px; font-size:12px;">
-                <option value="kgenskills">KGSpin</option>
-                <option value="modular">LLM Multi-Stage</option>
-                <option value="gemini">LLM Full Shot</option>
-                <option value="all">All Pipelines</option>
-            </select>
-        </div>
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-            <input type="text" id="agentic-question-input" placeholder="Ask a question about the extracted data..." style="flex:1; background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:10px 14px; border-radius:6px; font-size:13px;" data-enter-action="ask-agentic-question">
-            <button data-action="ask-agentic-question" style="background:#1a2a3a; border:1px solid #3a5a7a; color:#5B9FE6; padding:10px 16px; border-radius:6px; font-size:13px; cursor:pointer;">Ask</button>
-        </div>
-        <div id="agentic-results" style="display:flex; flex-direction:column; gap:12px;">
-            <div style="color:#555; font-style:italic;">No questions asked yet. Enter a ticker in Compare, run an extraction, then ask questions here.</div>
-        </div>
-    </div>
-</div>
+<!-- #tab-agentic orphan top-level Agentic Q&A tab deleted in
+     fixup-20260430 commit 6 (F8). No nav button reached this tab.
+     Replaced by the Single-shot Q&A sub-tab in each slot's modal
+     Why tab (PRD-004 v5). -->
 
 <!-- Kept for backward compat but hidden — old Document Explorer tab -->
 <div id="tab-intelligence" class="tab-content" style="display:none !important;">
@@ -2387,13 +2302,13 @@ body {
     <div class="impact-subtab-bar" id="impact-subtab-bar" style="display:none;">
         <button class="impact-subtab active" data-subtab="reproducibility" data-action="switch-impact-subtab" data-subtab="reproducibility">Reproducibility</button>
         <button class="impact-subtab" data-subtab="lineage" data-action="switch-impact-subtab" data-subtab="lineage">Data Lineage</button>
-        <button class="impact-subtab" data-subtab="agentic" data-action="switch-impact-subtab" data-subtab="agentic">Agentic Q&amp;A</button>
+        <!-- Impact "Agentic Q&A" sub-tab deleted in fixup commit 6 (F8). -->
     </div>
 
     <!-- Welcome (shown when no data loaded) -->
     <div id="impact-welcome" class="tab-placeholder">
         <h3>Graph Impact</h3>
-        <p>Prove the value of deterministic knowledge graphs: <strong>reproducibility</strong>, <strong>data lineage</strong>, and <strong>agentic task quality</strong>.</p>
+        <p>Prove the value of deterministic knowledge graphs: <strong>reproducibility</strong> and <strong>data lineage</strong>. Agentic task quality moved to the modal Why tab — open any slot and click Why for retrieval-strategy comparison.</p>
         <p style="color:#555; font-size:13px; margin-top:8px;">Run KGSpin vs LLM first (Tab 1), then explore impact here</p>
     </div>
 
@@ -2450,31 +2365,10 @@ body {
         </div>
     </div>
 
-    <!-- Sub-tab 3: Agentic Q&A -->
-    <div id="impact-sub-agentic" class="impact-subtab-content">
-        <div id="agentic-welcome" style="padding:0 16px;">
-            <p style="color:#888; font-size:13px; margin:0 0 12px;">Compare LLM answers <strong>with</strong> KG context vs <strong>without</strong>.</p>
-            <button class="tab-run-btn" data-action="start-impact" id="impact-run-btn">Run Impact Analysis</button>
-        </div>
-        <div id="agentic-run-nav" style="display:none; padding:4px 16px; align-items:center; gap:12px;">
-            <button class="tab-run-btn" data-action="start-impact" id="impact-refresh-btn" style="padding:4px 12px; font-size:12px;">
-                Refresh (New Run)
-            </button>
-            <span id="agentic-run-label" style="color:#888; font-size:12px;"></span>
-            <div style="margin-left:auto; display:flex; gap:4px;">
-                <button class="run-nav-btn" id="agentic-prev-btn" data-action="navigate-qa-run" data-dir="-1" disabled>&laquo; Prev</button>
-                <button class="run-nav-btn" id="agentic-next-btn" data-action="navigate-qa-run" data-dir="1" disabled>Next &raquo;</button>
-            </div>
-        </div>
-        <div class="timeline-section" id="impact-timeline">
-            <h2>Impact Analysis</h2>
-            <div class="timeline-steps" id="impact-timeline-steps"></div>
-        </div>
-        <div class="content-section" id="impact-content" style="display:none;">
-            <div class="impact-header" id="impact-metrics"></div>
-            <div class="impact-qa-list" id="impact-qa-list"></div>
-        </div>
-    </div>
+    <!-- Impact #impact-sub-agentic ("Agentic Q&A" / "with KG vs
+         without KG" Q&A flow) deleted in fixup-20260430 commit 6
+         (F8). Replaced by the Single-shot Q&A sub-tab inside each
+         slot's modal Why tab (PRD-004 v5). Backend alive until 5B. -->
 </div>
 
 <!-- Sprint 39.2 Item 6: Flag Explorer Tab -->

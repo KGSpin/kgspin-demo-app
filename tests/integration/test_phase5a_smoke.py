@@ -173,9 +173,16 @@ def test_phase5a_full_smoke(smoke_app):
         assert res_a_judge.json()["winner"] in ("A", "B", "tie")
 
     # --- Scenario B templates ----------------------------------------------
+    # Phase 5A fixup-20260430: 6 ready templates (5 fin + 1 clinical hedge)
+    # + 4 clinical scaffolds (status="scaffold") = 10 total. The picker
+    # disables Run on scaffold selection; backend doesn't reject them.
     res_tpl = client.get("/api/scenario-b/templates")
     assert res_tpl.status_code == 200
-    assert len(res_tpl.json()) == 6
+    payload = res_tpl.json()
+    assert len(payload) == 10
+    ready = [t for t in payload if t.get("status", "ready") == "ready"]
+    scaffold = [t for t in payload if t.get("status") == "scaffold"]
+    assert len(ready) == 6 and len(scaffold) == 4
 
     # --- Scenario B run (SSE) ----------------------------------------------
     res_b_run = client.post(
