@@ -288,6 +288,18 @@
         setStatus('Running both panes…');
 
         const panes = ['agentic_dense', 'paper_mirror'];
+        // PRD-004 v5 Phase 5B: thread slot context + Settings model
+        // through to the backend so the lazy-cache hook can warm the
+        // right _graph/{graph_key}/ index (multi-hop hardcodes fan_out
+        // internally for now, but slot_pipeline is best-effort warmed).
+        const slotPipeline = (typeof expandedSlot !== 'undefined' && expandedSlot !== null
+            && typeof slotState !== 'undefined' && slotState[expandedSlot])
+            ? slotState[expandedSlot].pipeline : null;
+        const slotBundle = (typeof expandedSlot !== 'undefined' && expandedSlot !== null
+            && typeof slotState !== 'undefined' && slotState[expandedSlot])
+            ? slotState[expandedSlot].bundle : null;
+        const modelSelect = document.getElementById('model-select');
+        const selectedModel = modelSelect ? (modelSelect.value || '').trim() : '';
         try {
             const res = await fetch('/api/scenario-b/run', {
                 method: 'POST',
@@ -295,10 +307,19 @@
                 body: JSON.stringify({
                     scenario_id: sid, ticker, panes,
                     enable_self_reflection: true,
+                    slot_pipeline: slotPipeline || undefined,
+                    slot_bundle: slotBundle || undefined,
+                    model: selectedModel || undefined,
                 }),
             });
             if (!res.ok) {
-                setStatus(`HTTP ${res.status}`);
+                // 503 lazy-cache errors return JSON with operator-friendly
+                // detail. Surface it instead of just the status code.
+                let errBody = null;
+                try { errBody = await res.json(); } catch (_) {}
+                const msg = (errBody && (errBody.detail || errBody.error))
+                    || `HTTP ${res.status}`;
+                setStatus(msg);
                 return;
             }
             await consumeSseStream(res, (eventName, payload) => {

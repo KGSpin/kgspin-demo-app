@@ -3098,7 +3098,81 @@ async def scenario_b_run(payload: dict):
     ticker = (payload.get("ticker") or "").strip().upper()
     panes = payload.get("panes") or ["agentic_dense", "paper_mirror"]
     enable_self_reflection = bool(payload.get("enable_self_reflection", True))
-    llm = _scenario_llm_client()
+    # PRD-004 v5 Phase 5B: thread slot_pipeline + slot_bundle from the
+    # frontend so we can lazy-build the right _graph/{graph_key}/ index
+    # before scenario-b's services try to load it. Default fan_out
+    # preserves pre-5B behavior for callers that don't yet pass these.
+    slot_pipeline = (payload.get("slot_pipeline") or "fan_out").strip()
+    slot_bundle = (payload.get("slot_bundle") or "financial-default").strip()
+    requested_model = (payload.get("model") or "").strip() or None
+    llm = _scenario_llm_client(model=requested_model)
+
+    # PRD-004 v5 Phase 5B (D7+D8): ensure the slot's pipeline-specific
+    # graph index is on disk before kicking off the SSE flow. Same lazy-
+    # build hook as /api/scenario-a/run. Multi-hop's internal pipelines
+    # currently hardcode pipeline="fan_out" inside graph_rag calls; if
+    # the user wants a different slot's KG driving multi-hop, build that
+    # one too — at minimum, the slot_pipeline they're on should have a
+    # built index, AND fan_out (the default) should also be present so
+    # paper_mirror's call doesn't 500.
+    from kgspin_demo_app.services.lazy_cache import (
+        KGNotInCache,
+        LanderNotFound,
+        ensure_caches_on_disk,
+    )
+    kg_cache_entry = _kg_cache.get(ticker, {}) if ticker in _kg_cache else {}
+    # Multi-hop's internal services currently hardcode pipeline="fan_out"
+    # in their graph_rag calls; require fan_out specifically to be either
+    # built or buildable. The slot's own pipeline is also warmed so a
+    # follow-up scope-cut to thread slot_pipeline through doesn't need
+    # another lazy-build pass.
+    required_pipeline = "fan_out"  # multi-hop's internal contract today
+    optional_pipelines = [slot_pipeline] if slot_pipeline != "fan_out" else []
+    try:
+        ensure_caches_on_disk(
+            ticker=ticker,
+            pipeline=required_pipeline,
+            bundle=slot_bundle,
+            bundle_version="0.0.1",
+            kg_cache_entry=kg_cache_entry,
+        )
+    except LanderNotFound as exc:
+        return JSONResponse(
+            {"error": "lander_not_found", "detail": str(exc)},
+            status_code=503,
+        )
+    except KGNotInCache:
+        # Multi-hop hardcodes fan_out internally; if the user only ran
+        # agentic_flash/agentic_analyst on Compare, fan_out's KG isn't
+        # cached. Operator-friendly message with the specific remedy.
+        return JSONResponse(
+            {
+                "error": "kg_not_in_cache",
+                "detail": (
+                    f"Multi-hop requires the fan_out KG for {ticker!r} but "
+                    f"it's not in the cache. Run the slot with the "
+                    f"'KGSpin Default' (kgenskills/fan_out) pipeline on the "
+                    f"Compare tab first to populate fan_out's KG. "
+                    f"Single-shot Q&A works with any pipeline; multi-hop's "
+                    f"internal services hardcode fan_out today (deferred "
+                    f"refactor to thread slot_pipeline through)."
+                ),
+                "missing_pipeline": required_pipeline,
+            },
+            status_code=503,
+        )
+    # Best-effort: warm the slot's own pipeline too (no error if missing).
+    for pl in optional_pipelines:
+        try:
+            ensure_caches_on_disk(
+                ticker=ticker,
+                pipeline=pl,
+                bundle=slot_bundle,
+                bundle_version="0.0.1",
+                kg_cache_entry=kg_cache_entry,
+            )
+        except (LanderNotFound, KGNotInCache):
+            pass  # Optional warm; multi-hop runs against fan_out.
 
     async def _stream():
         # Test-injected progress queue (same pattern as the rest of
