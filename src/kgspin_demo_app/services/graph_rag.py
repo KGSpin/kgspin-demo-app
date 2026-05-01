@@ -112,18 +112,56 @@ def _edge_text_for_index(edge: dict) -> str:
     ).strip()
 
 
-def _load_graph_corpus(ticker: str) -> GraphCorpus:
-    out_dir = dense_rag.get_corpus_root() / ticker
+def _resolve_graph_dir(
+    ticker: str,
+    *,
+    pipeline: str = "fan_out",
+    bundle: str = "financial-default",
+) -> Path:
+    """Resolve the on-disk dir for ``(ticker, pipeline, bundle)``'s graph index.
+
+    Search order (PRD-004 v5 Phase 5B / D5):
+    1. Lander tree's ``_graph/{pipeline}__{bundle}__core-{sha[:7]}/`` under
+       the latest dated subdir.
+    2. Legacy ``tests/fixtures/rag-corpus/{ticker}/`` fallback (back-compat
+       for pre-5B fan_out fixtures only — non-fan_out pipelines need a
+       lander-tree _graph/ dir or build will fail).
+    """
+    from kgspin_demo_app.services.cache_layout import (
+        kgspin_core_sha,
+        resolve_locator,
+    )
+
+    loc = resolve_locator(ticker)
+    if loc is not None:
+        candidate = loc.graph_corpus_dir(
+            pipeline=pipeline, bundle=bundle, core_sha=kgspin_core_sha(),
+        )
+        if candidate.exists():
+            return candidate
+    # Legacy fallback (pre-5B fan_out only).
+    return dense_rag.get_corpus_root() / ticker
+
+
+def _load_graph_corpus(
+    ticker: str,
+    *,
+    pipeline: str = "fan_out",
+    bundle: str = "financial-default",
+) -> GraphCorpus:
+    out_dir = _resolve_graph_dir(ticker, pipeline=pipeline, bundle=bundle)
     nodes_path = out_dir / "graph_nodes.json"
     edges_path = out_dir / "graph_edges.json"
     nemb_path = out_dir / "graph_node_embeddings.npy"
     eemb_path = out_dir / "graph_edge_embeddings.npy"
-    src_path = out_dir / "source.txt"
+    # source.txt sits alongside the lander artifact (not in _graph/), so
+    # walk up to the dated subdir to find it.
+    src_path = (out_dir.parent.parent / "source.txt") if out_dir.name != ticker else (out_dir / "source.txt")
     for p in (nodes_path, edges_path, nemb_path, eemb_path):
         if not p.exists():
             raise CorpusNotBuilt(
-                f"Graph corpus for {ticker!r} missing: {p} not found. "
-                f"Run `python -m scripts.build_rag_corpus --ticker {ticker}` first."
+                f"Graph corpus for {ticker!r}/{pipeline} missing: {p} not found. "
+                f"Run `python -m scripts.warm_caches --ticker {ticker} --pipeline {pipeline}` first."
             )
     nodes = json.loads(nodes_path.read_text(encoding="utf-8"))
     edges = json.loads(edges_path.read_text(encoding="utf-8"))
@@ -141,11 +179,25 @@ def _load_graph_corpus(ticker: str) -> GraphCorpus:
     )
 
 
-def get_graph_corpus(ticker: str) -> GraphCorpus:
+def get_graph_corpus(
+    ticker: str,
+    *,
+    pipeline: str = "fan_out",
+    bundle: str = "financial-default",
+) -> GraphCorpus:
+    """Return the graph corpus for ``(ticker, pipeline, bundle)``.
+
+    Cache key includes pipeline + bundle so different slot types share
+    nothing. Defaults preserve pre-5B fan_out behavior for back-compat
+    callers that don't yet pass pipeline.
+    """
+    cache_key = f"{ticker}|{pipeline}|{bundle}"
     with _graph_cache_lock:
-        if ticker not in _graph_cache:
-            _graph_cache[ticker] = _load_graph_corpus(ticker)
-        return _graph_cache[ticker]
+        if cache_key not in _graph_cache:
+            _graph_cache[cache_key] = _load_graph_corpus(
+                ticker, pipeline=pipeline, bundle=bundle,
+            )
+        return _graph_cache[cache_key]
 
 
 def _clear_graph_cache() -> None:
@@ -248,12 +300,19 @@ async def aquery_context(
     question: str,
     mode: str = "A2",
     top_k: int = 5,
+    *,
+    pipeline: str = "fan_out",
+    bundle: str = "financial-default",
 ) -> ContextBundle:
     """Retrieve a context bundle in the requested GraphRAG mode.
 
     ``async`` to mirror the GraphSearch paper's
     ``GraphRAG.aquery_context`` signature so the paper-mirror pipeline
     (deliverable E) can swap implementations cleanly.
+
+    PRD-004 v5 Phase 5B (D5): ``pipeline`` + ``bundle`` route the
+    graph-side load to the right ``_graph/{graph_key}/`` index. Pre-5B
+    silently used fan_out for every slot regardless of pipeline.
     """
     if mode not in ("A1", "A2", "A3"):
         raise ValueError(f"mode must be 'A1', 'A2', or 'A3'; got {mode!r}")
@@ -264,7 +323,7 @@ async def aquery_context(
 
     if mode == "A2":
         chunks = dense_rag.search(ticker, question, top_k=top_k)
-        graph = get_graph_corpus(ticker)
+        graph = get_graph_corpus(ticker, pipeline=pipeline, bundle=bundle)
         seed_nodes: list[dict] = []
         for c in chunks:
             seed_nodes.extend(_entities_in_chunk_span(
@@ -294,7 +353,7 @@ async def aquery_context(
         )
 
     # A3 — graph-as-corpus.
-    graph = get_graph_corpus(ticker)
+    graph = get_graph_corpus(ticker, pipeline=pipeline, bundle=bundle)
     matched_nodes, matched_edges = _retrieve_graph_items(
         question, graph, top_k=top_k,
     )

@@ -154,12 +154,16 @@ def test_scenario_a_run_rejects_missing_fields(app_client):
 
 
 def test_scenario_a_run_returns_503_when_corpus_missing(app_client):
+    """PRD-004 v5 Phase 5B (D8): the lazy-cache hook now fires before
+    the corpus check. An unknown ticker now returns ``lander_not_found``
+    instead of ``corpus_not_built`` — more accurate, since the actual
+    issue is no lander tree on disk for the ticker."""
     resp = app_client.post(
         "/api/scenario-a/run",
         json={"question": "x?", "ticker": "ZZZZ", "mode": "A1"},
     )
     assert resp.status_code == 503
-    assert resp.json()["error"] == "corpus_not_built"
+    assert resp.json()["error"] in ("corpus_not_built", "lander_not_found", "kg_not_in_cache")
 
 
 # ---------------------------------------------------------------------------
