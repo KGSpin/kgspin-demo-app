@@ -133,9 +133,27 @@ class TickerCorpus:
     bm25: object                      # rank_bm25.BM25Okapi (untyped to keep import lazy)
 
 
+def _resolve_corpus_dir(ticker: str) -> Path:
+    """Resolve the on-disk dir for ``ticker``'s dense corpus.
+
+    Search order (PRD-004 v5 Phase 5B / D4):
+    1. Lander tree's ``_doc/`` under the latest dated subdir
+       (``~/.kgspin/corpus/{domain}/{source}/{ticker}/{date}/{doc_kind}/_doc/``).
+       This is the new canonical location.
+    2. Legacy ``tests/fixtures/rag-corpus/{ticker}/`` fallback for
+       pre-5B fixtures + unit-test pinned data.
+    """
+    from kgspin_demo_app.services.cache_layout import resolve_locator
+
+    loc = resolve_locator(ticker)
+    if loc is not None and loc.doc_corpus_dir.exists():
+        return loc.doc_corpus_dir
+    return get_corpus_root() / ticker
+
+
 def _load_corpus(ticker: str) -> TickerCorpus:
     import json
-    out_dir = get_corpus_root() / ticker
+    out_dir = _resolve_corpus_dir(ticker)
     chunks_path = out_dir / "chunks.json"
     emb_path = out_dir / "chunk_embeddings.npy"
     bm25_path = out_dir / "bm25_index.pkl"
@@ -143,7 +161,7 @@ def _load_corpus(ticker: str) -> TickerCorpus:
         if not p.exists():
             raise CorpusNotBuilt(
                 f"RAG corpus for {ticker!r} missing: {p} not found. "
-                f"Run `python -m scripts.build_rag_corpus --ticker {ticker}` first."
+                f"Run `python -m scripts.warm_caches --ticker {ticker}` first."
             )
     chunks = json.loads(chunks_path.read_text(encoding="utf-8"))
     # mmap'd numpy load — the rank_bm25 corpus dwarfs the embeddings, so

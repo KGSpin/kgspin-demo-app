@@ -305,6 +305,24 @@ class SecLander(DocumentFetcher):
         # VP Eng test-eval: hash is computed from the bytes actually on disk.
         sha = _shared.sha256_file(raw_path)
 
+        # PRD-004 v5 Phase 5B (D2): canonical plaintext + manifest persisted
+        # alongside raw.html. Single producer of the byte-stable plaintext
+        # the rag-corpus builder, scenario runners, and lineage UI all read
+        # against. Manifest pins normalization_version so downstream consumers
+        # detect drift without re-canonicalizing.
+        from .canonical import write_canonical_artifacts
+        canonical = write_canonical_artifacts(
+            raw_path=raw_path,
+            raw_bytes=html.encode("utf-8"),
+            raw_sha=sha,
+            kind="html",
+            domain=self.DOMAIN,
+            source=self.SOURCE,
+            lander_name=self.name,
+            lander_version=self.version,
+            fetch_timestamp_utc=fetch_timestamp_utc,
+        )
+
         # source_extras: per-source fields that don't fit the first-class
         # CorpusDocumentMetadata slots.
         extras = build_source_extras(
@@ -321,6 +339,11 @@ class SecLander(DocumentFetcher):
                 # Company-level metadata — new in 3.0.0. Ground-truth
                 # canonical name, industry classification, addresses, etc.
                 "company": company_extras,
+                # D2: canonical plaintext provenance — admin's registry
+                # (D3 schema soft-add) reads these into the corpus_document row.
+                "plaintext_sha": canonical.plaintext_sha,
+                "plaintext_bytes": canonical.plaintext_bytes,
+                "normalization_version": canonical.normalization_version,
             },
         )
 

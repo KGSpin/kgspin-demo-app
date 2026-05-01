@@ -168,6 +168,24 @@ class ClinicalLander(DocumentFetcher):
             ) from e
 
         sha = _shared.sha256_file(raw_path)
+
+        # PRD-004 v5 Phase 5B (D2): canonical plaintext + manifest persisted
+        # alongside raw.json. Sponsor name extracted by the canonicalizer is
+        # surfaced into extras for the H-module's main_entity downstream.
+        from .canonical import write_canonical_artifacts
+        raw_bytes = raw_path.read_bytes()
+        canonical = write_canonical_artifacts(
+            raw_path=raw_path,
+            raw_bytes=raw_bytes,
+            raw_sha=sha,
+            kind="clinical_json",
+            domain=self.DOMAIN,
+            source=self.SOURCE,
+            lander_name=self.name,
+            lander_version=self.version,
+            fetch_timestamp_utc=fetch_timestamp_utc,
+        )
+
         extras = build_source_extras(
             lander_name=self.name,
             lander_version=self.version,
@@ -178,6 +196,11 @@ class ClinicalLander(DocumentFetcher):
                 "source_url": source_url,
                 "etag": etag,
                 "bytes_written": bytes_written,
+                # D2: canonical plaintext provenance + sponsor name.
+                "plaintext_sha": canonical.plaintext_sha,
+                "plaintext_bytes": canonical.plaintext_bytes,
+                "normalization_version": canonical.normalization_version,
+                "sponsor": canonical.sponsor,
             },
         )
         return FetchResult(

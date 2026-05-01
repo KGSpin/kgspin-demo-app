@@ -2845,14 +2845,26 @@ async def _scenario_b_run_async(
 async def scenario_a_run(payload: dict):
     """Run Scenario A — one-shot RAG vs GraphRAG, free-text question.
 
-    Body: ``{question, ticker, mode in {'A1','A2','A3'}}``
+    Body: ``{question, ticker, mode in {'A1','A2','A3'}, slot_pipeline?, slot_bundle?}``
     Returns: ``{dense_answer, graphrag_answer, retrieved_context_left,
-    retrieved_context_right}``
+    retrieved_context_right, debug: {graph_index_pipeline, ...}}``
+
+    PRD-004 v5 Phase 5B (D7+D8): if the slot's pipeline-specific graph
+    index isn't on disk yet, build it lazily from the in-memory
+    ``_kg_cache`` (Compare-tab Run must precede the modal Run; we don't
+    trigger LLM extraction here — that's a 5-10 min job).
     """
     from kgspin_demo_app.services import dense_rag, graph_rag
+    from kgspin_demo_app.services.lazy_cache import (
+        KGNotInCache,
+        LanderNotFound,
+        ensure_caches_on_disk,
+    )
     question = (payload.get("question") or "").strip()
     ticker = (payload.get("ticker") or "").strip().upper()
     mode = payload.get("mode") or "A2"
+    slot_pipeline = (payload.get("slot_pipeline") or "fan_out").strip()
+    slot_bundle = (payload.get("slot_bundle") or "financial-default").strip()
     if not question or not ticker:
         return JSONResponse({"error": "question and ticker are required"}, status_code=400)
     if mode not in ("A1", "A2", "A3"):
@@ -2861,14 +2873,40 @@ async def scenario_a_run(payload: dict):
             status_code=400,
         )
 
+    # PRD-004 v5 Phase 5B (D7+D8): ensure _doc/ + _graph/{graph_key}/
+    # are on disk for this slot's pipeline. Lazy build; synchronous
+    # (SSE progress UX deferred to a follow-up sprint).
+    kg_cache_entry = _kg_cache.get(ticker, {}) if ticker in _kg_cache else {}
+    try:
+        loc, _doc_status, _graph_status = ensure_caches_on_disk(
+            ticker=ticker,
+            pipeline=slot_pipeline,
+            bundle=slot_bundle,
+            bundle_version="0.0.1",  # bundle-version source-of-truth pending bundle metadata wiring
+            kg_cache_entry=kg_cache_entry,
+        )
+    except LanderNotFound as exc:
+        return JSONResponse(
+            {"error": "lander_not_found", "detail": str(exc)},
+            status_code=503,
+        )
+    except KGNotInCache as exc:
+        return JSONResponse(
+            {"error": "kg_not_in_cache", "detail": str(exc)},
+            status_code=503,
+        )
+
     try:
         # Left pane — pure dense RAG.
         left_chunks = dense_rag.search(ticker, question, top_k=5)
         left_ctx_str = dense_rag.serialize_chunks(left_chunks)
 
-        # Right pane — graph RAG.
+        # Right pane — graph RAG. Pass the slot's pipeline + bundle so
+        # graph_rag loads the right _graph/{graph_key}/ index (the
+        # headline correctness fix — was silently using fan_out before).
         right_bundle = await graph_rag.aquery_context(
             ticker, question, mode=mode, top_k=5,
+            pipeline=slot_pipeline, bundle=slot_bundle,
         )
         right_ctx_str = graph_rag.serialize_bundle_for_prompt(right_bundle)
     except dense_rag.CorpusNotBuilt as exc:
@@ -2896,6 +2934,14 @@ async def scenario_a_run(payload: dict):
         "graphrag_answer": graphrag_answer,
         "retrieved_context_left": left_ctx_str,
         "retrieved_context_right": right_ctx_str,
+        # PRD-004 v5 Phase 5B (D5+followup #1): debug field for the
+        # invariant test that GraphRAG actually loaded the slot's KG.
+        "debug": {
+            "graph_index_pipeline": slot_pipeline,
+            "graph_index_bundle": slot_bundle,
+            "doc_corpus_status": _doc_status,
+            "graph_index_status": _graph_status,
+        },
     })
 
 
