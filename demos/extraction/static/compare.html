@@ -1599,6 +1599,71 @@ body {
     cursor: help;
 }
 .scenario-b-panes .badge.badge-advanced { background: #3a1a4a; color: #b48fd6; }
+.scenario-mode-info {
+    margin: 8px 0 12px 0;
+    padding: 0;
+    color: #aaa;
+    font-size: 11px;
+}
+.scenario-mode-info > summary {
+    cursor: pointer;
+    color: #5B9FE6;
+    padding: 4px 0;
+    user-select: none;
+    list-style: none;
+}
+.scenario-mode-info > summary::before {
+    content: "ⓘ ";
+    color: #5B9FE6;
+}
+.scenario-mode-info > summary:hover {
+    color: #7fb8f0;
+}
+.scenario-mode-info[open] > summary {
+    margin-bottom: 6px;
+}
+.mode-info-grid {
+    margin: 0;
+    padding: 8px 12px;
+    background: #0a0a1f;
+    border: 1px solid #1a1a3e;
+    border-radius: 4px;
+}
+.mode-info-grid dt {
+    color: #c9d1d9;
+    font-weight: 600;
+    margin-top: 8px;
+    margin-bottom: 2px;
+    font-size: 12px;
+}
+.mode-info-grid dt:first-child {
+    margin-top: 0;
+}
+.mode-info-grid dd {
+    margin: 0 0 4px 0;
+    color: #888;
+    line-height: 1.5;
+    font-size: 11px;
+}
+.mode-info-grid dd strong {
+    color: #c9d1d9;
+}
+.mode-info-grid dd em {
+    color: #aaa;
+    font-style: italic;
+}
+.mode-badge-tag {
+    display: inline-block;
+    background: #1a1a3e;
+    color: #5B9FE6;
+    font-family: monospace;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+    font-weight: 500;
+}
 .scenario-a-panes .answer, .scenario-b-panes .answer {
     color: #c9d1d9; font-size: 13px; line-height: 1.5;
     min-height: 60px;
@@ -2670,6 +2735,18 @@ body {
                         <button id="modal-scenario-a-analyze-btn" data-action="modal-scenario-a-analyze" disabled>Analyze Results</button>
                         <span id="modal-scenario-a-status" class="scenario-a-status"></span>
                     </div>
+
+                    <details class="scenario-mode-info modal-scoped">
+                        <summary>What do these modes do?</summary>
+                        <dl class="mode-info-grid">
+                            <dt>Standard <span class="mode-badge-tag">A1</span></dt>
+                            <dd>Pure dense retrieval (BM25 + cosine RRF) over text chunks — same as the left pane. <strong>Sanity check:</strong> if A1's right pane diverges from the left, the graph code path has broken the baseline.</dd>
+                            <dt>+1-hop graph <span class="mode-badge-tag">A2</span></dt>
+                            <dd>Dense retrieval over chunks <em>plus</em> the 1-hop graph neighborhood of every entity whose evidence falls inside a returned chunk. Adds the graph's structured facts as context to the LLM. <strong>Recommended default</strong> — chunks anchor the answer, graph adds structure.</dd>
+                            <dt>Graph-as-corpus <span class="mode-badge-tag">A3</span></dt>
+                            <dd>BM25 + cosine RRF over the graph itself (nodes' canonical names + types + definitions; edges' predicates + evidence sentences). Resolves matched nodes/edges back to source spans for evidence. <strong>No chunks retrieved</strong> — pure graph retrieval. Best when the question maps to canonical entities or relationships.</dd>
+                        </dl>
+                    </details>
 
                     <div class="scenario-a-panes">
                         <article class="pane pane-left">
