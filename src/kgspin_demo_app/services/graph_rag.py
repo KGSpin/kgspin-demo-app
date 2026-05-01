@@ -65,12 +65,27 @@ _graph_cache_lock = threading.Lock()
 class ContextBundle:
     """The unit of evidence returned by ``aquery_context``.
 
-    ``mode`` is ``'A1' | 'A2' | 'A3'``. The fields that aren't
-    populated for a given mode stay empty (e.g. A1 has chunks but no
-    graph_nodes). ``evidence_spans`` holds source-text spans that
-    correspond to matched graph items in A3, or to chunk spans in A2
-    (so the prompt can show the underlying evidence text alongside
-    the graph context).
+    PRD-004 v5 Phase 5B+ — three retrieval modes, each with a tailored
+    nested structure:
+
+    - ``chunk_first``: chunks anchor the retrieval; each chunk row
+      carries its in-chunk subgraph (entities + edges whose evidence
+      falls inside the chunk's char span). Populates ``chunk_rows``.
+    - ``graph_first``: graph items (nodes/edges) anchor the retrieval;
+      each match row carries its source chunk(s). Populates ``graph_match_rows``.
+    - ``parallel``: dense and graph search run independently; both
+      result lists are presented side-by-side in the prompt with no
+      joining at retrieval time. Populates ``text_chunks`` AND
+      ``graph_nodes``/``graph_edges`` as flat lists.
+
+    Legacy flat fields (``text_chunks``, ``graph_nodes``, ``graph_edges``,
+    ``evidence_spans``) are retained for back-compat with downstream
+    consumers (serialize_bundle_for_prompt fallback, A2/A3 callers).
+    Modes that emit nested rows ALSO populate the legacy flat fields
+    with the same items unioned, so legacy renderers don't break.
+
+    ``n_hops`` records how deep the graph traversal went (configurable
+    via API param + ``graph_rag.n_hops_default`` config; default 3).
     """
     mode: str
     text_chunks: list[Chunk] = field(default_factory=list)
@@ -78,6 +93,10 @@ class ContextBundle:
     graph_edges: list[dict] = field(default_factory=list)
     evidence_spans: list[tuple[int, int]] = field(default_factory=list)
     source_text: str = ""  # full plaintext, for resolving evidence_spans → text
+    # New nested per-row structures (populated by chunk_first / graph_first):
+    chunk_rows: list[dict] = field(default_factory=list)
+    graph_match_rows: list[dict] = field(default_factory=list)
+    n_hops: int = 0
 
 
 @dataclass
@@ -255,24 +274,68 @@ def _retrieve_graph_items(
     return matched_nodes, matched_edges
 
 
-def _expand_one_hop(
-    seed_nodes: list[dict], all_nodes: list[dict], all_edges: list[dict],
+def _expand_n_hops(
+    seed_nodes: list[dict],
+    all_nodes: list[dict],
+    all_edges: list[dict],
+    *,
+    n_hops: int = 3,
 ) -> tuple[list[dict], list[dict]]:
-    """Given a seed set of nodes, return (nodes_with_neighbors, edges_among_them)."""
+    """BFS to depth ``n_hops`` from ``seed_nodes``.
+
+    Returns ``(nodes_within_n_hops, edges_within_n_hops)``. ``n_hops=1``
+    is the original 1-hop neighborhood. Higher N pulls in transitive
+    neighbors — useful for multi-hop questions where the answer entity
+    is several relationships removed from any chunk-anchored entity.
+
+    The traversal is undirected (an edge counts whether the seed sits
+    on its src or tgt side) and stops as soon as no new ids are added
+    in a layer (so ``n_hops=10`` on a small graph won't loop forever).
+    """
     seed_ids = {n.get("id") for n in seed_nodes if n.get("id")}
     if not seed_ids:
         return list(seed_nodes), []
-    relevant_edges = [
-        e for e in all_edges
-        if (e.get("src") in seed_ids) or (e.get("tgt") in seed_ids)
-    ]
-    neighbor_ids: set[str] = set()
-    for e in relevant_edges:
-        if e.get("src"): neighbor_ids.add(e["src"])
-        if e.get("tgt"): neighbor_ids.add(e["tgt"])
     by_id = {n.get("id"): n for n in all_nodes if n.get("id")}
-    expanded_nodes = [by_id[i] for i in (seed_ids | neighbor_ids) if i in by_id]
-    return expanded_nodes, relevant_edges
+    # Edge index — for each node id, which edges touch it.
+    edges_by_node: dict[str, list[dict]] = {}
+    for e in all_edges:
+        for endpoint in (e.get("src"), e.get("tgt")):
+            if endpoint:
+                edges_by_node.setdefault(endpoint, []).append(e)
+
+    visited_ids: set[str] = set(seed_ids)
+    visited_edges_keyed_by_id: dict[str, dict] = {}  # rel_id -> edge
+    frontier: set[str] = set(seed_ids)
+    for _ in range(max(0, int(n_hops))):
+        next_frontier: set[str] = set()
+        for nid in frontier:
+            for e in edges_by_node.get(nid, ()):
+                eid = e.get("id") or f"{e.get('src','')}|{e.get('predicate','')}|{e.get('tgt','')}"
+                visited_edges_keyed_by_id[eid] = e
+                for endpoint in (e.get("src"), e.get("tgt")):
+                    if endpoint and endpoint not in visited_ids:
+                        visited_ids.add(endpoint)
+                        next_frontier.add(endpoint)
+        if not next_frontier:
+            break
+        frontier = next_frontier
+
+    expanded_nodes = [by_id[i] for i in visited_ids if i in by_id]
+    expanded_edges = list(visited_edges_keyed_by_id.values())
+    return expanded_nodes, expanded_edges
+
+
+def _entities_within_n_hops_of_chunk(
+    seed_nodes: list[dict],
+    all_nodes: list[dict],
+    all_edges: list[dict],
+    *,
+    n_hops: int,
+) -> tuple[list[dict], list[dict]]:
+    """Wrapper for ``_expand_n_hops`` that returns the subgraph anchored
+    to one chunk's seed entities. Same signature as ``_expand_one_hop``
+    used to be — easy drop-in replacement."""
+    return _expand_n_hops(seed_nodes, all_nodes, all_edges, n_hops=n_hops)
 
 
 def _entities_in_chunk_span(
@@ -295,86 +358,229 @@ def _entities_in_chunk_span(
 # ---------------------------------------------------------------------------
 
 
+_LEGACY_MODE_ALIAS = {
+    "A2": "chunk_first",   # +1-hop graph (chunk-anchored)
+    "A3": "graph_first",   # graph-as-corpus
+    # A1 deliberately not aliased — drops in 5B+ since it duplicated dense.
+}
+
+_VALID_MODES = ("chunk_first", "graph_first", "parallel")
+
+
+_DEFAULT_N_HOPS_FALLBACK = 3
+
+
+def _default_n_hops() -> int:
+    """Read ``graph_rag.n_hops_default`` from AppSettings; default 3.
+
+    Best-effort: lazy-imports kgspin_demo_app.config and calls
+    ``load_settings()``. Test paths that don't have a config fall back
+    to the hardcoded default. Env override via
+    ``KGSPIN_GRAPH_RAG_N_HOPS_DEFAULT`` for ad-hoc tuning.
+    """
+    import os
+    env_override = os.environ.get("KGSPIN_GRAPH_RAG_N_HOPS_DEFAULT")
+    if env_override:
+        try:
+            v = int(env_override)
+            if v >= 0:
+                return v
+        except ValueError:
+            pass
+    try:
+        from kgspin_demo_app.config import load_settings
+        s = load_settings()
+        v = getattr(getattr(s, "graph_rag", None), "n_hops_default", None)
+        if isinstance(v, int) and v >= 0:
+            return v
+    except Exception:
+        pass
+    return _DEFAULT_N_HOPS_FALLBACK
+
+
 async def aquery_context(
     ticker: str,
     question: str,
-    mode: str = "A2",
+    mode: str = "chunk_first",
     top_k: int = 5,
     *,
     pipeline: str = "fan_out",
     bundle: str = "financial-default",
+    n_hops: Optional[int] = None,
 ) -> ContextBundle:
     """Retrieve a context bundle in the requested GraphRAG mode.
 
-    ``async`` to mirror the GraphSearch paper's
-    ``GraphRAG.aquery_context`` signature so the paper-mirror pipeline
-    (deliverable E) can swap implementations cleanly.
+    Modes (PRD-004 v5 Phase 5B+ redesign):
 
-    PRD-004 v5 Phase 5B (D5): ``pipeline`` + ``bundle`` route the
-    graph-side load to the right ``_graph/{graph_key}/`` index. Pre-5B
-    silently used fan_out for every slot regardless of pipeline.
+    - ``chunk_first`` — chunks anchor retrieval; each chunk row carries
+      its in-chunk subgraph (entities + N-hop edges within the chunk).
+    - ``graph_first`` — graph items anchor retrieval; each match row
+      carries the source chunk(s) containing the evidence.
+    - ``parallel`` — independent dense + graph searches; both result
+      lists land side-by-side in the prompt with no joining.
+
+    Legacy ``A2`` / ``A3`` codes are accepted as aliases. ``A1`` is
+    rejected with a migration note (it was a useless duplicate of the
+    dense pane).
+
+    ``n_hops`` controls graph-traversal depth in ``chunk_first``. Default
+    reads from ``graph_rag.n_hops_default`` config (default 3). The
+    knob threads through to multi-hop's retrieval steps too since
+    scenario_b's services share this entry point.
     """
-    if mode not in ("A1", "A2", "A3"):
-        raise ValueError(f"mode must be 'A1', 'A2', or 'A3'; got {mode!r}")
-
+    # Normalize mode: legacy aliases → new names; reject A1.
     if mode == "A1":
-        chunks = dense_rag.search(ticker, question, top_k=top_k)
-        return ContextBundle(mode="A1", text_chunks=chunks)
+        raise ValueError(
+            "mode 'A1' (Standard) was dropped in 5B+. It duplicated the "
+            "dense-RAG pane. Use 'chunk_first', 'graph_first', or 'parallel'."
+        )
+    mode = _LEGACY_MODE_ALIAS.get(mode, mode)
+    if mode not in _VALID_MODES:
+        raise ValueError(
+            f"mode must be one of {_VALID_MODES}; got {mode!r}"
+        )
 
-    if mode == "A2":
+    hops = _default_n_hops() if n_hops is None else int(n_hops)
+
+    if mode == "chunk_first":
         chunks = dense_rag.search(ticker, question, top_k=top_k)
         graph = get_graph_corpus(ticker, pipeline=pipeline, bundle=bundle)
-        seed_nodes: list[dict] = []
+        chunk_rows: list[dict] = []
+        union_node_ids: set[str] = set()
+        union_edge_ids: set[str] = set()
+        flat_nodes: list[dict] = []
+        flat_edges: list[dict] = []
         for c in chunks:
-            seed_nodes.extend(_entities_in_chunk_span(
+            seeds = _entities_in_chunk_span(
                 graph.nodes, c.source_offset[0], c.source_offset[1],
-            ))
-        # Dedup by id while preserving order.
-        seen_ids: set[str] = set()
-        deduped: list[dict] = []
-        for n in seed_nodes:
-            nid = n.get("id") or ""
-            if nid and nid not in seen_ids:
-                seen_ids.add(nid)
-                deduped.append(n)
-        nodes_expanded, edges_in_hood = _expand_one_hop(
-            deduped, graph.nodes, graph.edges,
-        )
+            )
+            sub_nodes, sub_edges = _expand_n_hops(
+                seeds, graph.nodes, graph.edges, n_hops=hops,
+            )
+            chunk_rows.append({
+                "chunk": {
+                    "id": c.chunk_id,
+                    "text": c.text,
+                    "score": float(getattr(c, "score", 0.0)),
+                    "source_offset": list(c.source_offset),
+                },
+                "subgraph_nodes": sub_nodes,
+                "subgraph_edges": sub_edges,
+            })
+            for n in sub_nodes:
+                nid = n.get("id") or ""
+                if nid and nid not in union_node_ids:
+                    union_node_ids.add(nid)
+                    flat_nodes.append(n)
+            for e in sub_edges:
+                eid = e.get("id") or f"{e.get('src','')}|{e.get('predicate','')}|{e.get('tgt','')}"
+                if eid not in union_edge_ids:
+                    union_edge_ids.add(eid)
+                    flat_edges.append(e)
         evidence_spans = [
             (c.source_offset[0], c.source_offset[1]) for c in chunks
         ]
         return ContextBundle(
-            mode="A2",
+            mode="chunk_first",
             text_chunks=chunks,
-            graph_nodes=nodes_expanded,
-            graph_edges=edges_in_hood,
+            graph_nodes=flat_nodes,
+            graph_edges=flat_edges,
             evidence_spans=evidence_spans,
             source_text=graph.source_text,
+            chunk_rows=chunk_rows,
+            n_hops=hops,
         )
 
-    # A3 — graph-as-corpus.
+    if mode == "graph_first":
+        graph = get_graph_corpus(ticker, pipeline=pipeline, bundle=bundle)
+        matched_nodes, matched_edges = _retrieve_graph_items(
+            question, graph, top_k=top_k,
+        )
+
+        def _chunks_containing_span(start: int, end: int) -> list[dict]:
+            """Best-effort: pull the chunk(s) whose offsets contain or
+            overlap [start, end]. Defers full chunk indexing to the
+            ``_doc/`` corpus loader; returns empty if dense_rag's chunks
+            aren't loadable for this ticker."""
+            try:
+                corpus = dense_rag.get_corpus(ticker)
+            except Exception:
+                return []
+            out: list[dict] = []
+            for raw in corpus.chunks:
+                cs = int(raw.get("char_offset_start", 0))
+                ce = int(raw.get("char_offset_end", 0))
+                if ce >= start and cs <= end:
+                    out.append({
+                        "id": raw.get("id"),
+                        "text": raw.get("text", ""),
+                        "char_offset_start": cs,
+                        "char_offset_end": ce,
+                    })
+            return out
+
+        match_rows: list[dict] = []
+        spans: list[tuple[int, int]] = []
+        for n in matched_nodes:
+            offs = n.get("parent_doc_offsets") or [0, 0]
+            if len(offs) == 2 and offs[1] > offs[0]:
+                spans.append((int(offs[0]), int(offs[1])))
+                source_chunks = _chunks_containing_span(int(offs[0]), int(offs[1]))
+            else:
+                source_chunks = []
+            match_rows.append({
+                "kind": "node",
+                "node": n,
+                "source_chunks": source_chunks,
+            })
+        for e in matched_edges:
+            offs = e.get("evidence_char_span") or [0, 0]
+            if len(offs) == 2 and offs[1] > offs[0]:
+                spans.append((int(offs[0]), int(offs[1])))
+                source_chunks = _chunks_containing_span(int(offs[0]), int(offs[1]))
+            else:
+                source_chunks = []
+            match_rows.append({
+                "kind": "edge",
+                "edge": e,
+                "source_chunks": source_chunks,
+            })
+        spans = sorted(set(spans))
+        return ContextBundle(
+            mode="graph_first",
+            text_chunks=[],
+            graph_nodes=matched_nodes,
+            graph_edges=matched_edges,
+            evidence_spans=spans,
+            source_text=graph.source_text,
+            graph_match_rows=match_rows,
+            n_hops=hops,
+        )
+
+    # parallel — dense + graph in parallel; no joining at retrieval time.
+    chunks = dense_rag.search(ticker, question, top_k=top_k)
     graph = get_graph_corpus(ticker, pipeline=pipeline, bundle=bundle)
     matched_nodes, matched_edges = _retrieve_graph_items(
         question, graph, top_k=top_k,
     )
-    spans: list[tuple[int, int]] = []
+    chunk_spans = [(c.source_offset[0], c.source_offset[1]) for c in chunks]
+    graph_spans: list[tuple[int, int]] = []
     for n in matched_nodes:
-        offsets = n.get("parent_doc_offsets") or [0, 0]
-        if len(offsets) == 2 and (offsets[1] > offsets[0]):
-            spans.append((int(offsets[0]), int(offsets[1])))
+        offs = n.get("parent_doc_offsets") or [0, 0]
+        if len(offs) == 2 and offs[1] > offs[0]:
+            graph_spans.append((int(offs[0]), int(offs[1])))
     for e in matched_edges:
-        offsets = e.get("evidence_char_span") or [0, 0]
-        if len(offsets) == 2 and (offsets[1] > offsets[0]):
-            spans.append((int(offsets[0]), int(offsets[1])))
-    # Dedup spans.
-    spans = sorted(set(spans))
+        offs = e.get("evidence_char_span") or [0, 0]
+        if len(offs) == 2 and offs[1] > offs[0]:
+            graph_spans.append((int(offs[0]), int(offs[1])))
     return ContextBundle(
-        mode="A3",
-        text_chunks=[],
+        mode="parallel",
+        text_chunks=chunks,
         graph_nodes=matched_nodes,
         graph_edges=matched_edges,
-        evidence_spans=spans,
+        evidence_spans=sorted(set(chunk_spans + graph_spans)),
         source_text=graph.source_text,
+        n_hops=hops,
     )
 
 
@@ -458,14 +664,100 @@ def context_filter(
     )
 
 
+def _serialize_chunk_first(bundle: ContextBundle) -> str:
+    """Per-row format for chunk_first mode: each chunk inline with its
+    in-chunk subgraph. Easier for the LLM to ground text in structure
+    than separate flat sections."""
+    parts: list[str] = []
+    parts.append(f"[CHUNK-FIRST RETRIEVAL — {bundle.n_hops}-hop subgraphs]")
+    for i, row in enumerate(bundle.chunk_rows or [], start=1):
+        ch = row.get("chunk") or {}
+        parts.append(f"\n## Chunk {i} ({ch.get('id', '?')})")
+        parts.append(f"Text: {ch.get('text', '')}")
+        sub_nodes = row.get("subgraph_nodes") or []
+        sub_edges = row.get("subgraph_edges") or []
+        if sub_nodes:
+            parts.append("Subgraph nodes:")
+            for n in sub_nodes:
+                parts.append(
+                    f"  - {n.get('id','')}: {n.get('text','')} [{n.get('type','UNKNOWN')}]"
+                )
+        if sub_edges:
+            parts.append("Subgraph edges:")
+            for e in sub_edges:
+                parts.append(
+                    f"  - ({e.get('src','?')}) --{e.get('predicate','?')}--> ({e.get('tgt','?')})"
+                )
+    return "\n".join(parts).strip()
+
+
+def _serialize_graph_first(bundle: ContextBundle) -> str:
+    """Per-row format for graph_first mode: each matched node/edge
+    followed by its source chunk(s)."""
+    parts: list[str] = []
+    parts.append("[GRAPH-FIRST RETRIEVAL — graph items + source chunks]")
+    for i, row in enumerate(bundle.graph_match_rows or [], start=1):
+        kind = row.get("kind", "")
+        if kind == "node":
+            n = row.get("node") or {}
+            parts.append(
+                f"\n## Match {i} (node) {n.get('id','')}: "
+                f"{n.get('text','')} [{n.get('type','UNKNOWN')}]"
+            )
+        elif kind == "edge":
+            e = row.get("edge") or {}
+            parts.append(
+                f"\n## Match {i} (edge) "
+                f"({e.get('src','?')}) --{e.get('predicate','?')}--> ({e.get('tgt','?')})"
+            )
+            ev = e.get("evidence_text") or ""
+            if ev:
+                parts.append(f"Evidence: {ev}")
+        for ch in row.get("source_chunks") or []:
+            parts.append(f"Source chunk ({ch.get('id','?')}): {ch.get('text','')}")
+    return "\n".join(parts).strip()
+
+
+def _serialize_parallel(bundle: ContextBundle) -> str:
+    """Two flat sections side-by-side: dense chunks + graph items.
+    No joining — the LLM sees the two retrieval streams as independent
+    columns of context."""
+    parts: list[str] = []
+    if bundle.text_chunks:
+        parts.append("[DENSE RETRIEVAL]")
+        parts.append(dense_rag.serialize_chunks(bundle.text_chunks))
+    if bundle.graph_nodes or bundle.graph_edges:
+        parts.append("\n[GRAPH RETRIEVAL]")
+        if bundle.graph_nodes:
+            parts.append("Matched nodes:")
+            for n in bundle.graph_nodes:
+                parts.append(
+                    f"  - {n.get('id','')}: {n.get('text','')} [{n.get('type','UNKNOWN')}]"
+                )
+        if bundle.graph_edges:
+            parts.append("Matched edges:")
+            for e in bundle.graph_edges:
+                parts.append(
+                    f"  - ({e.get('src','?')}) --{e.get('predicate','?')}--> ({e.get('tgt','?')})"
+                )
+    return "\n".join(parts).strip()
+
+
 def serialize_bundle_for_prompt(bundle: ContextBundle) -> str:
     """Bundle → string contract per PRD plan §3.E.
 
-    Produces a deterministic, machine-parseable string with explicit
-    section markers. Every paper-mirror prompt receives strings in
-    this format; the dual-channel (text vs KG) distinction is
-    preserved by the section headers.
+    PRD-004 v5 Phase 5B+ — three modes, three serializers. Legacy modes
+    (A2/A3 with no nested rows) fall through to the original flat
+    section format.
     """
+    if bundle.mode == "chunk_first" and bundle.chunk_rows:
+        return _serialize_chunk_first(bundle)
+    if bundle.mode == "graph_first" and bundle.graph_match_rows:
+        return _serialize_graph_first(bundle)
+    if bundle.mode == "parallel":
+        return _serialize_parallel(bundle)
+
+    # Legacy fallback (flat sections; A2/A3 from old callers, or empty bundles).
     sections: list[str] = []
 
     if bundle.text_chunks:

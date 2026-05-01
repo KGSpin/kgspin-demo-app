@@ -132,12 +132,20 @@ def test_scenario_a_run_returns_both_panes(app_client):
         demo_compare.set_scenario_llm_client(None)
     assert resp.status_code == 200
     body = resp.json()
-    assert body["mode"] == "A2"
+    # 5B+ retrieval redesign: A2 alias resolves to chunk_first.
+    assert body["mode"] == "A2"  # request mode echoed back unchanged
     assert body["question"] == "Who is the CEO of Apple?"
     assert body["dense_answer"]
     assert body["graphrag_answer"]
     assert "[TEXT CHUNKS]" in body["retrieved_context_left"]
-    assert "[TEXT CHUNKS]" in body["retrieved_context_right"] or "[GRAPH NODES]" in body["retrieved_context_right"]
+    rcr = body["retrieved_context_right"]
+    assert (
+        "CHUNK-FIRST RETRIEVAL" in rcr
+        or "GRAPH-FIRST RETRIEVAL" in rcr
+        or "[DENSE RETRIEVAL]" in rcr
+        or "[GRAPH NODES]" in rcr
+        or "[TEXT CHUNKS]" in rcr
+    ), f"unexpected serializer output: {rcr[:200]!r}"
 
 
 def test_scenario_a_run_rejects_invalid_mode(app_client):
@@ -149,18 +157,20 @@ def test_scenario_a_run_rejects_invalid_mode(app_client):
 
 
 def test_scenario_a_run_rejects_missing_fields(app_client):
-    resp = app_client.post("/api/scenario-a/run", json={"mode": "A1"})
+    """PRD-004 v5 Phase 5B+: A1 was dropped; check missing-fields path
+    via mode='chunk_first' (default) instead of 'A1'."""
+    resp = app_client.post("/api/scenario-a/run", json={"mode": "chunk_first"})
     assert resp.status_code == 400
 
 
 def test_scenario_a_run_returns_503_when_corpus_missing(app_client):
-    """PRD-004 v5 Phase 5B (D8): the lazy-cache hook now fires before
-    the corpus check. An unknown ticker now returns ``lander_not_found``
-    instead of ``corpus_not_built`` — more accurate, since the actual
-    issue is no lander tree on disk for the ticker."""
+    """PRD-004 v5 Phase 5B (D8): the lazy-cache hook fires before the
+    corpus check. An unknown ticker returns ``lander_not_found``
+    (more accurate than the legacy ``corpus_not_built``)."""
     resp = app_client.post(
         "/api/scenario-a/run",
-        json={"question": "x?", "ticker": "ZZZZ", "mode": "A1"},
+        # 5B+: 'A1' was dropped — would now return 400. Use chunk_first.
+        json={"question": "x?", "ticker": "ZZZZ", "mode": "chunk_first"},
     )
     assert resp.status_code == 503
     assert resp.json()["error"] in ("corpus_not_built", "lander_not_found", "kg_not_in_cache")

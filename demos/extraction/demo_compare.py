@@ -2877,7 +2877,9 @@ async def scenario_a_run(payload: dict):
     )
     question = (payload.get("question") or "").strip()
     ticker = (payload.get("ticker") or "").strip().upper()
-    mode = payload.get("mode") or "A2"
+    # PRD-004 v5 Phase 5B+ retrieval-mode redesign: chunk_first /
+    # graph_first / parallel. A2/A3 still accepted as legacy aliases.
+    mode = payload.get("mode") or "chunk_first"
     slot_pipeline = (payload.get("slot_pipeline") or "fan_out").strip()
     slot_bundle = (payload.get("slot_bundle") or "financial-default").strip()
     # PRD-004 v5 Phase 5B: respect the operator's Settings dropdown
@@ -2885,11 +2887,22 @@ async def scenario_a_run(payload: dict):
     # alias. Frontend reads `document.getElementById('model-select').value`
     # and threads it into the body as `model`.
     requested_model = (payload.get("model") or "").strip() or None
+    # Optional N-hop override from the request; falls back to
+    # graph_rag.n_hops_default config (default 3) when None.
+    requested_hops_raw = payload.get("n_hops")
+    requested_n_hops = None
+    if isinstance(requested_hops_raw, int) and requested_hops_raw >= 0:
+        requested_n_hops = requested_hops_raw
     if not question or not ticker:
         return JSONResponse({"error": "question and ticker are required"}, status_code=400)
-    if mode not in ("A1", "A2", "A3"):
+    # Accept new names + legacy A2/A3 aliases. A1 is dropped explicitly.
+    valid_modes = {"chunk_first", "graph_first", "parallel", "A2", "A3"}
+    if mode not in valid_modes:
         return JSONResponse(
-            {"error": f"mode must be A1/A2/A3, got {mode}"},
+            {
+                "error": f"mode must be one of {sorted(valid_modes)}; got {mode}",
+                "detail": "A1 was dropped in 5B+ — it duplicated the dense pane.",
+            },
             status_code=400,
         )
 
@@ -2924,9 +2937,12 @@ async def scenario_a_run(payload: dict):
         # Right pane — graph RAG. Pass the slot's pipeline + bundle so
         # graph_rag loads the right _graph/{graph_key}/ index (the
         # headline correctness fix — was silently using fan_out before).
+        # n_hops threads the per-request override; None lets graph_rag
+        # read the config default (graph_rag.n_hops_default, default 3).
         right_bundle = await graph_rag.aquery_context(
             ticker, question, mode=mode, top_k=5,
             pipeline=slot_pipeline, bundle=slot_bundle,
+            n_hops=requested_n_hops,
         )
         right_ctx_str = graph_rag.serialize_bundle_for_prompt(right_bundle)
     except dense_rag.CorpusNotBuilt as exc:
@@ -2948,10 +2964,10 @@ async def scenario_a_run(payload: dict):
     dense_answer = await _answer(question, left_ctx_str)
     graphrag_answer = await _answer(question, right_ctx_str)
 
-    # Structured payload for the GraphRAG side so the modal UI can
-    # render Text Chunks / Graph Nodes / Graph Edges as separate
-    # sub-sections (single concatenated text dump was hiding the
-    # graph-only retrieval signal).
+    # Structured payload for the GraphRAG side. Three retrieval modes:
+    # chunk_first → chunk_rows (each chunk + its nested subgraph)
+    # graph_first → graph_match_rows (each graph item + its source chunks)
+    # parallel    → flat chunks + flat graph items, side-by-side
     right_chunks_struct = [
         {
             "id": getattr(c, "chunk_id", ""),
@@ -2983,6 +2999,9 @@ async def scenario_a_run(payload: dict):
         }
         for e in (getattr(right_bundle, "graph_edges", None) or [])
     ]
+    # Mode-specific nested rows (chunk_first / graph_first).
+    right_chunk_rows = list(getattr(right_bundle, "chunk_rows", None) or [])
+    right_match_rows = list(getattr(right_bundle, "graph_match_rows", None) or [])
 
     return JSONResponse({
         "question": question,
@@ -2993,9 +3012,14 @@ async def scenario_a_run(payload: dict):
         "retrieved_context_left": left_ctx_str,
         "retrieved_context_right": right_ctx_str,
         # Structured GraphRAG retrieved-context for the modal UI to
-        # render in dedicated sub-sections (Text Chunks / Graph Nodes
-        # / Graph Edges), separate from the prompt-formatted blob above.
+        # render in dedicated sub-sections per mode.
         "retrieved_right_struct": {
+            "mode": getattr(right_bundle, "mode", mode),
+            "n_hops": getattr(right_bundle, "n_hops", 0),
+            # Mode-specific nested rows (chunk_first / graph_first):
+            "chunk_rows": right_chunk_rows,
+            "graph_match_rows": right_match_rows,
+            # Flat fallbacks (used by parallel mode + legacy renderers):
             "chunks": right_chunks_struct,
             "graph_nodes": right_graph_nodes,
             "graph_edges": right_graph_edges,

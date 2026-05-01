@@ -1725,6 +1725,20 @@ body {
     color: #c9d1d9;
     margin-top: 2px;
 }
+.scenario-a-panes .rc-subgraph {
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid #2a2a4e;
+}
+.scenario-a-panes .rc-subrow {
+    color: #888;
+    font-size: 10px;
+    padding: 2px 0;
+    line-height: 1.4;
+}
+.scenario-a-panes .rc-subrow strong {
+    color: #c9d1d9;
+}
 .scenario-a-panes details, .scenario-b-panes details {
     margin-top: 8px; font-size: 11px; color: #aaa;
 }
@@ -2727,9 +2741,9 @@ body {
                     <div class="scenario-a-controls modal-scoped">
                         <fieldset class="mode-toggle">
                             <legend class="caption">GraphRAG mode for the right pane.</legend>
-                            <label title="Same as left pane; sanity check that GraphRAG matches the dense baseline when the graph isn't used."><input type="radio" name="modal-scenario-a-mode" value="A1"> Standard</label>
-                            <label title="Recommended. Dense retrieval + 1-hop graph neighborhood added to context."><input type="radio" name="modal-scenario-a-mode" value="A2" checked> +1-hop graph</label>
-                            <label title="Search the graph itself (lexical + semantic over nodes/edges); evidence spans pulled into context."><input type="radio" name="modal-scenario-a-mode" value="A3"> Graph-as-corpus</label>
+                            <label title="Chunks anchor retrieval; each chunk row carries its in-chunk subgraph (entities + N-hop edges)."><input type="radio" name="modal-scenario-a-mode" value="chunk_first" checked> Chunk-anchored</label>
+                            <label title="Graph items anchor retrieval; each match row carries the source chunk(s) containing the evidence."><input type="radio" name="modal-scenario-a-mode" value="graph_first"> Graph-anchored</label>
+                            <label title="Independent dense + graph searches; both result lists land side-by-side in the prompt."><input type="radio" name="modal-scenario-a-mode" value="parallel"> Parallel</label>
                         </fieldset>
                         <button id="modal-scenario-a-run-btn" data-action="modal-scenario-a-run">Run</button>
                         <button id="modal-scenario-a-analyze-btn" data-action="modal-scenario-a-analyze" disabled>Analyze Results</button>
@@ -2739,12 +2753,12 @@ body {
                     <details class="scenario-mode-info modal-scoped">
                         <summary>What do these modes do?</summary>
                         <dl class="mode-info-grid">
-                            <dt>Standard <span class="mode-badge-tag">A1</span></dt>
-                            <dd>Pure dense retrieval (BM25 + cosine RRF) over text chunks — same as the left pane. <strong>Sanity check:</strong> if A1's right pane diverges from the left, the graph code path has broken the baseline.</dd>
-                            <dt>+1-hop graph <span class="mode-badge-tag">A2</span></dt>
-                            <dd>Dense retrieval over chunks <em>plus</em> the 1-hop graph neighborhood of every entity whose evidence falls inside a returned chunk. Adds the graph's structured facts as context to the LLM. <strong>Recommended default</strong> — chunks anchor the answer, graph adds structure.</dd>
-                            <dt>Graph-as-corpus <span class="mode-badge-tag">A3</span></dt>
-                            <dd>BM25 + cosine RRF over the graph itself (nodes' canonical names + types + definitions; edges' predicates + evidence sentences). Resolves matched nodes/edges back to source spans for evidence. <strong>No chunks retrieved</strong> — pure graph retrieval. Best when the question maps to canonical entities or relationships.</dd>
+                            <dt>Chunk-anchored <span class="mode-badge-tag">chunk_first</span></dt>
+                            <dd>Retrieves chunks via dense (BM25 + cosine RRF), then for each chunk attaches its in-chunk subgraph — entities whose evidence falls in that chunk plus their <strong>N-hop neighborhood</strong> (default N=3, configurable via <code>graph_rag.n_hops_default</code>). Each chunk row in the prompt carries its own subgraph. <strong>Recommended default</strong>: chunks anchor the answer, graph adds structure.</dd>
+                            <dt>Graph-anchored <span class="mode-badge-tag">graph_first</span></dt>
+                            <dd>Retrieves graph items (nodes/edges) via BM25 + cosine RRF over canonical entity names + edge predicates. For each match, pulls in the source chunk(s) containing the evidence. <strong>Graph drives retrieval, chunks are evidence.</strong> Best when the question maps to canonical entities or relationships.</dd>
+                            <dt>Parallel <span class="mode-badge-tag">parallel</span></dt>
+                            <dd>Runs dense and graph searches <em>independently</em> — no joining at retrieval time. Both result lists land side-by-side in the prompt as separate <code>[DENSE RETRIEVAL]</code> and <code>[GRAPH RETRIEVAL]</code> sections. Lets the LLM see both retrieval signals as independent columns of context.</dd>
                         </dl>
                     </details>
 

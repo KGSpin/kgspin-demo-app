@@ -121,57 +121,139 @@
         el.innerHTML = _renderMarkdown(_stripJsonWrapper(text));
     }
 
-    function renderRetrievedContextStruct(id, struct, fallbackText) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (!struct || (
-            (struct.chunks || []).length === 0
-            && (struct.graph_nodes || []).length === 0
-            && (struct.graph_edges || []).length === 0
-        )) {
-            // Fall back to the prompt-formatted blob (A1 mode, or
-            // when graph_rag returned empty bundle).
-            el.innerHTML = `<pre style="white-space:pre-wrap;">${_escapeHtml(fallbackText || '')}</pre>`;
-            return;
-        }
+    function _renderEdge(e) {
+        const ev = e.evidence_text
+            ? '<div class="rc-meta"><em>"' + _escapeHtml(e.evidence_text) + '"</em></div>'
+            : '';
+        return '('
+            + _escapeHtml(e.src || '') + ') —<strong>' + _escapeHtml(e.predicate || '?')
+            + '</strong>→ (' + _escapeHtml(e.tgt || '') + ')' + ev;
+    }
+
+    function _renderNode(n) {
+        const sd = n.semantic_definition ? ' — ' + _escapeHtml(n.semantic_definition) : '';
+        return '<span class="rc-id">' + _escapeHtml(n.id || '') + '</span> '
+            + '<strong>' + _escapeHtml(n.text || '') + '</strong> '
+            + '<span class="rc-meta">[' + _escapeHtml(n.type || n.entity_type || 'UNKNOWN') + ']</span>'
+            + sd;
+    }
+
+    function _renderChunkFirst(struct) {
         const parts = [];
-        if ((struct.chunks || []).length > 0) {
-            parts.push('<div class="rc-section"><div class="rc-section-label">Text Chunks ('
-                + struct.chunks.length + ')</div>');
-            for (const c of struct.chunks) {
-                parts.push('<div class="rc-row"><span class="rc-id">'
-                    + _escapeHtml(c.id) + '</span> '
+        const hops = struct.n_hops || 0;
+        parts.push('<div class="rc-section-label">Chunk-anchored — '
+            + (struct.chunk_rows || []).length + ' chunks · ' + hops + '-hop subgraphs</div>');
+        for (let i = 0; i < (struct.chunk_rows || []).length; i++) {
+            const row = struct.chunk_rows[i];
+            const c = row.chunk || {};
+            parts.push('<div class="rc-row">');
+            parts.push('<div class="rc-id">Chunk ' + (i + 1) + ' · '
+                + _escapeHtml(c.id || '') + ' · score ' + (c.score || 0).toFixed(3) + '</div>');
+            parts.push('<div class="rc-text">' + _escapeHtml(c.text || '') + '</div>');
+            const sNodes = row.subgraph_nodes || [];
+            const sEdges = row.subgraph_edges || [];
+            if (sNodes.length || sEdges.length) {
+                parts.push('<div class="rc-subgraph">');
+                if (sNodes.length) {
+                    parts.push('<div class="rc-meta">Subgraph nodes ('
+                        + sNodes.length + '):</div>');
+                    for (const n of sNodes) {
+                        parts.push('<div class="rc-subrow">' + _renderNode(n) + '</div>');
+                    }
+                }
+                if (sEdges.length) {
+                    parts.push('<div class="rc-meta">Subgraph edges ('
+                        + sEdges.length + '):</div>');
+                    for (const e of sEdges) {
+                        parts.push('<div class="rc-subrow">' + _renderEdge(e) + '</div>');
+                    }
+                }
+                parts.push('</div>');
+            } else {
+                parts.push('<div class="rc-meta"><em>(no graph entities anchored to this chunk)</em></div>');
+            }
+            parts.push('</div>');
+        }
+        return parts.join('');
+    }
+
+    function _renderGraphFirst(struct) {
+        const parts = [];
+        parts.push('<div class="rc-section-label">Graph-anchored — '
+            + (struct.graph_match_rows || []).length + ' matches with source chunks</div>');
+        for (let i = 0; i < (struct.graph_match_rows || []).length; i++) {
+            const row = struct.graph_match_rows[i];
+            parts.push('<div class="rc-row">');
+            parts.push('<div class="rc-id">Match ' + (i + 1) + ' · ' + _escapeHtml(row.kind || '') + '</div>');
+            if (row.kind === 'node' && row.node) {
+                parts.push('<div class="rc-text">' + _renderNode(row.node) + '</div>');
+            } else if (row.kind === 'edge' && row.edge) {
+                parts.push('<div class="rc-text">' + _renderEdge(row.edge) + '</div>');
+            }
+            const srcs = row.source_chunks || [];
+            if (srcs.length) {
+                parts.push('<div class="rc-subgraph">');
+                parts.push('<div class="rc-meta">Source chunk' + (srcs.length > 1 ? 's' : '')
+                    + ' (' + srcs.length + '):</div>');
+                for (const ch of srcs) {
+                    parts.push('<div class="rc-subrow"><span class="rc-id">'
+                        + _escapeHtml(ch.id || '') + '</span> ' + _escapeHtml(ch.text || '') + '</div>');
+                }
+                parts.push('</div>');
+            } else {
+                parts.push('<div class="rc-meta"><em>(no source chunk found for this match)</em></div>');
+            }
+            parts.push('</div>');
+        }
+        return parts.join('');
+    }
+
+    function _renderParallel(struct) {
+        const parts = [];
+        const chunks = struct.chunks || [];
+        const nodes = struct.graph_nodes || [];
+        const edges = struct.graph_edges || [];
+        if (chunks.length) {
+            parts.push('<div class="rc-section"><div class="rc-section-label">[DENSE RETRIEVAL] — '
+                + chunks.length + ' chunks</div>');
+            for (const c of chunks) {
+                parts.push('<div class="rc-row"><span class="rc-id">' + _escapeHtml(c.id) + '</span> '
                     + '<span class="rc-meta">score ' + (c.score || 0).toFixed(3) + '</span>'
                     + '<div class="rc-text">' + _escapeHtml(c.text || '') + '</div></div>');
             }
             parts.push('</div>');
         }
-        if ((struct.graph_nodes || []).length > 0) {
-            parts.push('<div class="rc-section"><div class="rc-section-label">Graph Nodes ('
-                + struct.graph_nodes.length + ')</div>');
-            for (const n of struct.graph_nodes) {
-                const sd = n.semantic_definition ? ' — ' + _escapeHtml(n.semantic_definition) : '';
-                parts.push('<div class="rc-row"><span class="rc-id">' + _escapeHtml(n.id || '') + '</span> '
-                    + '<span class="rc-text"><strong>' + _escapeHtml(n.text || '') + '</strong> '
-                    + '<span class="rc-meta">[' + _escapeHtml(n.type || 'UNKNOWN') + ']</span>'
-                    + sd + '</span></div>');
+        if (nodes.length || edges.length) {
+            parts.push('<div class="rc-section"><div class="rc-section-label">[GRAPH RETRIEVAL] — '
+                + nodes.length + ' nodes, ' + edges.length + ' edges</div>');
+            for (const n of nodes) {
+                parts.push('<div class="rc-row">' + _renderNode(n) + '</div>');
+            }
+            for (const e of edges) {
+                parts.push('<div class="rc-row">' + _renderEdge(e) + '</div>');
             }
             parts.push('</div>');
         }
-        if ((struct.graph_edges || []).length > 0) {
-            parts.push('<div class="rc-section"><div class="rc-section-label">Graph Edges ('
-                + struct.graph_edges.length + ')</div>');
-            for (const e of struct.graph_edges) {
-                const ev = e.evidence_text
-                    ? '<div class="rc-meta"><em>"' + _escapeHtml(e.evidence_text) + '"</em></div>'
-                    : '';
-                parts.push('<div class="rc-row">('
-                    + _escapeHtml(e.src || '') + ') —<strong>' + _escapeHtml(e.predicate || '?')
-                    + '</strong>→ (' + _escapeHtml(e.tgt || '') + ')' + ev + '</div>');
-            }
-            parts.push('</div>');
+        return parts.join('');
+    }
+
+    function renderRetrievedContextStruct(id, struct, fallbackText) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const m = (struct && struct.mode) || '';
+        let html = '';
+        if (m === 'chunk_first' && (struct.chunk_rows || []).length > 0) {
+            html = _renderChunkFirst(struct);
+        } else if (m === 'graph_first' && (struct.graph_match_rows || []).length > 0) {
+            html = _renderGraphFirst(struct);
+        } else if (m === 'parallel') {
+            html = _renderParallel(struct);
         }
-        el.innerHTML = parts.join('');
+        if (!html) {
+            // Fall back to the prompt-formatted blob (empty bundle, etc).
+            html = '<pre style="white-space:pre-wrap;">' + _escapeHtml(fallbackText || '') + '</pre>';
+        }
+        el.innerHTML = html;
     }
 
     function getModeFromRadios() {
@@ -179,13 +261,20 @@
         for (const r of radios) {
             if (r.checked) return r.value;
         }
-        return 'A2';
+        return 'chunk_first';
     }
 
     function setModeBadge(mode) {
         const badge = document.getElementById('modal-scenario-a-mode-badge');
         if (badge) {
-            const labels = { A1: 'standard', A2: '+1-hop', A3: 'graph-as-corpus' };
+            const labels = {
+                chunk_first: 'chunk-anchored',
+                graph_first: 'graph-anchored',
+                parallel: 'parallel',
+                // Legacy aliases (still rendered if a stale URL/state arrives).
+                A2: 'chunk-anchored',
+                A3: 'graph-anchored',
+            };
             badge.textContent = labels[mode] || mode;
         }
     }

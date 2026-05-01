@@ -184,6 +184,20 @@ class LLMSettings(BaseModel):
         return _reject_changeme("llm.<alias_field>", v)
 
 
+class GraphRagSettings(BaseModel):
+    """GraphRAG retrieval knobs (PRD-004 v5 Phase 5B+).
+
+    ``n_hops_default`` controls the BFS depth from chunk-anchored seed
+    entities in ``chunk_first`` mode. 1 mirrors the legacy +1-hop
+    behavior; 3 (default) catches multi-hop questions where the answer
+    entity is several relationships removed from any chunk-anchored
+    entity. Set to 0 to disable graph-side traversal entirely (chunks
+    only). Per-request overrides via the API's ``n_hops`` parameter.
+    """
+
+    n_hops_default: int = 3
+
+
 class AppSettings(BaseSettings):
     """Top-level demo runtime configuration.
 
@@ -195,6 +209,7 @@ class AppSettings(BaseSettings):
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     features: FeatureSettings = Field(default_factory=FeatureSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
+    graph_rag: GraphRagSettings = Field(default_factory=GraphRagSettings)
 
     model_config = SettingsConfigDict(extra="forbid")
 

@@ -49,3 +49,13 @@ llm:
   auto_flag_llm: null
   auto_discover_tp_llm: null
   quality_analysis_llm: null
+
+graph_rag:
+  # PRD-004 v5 Phase 5B+ — controls graph-traversal depth in the
+  # chunk_first retrieval mode. 1 mirrors the legacy +1-hop behavior;
+  # 3 (default) catches multi-hop questions where the answer entity
+  # is several relationships removed from any chunk-anchored entity.
+  # Set to 0 to disable graph-side traversal entirely (chunks only).
+  # Per-request override via the API's ``n_hops`` parameter; env override
+  # via KGSPIN_GRAPH_RAG_N_HOPS_DEFAULT.
+  n_hops_default: 3
