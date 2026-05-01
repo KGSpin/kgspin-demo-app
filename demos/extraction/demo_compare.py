@@ -2729,17 +2729,32 @@ def set_scenario_llm_client(client) -> None:
     _scenario_llm_override = client
 
 
-def _scenario_llm_client(alias: str = "gemini_flash"):
+def _scenario_llm_client(
+    alias: str = "gemini_flash",
+    *,
+    model: str | None = None,
+):
     """Return an async LLMClient that wraps the sync gemini_flash backend.
 
     The new pipelines expect ``async def complete(prompt) -> str``;
     the demo's resolver returns a sync backend with ``.complete(prompt,
     temperature=...) -> Result(text=...)``. Bridge via asyncio.to_thread.
+
+    PRD-004 v5 Phase 5B: ``model`` (when provided, e.g. from the
+    Settings dropdown's ``model-select`` value) bypasses the alias
+    lookup and uses the explicit Gemini model directly. Lets the
+    operator's UI selection take precedence over the registered alias
+    without re-registering admin every time.
     """
     if _scenario_llm_override is not None:
         return _scenario_llm_override
     from kgspin_demo_app.llm_backend import resolve_llm_backend
-    backend = resolve_llm_backend(llm_alias=alias, flow="scenario")
+    if model and model in VALID_GEMINI_MODELS:
+        backend = resolve_llm_backend(
+            llm_provider="gemini", llm_model=model, flow="scenario",
+        )
+    else:
+        backend = resolve_llm_backend(llm_alias=alias, flow="scenario")
 
     class _AsyncBridge:
         async def complete(self, prompt: str) -> str:
@@ -2865,6 +2880,11 @@ async def scenario_a_run(payload: dict):
     mode = payload.get("mode") or "A2"
     slot_pipeline = (payload.get("slot_pipeline") or "fan_out").strip()
     slot_bundle = (payload.get("slot_bundle") or "financial-default").strip()
+    # PRD-004 v5 Phase 5B: respect the operator's Settings dropdown
+    # (model-select) instead of always falling back to the gemini_flash
+    # alias. Frontend reads `document.getElementById('model-select').value`
+    # and threads it into the body as `model`.
+    requested_model = (payload.get("model") or "").strip() or None
     if not question or not ticker:
         return JSONResponse({"error": "question and ticker are required"}, status_code=400)
     if mode not in ("A1", "A2", "A3"):
@@ -2916,8 +2936,10 @@ async def scenario_a_run(payload: dict):
         )
 
     # Single-shot LLM answer per pane. Tests inject via
-    # ``set_scenario_llm_client``; production uses the gemini_flash bridge.
-    llm = _scenario_llm_client()
+    # ``set_scenario_llm_client``; production uses the operator's
+    # selected model from the Settings dropdown (falls back to the
+    # gemini_flash alias when no model is supplied).
+    llm = _scenario_llm_client(model=requested_model)
 
     async def _answer(question_text: str, context_text: str) -> str:
         from kgspin_demo_app.services._graphsearch_components import answer_generation

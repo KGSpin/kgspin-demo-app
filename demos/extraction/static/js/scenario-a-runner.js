@@ -112,11 +112,28 @@
         setModeBadge(mode);
         setStatus('Running both panes…');
 
+        // Thread slot context + the operator's current Settings model
+        // selection through to the backend so GraphRAG loads the right
+        // _graph/{graph_key}/ index AND the LLM answer uses the picked
+        // model (was hardcoded to the gemini_flash alias).
+        const slotPipeline = (typeof expandedSlot !== 'undefined' && expandedSlot !== null
+            && typeof slotState !== 'undefined' && slotState[expandedSlot])
+            ? slotState[expandedSlot].pipeline : null;
+        const slotBundle = (typeof expandedSlot !== 'undefined' && expandedSlot !== null
+            && typeof slotState !== 'undefined' && slotState[expandedSlot])
+            ? slotState[expandedSlot].bundle : null;
+        const modelSelect = document.getElementById('model-select');
+        const selectedModel = modelSelect ? (modelSelect.value || '').trim() : '';
         try {
             const res = await fetch('/api/scenario-a/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, ticker, mode }),
+                body: JSON.stringify({
+                    question, ticker, mode,
+                    slot_pipeline: slotPipeline || undefined,
+                    slot_bundle: slotBundle || undefined,
+                    model: selectedModel || undefined,
+                }),
             });
             const data = await res.json();
             if (!res.ok || data.error) {
