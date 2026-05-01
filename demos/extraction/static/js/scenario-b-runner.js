@@ -85,7 +85,12 @@
 
         const filtered = scenarioBState.templates.filter(t => t.domain === wantDomain);
 
-        const populate = (pickerId, leadOption) => {
+        // Multi-hop labels carry difficulty + hop-count badges (relevant
+        // to that flow). Single-shot labels strip those — the question
+        // is the same template, but the operator runs it as a one-shot
+        // RAG-vs-GraphRAG comparison and hop counts are misleading
+        // metadata in that context.
+        const populate = (pickerId, leadOption, includeBadges) => {
             const picker = document.getElementById(pickerId);
             if (!picker) return;
             picker.innerHTML = `<option value="">${leadOption}</option>`;
@@ -94,18 +99,25 @@
                 opt.value = t.scenario_id;
                 const isScaffold = (t.status === 'scaffold');
                 const tbdSuffix = isScaffold ? '   (TBD)' : '';
-                const hopBadge = t.expected_hops ? ` · ${t.expected_hops}-hop` : '';
-                const label = `[${t.expected_difficulty}${hopBadge}] ${prettyId(t.scenario_id)}${tbdSuffix}`;
+                let label;
+                if (includeBadges) {
+                    const hopBadge = t.expected_hops ? ` · ${t.expected_hops}-hop` : '';
+                    label = `[${t.expected_difficulty}${hopBadge}] ${prettyId(t.scenario_id)}${tbdSuffix}`;
+                } else {
+                    label = `${prettyId(t.scenario_id)}${tbdSuffix}`;
+                }
                 opt.textContent = label;
                 opt.dataset.status = t.status || 'ready';
                 picker.appendChild(opt);
             }
         };
 
-        // Multi-hop sub-tab picker.
-        populate('modal-scenario-b-template-picker', '— Pick a scenario —');
-        // Single-shot sub-tab picker (same templates, prefill into textarea).
-        populate('modal-scenario-a-template-picker', '— Pick a templated scenario (optional) —');
+        // Multi-hop sub-tab picker — keep badges (operator narrates
+        // hop count + difficulty during multi-hop demos).
+        populate('modal-scenario-b-template-picker', '— Pick a scenario —', true);
+        // Single-shot sub-tab picker — same templates, prefill into
+        // textarea, drop the multi-hop-specific badges.
+        populate('modal-scenario-a-template-picker', '— Pick a templated scenario (optional) —', false);
     }
 
     function prettyId(scenario_id) {

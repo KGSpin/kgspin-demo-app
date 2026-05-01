@@ -102,6 +102,15 @@ def ensure_caches_on_disk(
         KGNotInCache  — lander tree + D2 manifest exist, but the requested
                          pipeline's KG isn't in kg_cache for this ticker.
     """
+    # Legacy-fixture short-circuit: when dense_rag's corpus_root has a
+    # pre-built graph_nodes.json for this ticker (legacy fan_out fixture
+    # path; pre-5B), prefer it over the lazy-build path. Lets unit-test
+    # fixtures keep working without injecting a kg_cache entry.
+    from kgspin_demo_app.services import dense_rag as _dense_rag
+    legacy_dir = _dense_rag.get_corpus_root() / ticker
+    if (legacy_dir / "graph_nodes.json").exists() and (legacy_dir / "chunks.json").exists():
+        return None, DocCacheStatus.LEGACY, GraphCacheStatus.LEGACY
+
     loc = resolve_locator(ticker)
     if loc is None:
         raise LanderNotFound(
@@ -109,15 +118,17 @@ def ensure_caches_on_disk(
             f"Run the lander first: `kgspin-demo-lander-sec --ticker {ticker}`"
         )
 
-    # Legacy-fallback gate: D2 added manifest.json. Without it, we can't
-    # compute the doc_key, so we let the legacy fixture path handle it.
+    # PRD-004 v5 Phase 5B: lander trees that pre-date D2 won't have
+    # source.txt + manifest.json. Backfill them from the existing raw
+    # artifact rather than failing — operator doesn't need to re-fetch
+    # for tickers landed before this sprint.
     from kgspin_demo_app.services.cache_layout import read_lander_manifest
     if read_lander_manifest(loc) is None:
         logger.info(
-            "[LAZY_CACHE] %s: no D2 manifest at %s — falling back to legacy fixtures.",
-            loc.identifier, loc.manifest_path,
+            "[LAZY_CACHE] %s: no D2 manifest at %s — backfilling from %s",
+            loc.identifier, loc.manifest_path, loc.raw_path.name,
         )
-        return None, DocCacheStatus.LEGACY, GraphCacheStatus.LEGACY
+        _backfill_d2_artifacts(loc)
 
     # Step 1: ensure _doc/ on disk.
     doc_status = _ensure_doc_corpus(loc, force=force)
@@ -150,6 +161,46 @@ class GraphCacheStatus:
     HIT = "hit"
     BUILT = "built"
     LEGACY = "legacy"
+
+
+def _backfill_d2_artifacts(loc: DocLocator) -> None:
+    """Backfill ``source.txt + manifest.json`` for lander trees that
+    pre-date PRD-004 v5 Phase 5B's D2.
+
+    Reads the existing ``raw.html`` / ``raw.json``, runs the canonical
+    plaintext utility (``kgspin_interface.text.normalize``), writes
+    ``source.txt + manifest.json`` next to the raw artifact. Same
+    contract as the lander would have produced if it had been D2-aware
+    at fetch time. Idempotent — safe to call repeatedly.
+    """
+    if not loc.raw_path.exists():
+        raise FileNotFoundError(
+            f"No raw artifact at {loc.raw_path}. Re-run the lander."
+        )
+
+    from kgspin_demo_app.landers.canonical import (
+        sha256_bytes,
+        write_canonical_artifacts,
+    )
+
+    raw_bytes = loc.raw_path.read_bytes()
+    raw_sha = sha256_bytes(raw_bytes)
+    kind = "clinical_json" if loc.domain == "clinical" else "html"
+    # Lander-version provenance is unknown for backfilled trees; tag
+    # explicitly so manifests show this didn't come from a D2-aware
+    # lander run.
+    lander_name = "sec_edgar" if loc.domain == "financial" else "clinicaltrials_gov"
+    write_canonical_artifacts(
+        raw_path=loc.raw_path,
+        raw_bytes=raw_bytes,
+        raw_sha=raw_sha,
+        kind=kind,
+        domain=loc.domain,
+        source=loc.source,
+        lander_name=lander_name,
+        lander_version="backfill-pre-D2",
+        fetch_timestamp_utc="backfilled",
+    )
 
 
 def _ensure_doc_corpus(loc: DocLocator, *, force: bool) -> str:

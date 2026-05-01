@@ -91,24 +91,29 @@ def chunk_text(plaintext: str, identifier: str) -> list[Chunk]:
 # ---------------------------------------------------------------------------
 
 
-_embedder = None
-
-
 def _get_embedder():
-    global _embedder
-    if _embedder is None:
-        from sentence_transformers import SentenceTransformer
-        _embedder = SentenceTransformer(EMBED_MODEL_NAME)
-    return _embedder
+    """Delegate to ``dense_rag``'s embedder singleton.
+
+    Tests inject via ``dense_rag.set_embedder(fake)``; production
+    lazy-loads ``all-MiniLM-L6-v2`` once. Sharing avoids dual model
+    loads + lets test fixtures inject through one entry point.
+    """
+    from kgspin_demo_app.services import dense_rag
+    return dense_rag._get_embedder()
 
 
 def set_embedder(embedder) -> None:
-    """Inject an embedder (FakeEmbedder for tests)."""
-    global _embedder
-    _embedder = embedder
+    """Inject an embedder (FakeEmbedder for tests).
+
+    Routes through ``dense_rag.set_embedder`` so both modules share.
+    """
+    from kgspin_demo_app.services import dense_rag
+    dense_rag.set_embedder(embedder)
 
 
 def _embed_texts(texts: list[str]) -> np.ndarray:
+    if not texts:
+        return np.zeros((0, EMBED_DIM), dtype=np.float32)
     embedder = _get_embedder()
     arr = np.asarray(embedder.encode(texts, convert_to_numpy=True), dtype=np.float32)
     if arr.ndim != 2 or arr.shape[0] != len(texts):
