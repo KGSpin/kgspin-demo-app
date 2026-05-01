@@ -1926,15 +1926,10 @@ function getSlotDescriptors() {
 // --- compare.html lines 8105-8122: updateAnalyzeButton ---
 function updateAnalyzeButton() {
     const btn = document.getElementById('analyze-btn');
-    const qaBtn = document.getElementById('qa-btn');
     const count = getPopulatedSlotCount();
     if (btn) {
         btn.disabled = count < 2;
         btn.title = count < 2 ? 'Load at least 2 graphs to analyze' : 'Run qualitative analysis';
-    }
-    if (qaBtn) {
-        qaBtn.disabled = count < 2;
-        qaBtn.title = count < 2 ? 'Load at least 2 graphs to run Q&A' : 'Run side-by-side Q&A';
     }
 }
 
@@ -2469,105 +2464,11 @@ async function runSlotAnalysis() {
     }
 }
 
-// ============================================================
-// Sprint 91: On-Demand Q&A Comparison (Task 6)
-// ============================================================
-
-const qaCache = {};
-
-async function runSlotQA() {
-    let ticker;
-    if (currentDomain === 'clinical') {
-        ticker = document.getElementById('trial-select').value;
-    } else {
-        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
-    }
-    if (!ticker) return;
-    const populated = slotState.filter(s => s.visData !== null);
-    if (populated.length < 2) return;
-
-    const descriptors = getSlotDescriptors();
-    const cacheKey = `qa|${ticker}|${descriptors.join('|')}`;
-
-    const statusEl = document.getElementById('qa-status');
-    const contentEl = document.getElementById('slot-qa-content');
-    const btn = document.getElementById('qa-btn');
-
-    // Check cache
-    if (qaCache[cacheKey]) {
-        contentEl.innerHTML = qaCache[cacheKey];
-        return;
-    }
-
-    btn.disabled = true;
-    statusEl.textContent = 'Running Q&A...';
-
-    const graphs = populated.map((s, idx) => ({
-        pipeline: s.pipeline,
-        bundle: s.bundle || 'default',
-        slot_index: slotState.indexOf(s),
-    }));
-    const domain = currentDomain || 'financial';
-
-    try {
-        const res = await fetch(`/api/compare-qa/${ticker}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ graphs, domain }),
-        });
-        const data = await res.json();
-
-        if (data.error) {
-            contentEl.innerHTML = `<div style="color:#E74C3C;">${data.error}</div>`;
-            return;
-        }
-
-        // Build side-by-side Q&A display
-        const colCount = populated.length;
-        let html = '<div style="overflow-x:auto;">';
-        html += `<table style="width:100%; border-collapse:collapse; font-size:13px;">`;
-        // Header row with pipeline names
-        html += '<tr style="border-bottom:2px solid #2a2a4e;"><th style="text-align:left;padding:8px;color:#888;width:200px;">Question</th>';
-        populated.forEach(s => {
-            const meta = PIPELINE_META[s.pipeline];
-            html += `<th style="text-align:left;padding:8px;color:${meta.color};">${meta.label}${s.bundle ? '<br><span style="font-size:10px;color:#888;">' + s.bundle + '</span>' : ''}</th>`;
-        });
-        html += '</tr>';
-
-        // Question rows
-        if (data.results && data.results.length > 0) {
-            data.results.forEach(q => {
-                html += '<tr style="border-bottom:1px solid #1a1a2e; vertical-align:top;">';
-                html += `<td style="padding:8px;color:#ccc;font-weight:bold;">${q.question}</td>`;
-                q.answers.forEach((a, i) => {
-                    html += `<td style="padding:8px;color:#aaa;">${a.answer || 'No answer'}<br><span style="color:#666;font-size:10px;">${a.tokens || 0} tokens</span></td>`;
-                });
-                html += '</tr>';
-            });
-        } else {
-            html += `<tr><td colspan="${colCount + 1}" style="padding:16px;color:#888;text-align:center;">No Q&A results available. Ensure pipelines have cached KG data.</td></tr>`;
-        }
-
-        html += '</table></div>';
-
-        // Final analysis if provided
-        if (data.analysis) {
-            html += `<div style="margin-top:16px; padding:12px; background:#1a1a2e; border-radius:6px; border-left:3px solid #9B59B6;">`;
-            html += `<h4 style="color:#9B59B6; margin:0 0 8px;">Qualitative Comparison</h4>`;
-            html += `<div style="color:#ccc; font-size:13px; white-space:pre-wrap;">${data.analysis}</div>`;
-            html += '</div>';
-        }
-
-        contentEl.innerHTML = html;
-        qaCache[cacheKey] = html;
-    } catch (err) {
-        contentEl.innerHTML = `<div style="color:#E74C3C;">Q&A failed: ${err.message}</div>`;
-    } finally {
-        btn.disabled = false;
-        statusEl.textContent = '';
-        updateAnalyzeButton();
-    }
-}
+// Sprint 91 on-demand Q&A comparison (runSlotQA + qaCache + #slot-qa-section
+// + qa-btn) is deleted in fixup-20260430 commit 6 (F8). The Single-shot Q&A
+// sub-tab inside each slot's modal Why tab (scenario-a-runner.js) replaces it.
+// Backend route /api/compare-qa/{doc_id} stays alive until 5B per VP-Prod #4
+// multihop posture; tests/integration/test_alive_routes.py guards it.
 
 // Wave E — compare-runner.js action registrations
 registerAction('start-comparison', () => startComparison());
@@ -2575,7 +2476,6 @@ registerAction('run-slot-auto-flag', (el) => runSlotAutoFlag(+el.dataset.slot));
 registerAction('run-slot-discover-tp', (el) => runSlotDiscoverTP(+el.dataset.slot));
 registerAction('refresh-analysis', () => refreshAnalysis());
 registerAction('run-slot-analysis', () => runSlotAnalysis());
-registerAction('run-slot-qa', () => runSlotQA());
 registerAction('run-auto-flag', () => runAutoFlag());
 registerAction('load-stored-feedback', () => loadStoredFeedback());
 registerAction('bulk-retract-all', () => bulkRetractAll());

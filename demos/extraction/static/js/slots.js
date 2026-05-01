@@ -513,67 +513,15 @@ function runSlot(slotIdx) {
 }
 
 
-// --- compare.html lines 8044-8104: WTM_DEFAULT_QUESTIONS + showWhyThisMattersSection + triggerWhyThisMatters ---
-const WTM_DEFAULT_QUESTIONS = {
-    financial: "Which companies does this entity compete with, and what products or services does it offer? Are any executives mentioned in connection with acquisitions or divestitures?",
-    clinical: "What drugs are being developed by the sponsoring companies, and what medical conditions do they treat? Are there any cross-company relationships visible in the data?",
-};
-
-// Sprint 05 HITL-round-2: legacy inline "Why This Matters" — replaced by
-// the slot-scoped Why tab inside the expand modal. Kept as a no-op stub in
-// case any stale handler still calls it during a hot reload.
-function showWhyThisMattersSection() { /* no-op */ }
-
-function triggerWhyThisMatters() {
-    const ticker = document.getElementById('doc-id-input')?.value?.trim().toUpperCase();
-    if (!ticker) return;
-
-    const input = document.getElementById('wtm-question-input');
-    const statusEl = document.getElementById('wtm-status');
-    const answersEl = document.getElementById('wtm-answers');
-    const withEl = document.getElementById('wtm-with-graph');
-    const withoutEl = document.getElementById('wtm-without-graph');
-    const withMeta = document.getElementById('wtm-with-meta');
-    const withoutMeta = document.getElementById('wtm-without-meta');
-    const runBtn = document.getElementById('wtm-run-btn');
-
-    const question = input?.value?.trim();
-    if (!question) { input?.focus(); return; }
-
-    // Show answers area with spinners
-    answersEl.style.display = 'grid';
-    statusEl.textContent = 'Analyzing...';
-    runBtn.disabled = true;
-    runBtn.textContent = '...';
-    withEl.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
-    withoutEl.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
-
-    const domain = currentDomain || 'financial';
-    fetch(`/api/why-this-matters/${ticker}?domain=${domain}&question=${encodeURIComponent(question)}`)
-        .then(r => r.json())
-        .then(data => {
-            runBtn.disabled = false;
-            runBtn.textContent = 'Ask';
-            if (data.error) {
-                statusEl.textContent = 'Unavailable';
-                withEl.innerHTML = `<span style="color:#f85149;">${data.error}</span>`;
-                withoutEl.innerHTML = '';
-                return;
-            }
-            withEl.innerHTML = (data.with_graph || 'No response').replace(/\n/g, '<br>');
-            withoutEl.innerHTML = (data.without_graph || 'No response').replace(/\n/g, '<br>');
-            withMeta.textContent = `${data.tokens_with || '?'} tokens · ${data.time_with_ms || '?'}ms · Source: ${data.graph_source || 'cached KG'}`;
-            withoutMeta.textContent = `${data.tokens_without || '?'} tokens · ${data.time_without_ms || '?'}ms · Raw text only`;
-            statusEl.textContent = 'Complete';
-        })
-        .catch(err => {
-            runBtn.disabled = false;
-            runBtn.textContent = 'Ask';
-            statusEl.textContent = 'Error';
-            withEl.innerHTML = `<span style="color:#f85149;">Failed to load: ${err.message}</span>`;
-            withoutEl.innerHTML = '';
-        });
-}
+// Sprint 05 HITL-r2 page-level "Why This Matters" Q&A flow + the
+// modal-Why-tab triggerModalWhyThisMatters handler are deleted in
+// fixup-20260430 commit 6 (F8). Replaced by the Single-shot Q&A
+// sub-tab inside each slot's modal Why tab (PRD-004 v5;
+// scenario-a-runner.js + scenario-b-runner.js are the new
+// implementations). Backend route /api/why-this-matters/{doc_id}
+// stays alive until 5B per VP-Prod #4 multihop posture; see
+// tests/integration/test_alive_routes.py for the route-registration
+// guard.
 
 
 // --- compare.html lines 8123-8186: updateSlotHistory + slotPrevRun + slotNextRun + loadSlotRun ---
@@ -932,80 +880,43 @@ function switchModalTab(tabName) {
     }
 }
 
-// Sprint 05 HITL-round-2: Why tab inside expand modal
+// PRD-004 v5 Phase 5A fixup-20260430 commit 2 — Why tab init.
+// Replaces the Sprint-05 HITL-r2 single-Q&A init. Populates the
+// graph-identity header (slot + pipeline + ticker) and delegates
+// the per-sub-tab setup to scenario-{a,b}-runner.js's init hooks.
 function initModalWhyTab(slotIdx) {
     const slot = slotState[slotIdx];
     const meta = slot ? PIPELINE_META[slot.pipeline] : null;
-    const labelEl = document.getElementById('modal-wtm-pipeline-label');
-    const input = document.getElementById('modal-wtm-question-input');
-    if (labelEl && meta) labelEl.textContent = meta.label;
-    // Seed default question if input is empty
-    if (input && !input.value.trim()) {
-        const domain = currentDomain || 'financial';
-        input.value = WTM_DEFAULT_QUESTIONS[domain] || WTM_DEFAULT_QUESTIONS.financial;
+
+    // Graph-identity header (per fixup F12 / VP-Prod S1).
+    const slotEl = document.getElementById('modal-why-slot-label');
+    if (slotEl) slotEl.textContent = `Slot ${slotIdx}`;
+    const pipelineEl = document.getElementById('modal-wtm-pipeline-label');
+    if (pipelineEl && meta) pipelineEl.textContent = meta.label;
+    const tickerEl = document.getElementById('modal-why-ticker-label');
+    if (tickerEl) {
+        const domain = (meta && meta.domain) || document.body.dataset.currentDomain || currentDomain || 'financial';
+        const ticker = (domain === 'clinical')
+            ? (document.getElementById('trial-select') || {}).value || ''
+            : ((document.getElementById('doc-id-input') || {}).value || '').trim().toUpperCase();
+        tickerEl.textContent = ticker || '(no ticker)';
     }
+
+    // Delegate to per-sub-tab runners.
+    if (typeof window.initModalScenarioA === 'function') window.initModalScenarioA();
+    if (typeof window.initModalScenarioB === 'function') window.initModalScenarioB();
 }
 
-function triggerModalWhyThisMatters() {
-    if (expandedSlot === null) return;
-    const slot = slotState[expandedSlot];
-    const meta = slot ? PIPELINE_META[slot.pipeline] : null;
-    if (!meta) return;
-
-    let ticker;
-    if (currentDomain === 'clinical') {
-        ticker = document.getElementById('trial-select').value;
-    } else {
-        ticker = document.getElementById('doc-id-input').value.trim().toUpperCase();
-    }
-    if (!ticker) return;
-
-    const input = document.getElementById('modal-wtm-question-input');
-    const statusEl = document.getElementById('modal-wtm-status');
-    const answersEl = document.getElementById('modal-wtm-answers');
-    const withEl = document.getElementById('modal-wtm-with-graph');
-    const withoutEl = document.getElementById('modal-wtm-without-graph');
-    const withMeta = document.getElementById('modal-wtm-with-meta');
-    const withoutMeta = document.getElementById('modal-wtm-without-meta');
-    const runBtn = document.getElementById('modal-wtm-run-btn');
-
-    const question = input?.value?.trim();
-    if (!question) { input?.focus(); return; }
-
-    answersEl.style.display = 'grid';
-    statusEl.textContent = 'Analyzing...';
-    runBtn.disabled = true;
-    runBtn.textContent = '...';
-    withEl.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
-    withoutEl.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
-
-    const domain = currentDomain || 'financial';
-    const pipelineParam = meta.backend;  // kgenskills | gemini | modular
-    const url = `/api/why-this-matters/${ticker}?domain=${domain}&pipeline=${pipelineParam}&question=${encodeURIComponent(question)}`;
-    fetch(url)
-        .then(r => r.json())
-        .then(data => {
-            runBtn.disabled = false;
-            runBtn.textContent = 'Ask';
-            if (data.error) {
-                statusEl.textContent = 'Unavailable';
-                withEl.innerHTML = `<span style="color:#f85149;">${data.error}</span>`;
-                withoutEl.innerHTML = '';
-                return;
-            }
-            withEl.innerHTML = (data.with_graph || 'No response').replace(/\n/g, '<br>');
-            withoutEl.innerHTML = (data.without_graph || 'No response').replace(/\n/g, '<br>');
-            withMeta.textContent = `${data.tokens_with || '?'} tokens · ${data.time_with_ms || '?'}ms · Source: ${data.graph_source || 'cached KG'}`;
-            withoutMeta.textContent = `${data.tokens_without || '?'} tokens · ${data.time_without_ms || '?'}ms · Raw text only`;
-            statusEl.textContent = 'Complete';
-        })
-        .catch(err => {
-            runBtn.disabled = false;
-            runBtn.textContent = 'Ask';
-            statusEl.textContent = 'Error';
-            withEl.innerHTML = `<span style="color:#f85149;">Failed to load: ${err.message}</span>`;
-            withoutEl.innerHTML = '';
-        });
+// Why-tab sub-tab switcher (per fixup F1).
+function switchWhySubtab(name) {
+    const wrap = document.getElementById('modal-why-content');
+    if (!wrap) return;
+    wrap.querySelectorAll('.why-subtab').forEach(b => {
+        b.classList.toggle('active', b.dataset.whySubtab === name);
+    });
+    wrap.querySelectorAll('.why-subtab-content').forEach(c => {
+        c.classList.toggle('active', c.dataset.whySubtab === name);
+    });
 }
 
 let modalLineageNetwork = null;
@@ -1430,8 +1341,8 @@ registerAction('run-slot', (el) => runSlot(+el.dataset.slot));
 registerAction('slot-prev-run', (el) => slotPrevRun(+el.dataset.slot));
 registerAction('slot-next-run', (el) => slotNextRun(+el.dataset.slot));
 registerAction('switch-modal-tab', (el) => switchModalTab(el.dataset.modalTab));
+registerAction('switch-why-subtab', (el) => switchWhySubtab(el.dataset.whySubtab));
 registerAction('filter-modal-data', () => filterModalData());
-registerAction('trigger-modal-why-this-matters', () => triggerModalWhyThisMatters());
 registerAction('run-modal-intelligence', () => runModalIntelligence());
 
 // Wave F — action for toggle-data-detail (passes the row element itself)

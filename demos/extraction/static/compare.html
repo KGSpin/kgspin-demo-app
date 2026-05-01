@@ -832,70 +832,10 @@ body {
     letter-spacing: 0.5px;
     margin-top: 4px;
 }
-.impact-qa-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.impact-qa-card {
-    background: #0f0f23;
-    border: 1px solid #2a2a4e;
-    border-radius: 10px;
-    overflow: hidden;
-}
-.impact-qa-question {
-    padding: 14px 18px;
-    border-bottom: 1px solid #2a2a4e;
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-}
-.impact-qa-answers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-}
-.impact-qa-answer {
-    padding: 14px 18px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #ccc;
-}
-.impact-qa-answer:first-child {
-    border-right: 1px solid #2a2a4e;
-}
-.impact-qa-answer-header {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.impact-qa-answer-header.with-graph { color: #5B9FE6; }
-.impact-qa-answer-header.without-graph { color: #FFE066; }
-.impact-qa-answer-header .token-count {
-    font-size: 11px;
-    color: #666;
-    font-weight: 400;
-}
-.qa-expandable { margin-top: 8px; }
-.qa-expandable summary {
-    cursor: pointer; color: #5B9FE6; font-size: 11px;
-    user-select: none;
-}
-.qa-expandable pre {
-    background: #0a0a1e; border: 1px solid #2a2a4e; border-radius: 6px;
-    padding: 10px; font-size: 11px; color: #aaa; white-space: pre-wrap;
-    max-height: 300px; overflow-y: auto; margin-top: 4px;
-}
-.run-nav-btn {
-    background: #1a1a3e; border: 1px solid #3a3a6e; color: #ccc;
-    padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
-}
-.run-nav-btn:hover:not(:disabled) { background: #2a2a5e; border-color: #5B9FE6; }
-.run-nav-btn:disabled { opacity: 0.4; cursor: default; }
+/* .impact-qa-* classes (Agentic Q&A panes, "with-graph"/"without-graph"
+   answer headers) deleted in fixup-20260430 commit 6 (F8). Same for
+   .qa-expandable + .run-nav-btn (Prev/Next pager for Agentic Q&A
+   runs). Replaced by the modal Why-tab Single-shot sub-tab (PRD-004 v5). */
 
 /* Impact sub-tabs */
 .impact-subtab-bar {
@@ -1650,7 +1590,14 @@ body {
     background: #1a1a3e; color: #888; text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-.scenario-b-panes .badge.badge-paper { background: #2a3a15; color: #d4a017; }
+/* Dual-channel badge — neutral grey-blue (was green/gold pre-fixup
+   when the badge text was "arXiv:2509.22009"; with the new ℹ glyph
+   the gold reads as "info success" and overstates the affordance,
+   so swap to neutral). Per VP-Eng nit-S3 / fixup F7. */
+.scenario-b-panes .badge.badge-paper {
+    background: #1a1a3e; color: #5B9FE6;
+    cursor: help;
+}
 .scenario-b-panes .badge.badge-advanced { background: #3a1a4a; color: #b48fd6; }
 .scenario-a-panes .answer, .scenario-b-panes .answer {
     color: #c9d1d9; font-size: 13px; line-height: 1.5;
@@ -1744,6 +1691,98 @@ body {
     color: #d4a017; font-size: 11px; font-style: italic;
 }
 .scenario-b-verdict .methodology-note { margin-top: 10px; font-size: 10px; color: #6e7681; }
+
+/* PRD-004 v5 fixup-20260430 — Modal Why-tab chrome (F1 + F2 + F12). */
+.modal-why-wrap {
+    padding: 16px 20px 20px;
+    height: 100%;
+    overflow-y: auto;
+}
+.modal-why-header {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+.modal-why-header h3 {
+    margin: 0; color: #e6edf3; font-size: 16px;
+}
+.modal-why-icon { font-size: 22px; }
+.modal-why-graph-id {
+    display: inline-flex; gap: 6px; align-items: center;
+    color: #8b949e; font-size: 11px;
+    border-left: 1px solid #2a2a4e; padding-left: 10px;
+}
+.modal-why-slot, .modal-why-pipeline, .modal-why-ticker {
+    padding: 2px 8px; border-radius: 10px; border: 1px solid #2a2a4e;
+    background: #0d0d1a;
+}
+.modal-why-pipeline { color: #5B9FE6; }
+.modal-why-ticker { color: #d4a017; }
+.modal-why-status { color: #8b949e; font-size: 12px; margin-left: auto; }
+.modal-why-rubric {
+    margin: 0 0 12px; color: #8b949e; font-size: 12px;
+}
+.why-subtabs {
+    display: flex; gap: 4px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #2a2a4e;
+}
+.why-subtab {
+    background: transparent; border: none;
+    border-bottom: 2px solid transparent;
+    color: #8b949e; padding: 8px 14px; font-size: 13px; cursor: pointer;
+    transition: all 0.15s;
+}
+.why-subtab:hover { color: #c9d1d9; }
+.why-subtab.active {
+    color: #5B9FE6; border-bottom-color: #5B9FE6; font-weight: 600;
+}
+.why-subtab-content { display: none; }
+.why-subtab-content.active { display: block; }
+.why-subtab-rubric {
+    color: #8b949e; font-size: 12px; line-height: 1.5;
+    margin-bottom: 12px;
+}
+/* Modal-scoped overrides — the predecessor-sprint .scenario-a/-b
+   classes were authored for full-width /compare bottom; tighten in modal. */
+#modal-why-content .scenario-a, #modal-why-content .scenario-b {
+    background: transparent; border: none; border-radius: 0;
+    padding: 0; margin-top: 0;
+}
+.scenario-a-controls.modal-scoped, .scenario-b-controls.modal-scoped {
+    margin-bottom: 8px;
+}
+.scenario-a-controls.modal-scoped textarea {
+    flex: 1; min-width: 280px;
+    background: #0d0d1a;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-left: 3px solid #5B9FE6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+}
+.scenario-a-or-divider {
+    display: flex; align-items: center; gap: 10px;
+    color: #6e7681; font-size: 11px; margin: 8px 0;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.scenario-a-or-divider::before, .scenario-a-or-divider::after {
+    content: ''; flex: 1; height: 1px; background: #2a2a4e;
+}
+.modal-scenario-placeholder-card {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: #0d0d1a;
+    border: 1px dashed #2a2a4e;
+    border-radius: 6px;
+    color: #8b949e;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+.modal-scenario-placeholder-card[hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -2057,113 +2096,14 @@ body {
                 <div class="legend rel-legend" id="slot-2-rel-legend"></div>
             </div>
         </div>
-        <!-- PRD-004 v4 multi-hop UI removed in v5 Phase 5A (commit 9a).
-             The 3-pane "all-displayed-plays" cross-KG-pipeline comparison
-             is migrating to the per-graph view (PRD-002 territory).
-             Backend routes (/api/multihop/*, /api/compare-qa/*) stay
-             alive until Phase 5B per plan §2.3 / VP-Prod major #4.
-             Scenario A + Scenario B views inserted by commit 9b/10. -->
-        <!-- PRD-004 v5 Phase 5A — Scenario A + Scenario B (commit 9b + 10). -->
-        <div data-region="prd004-v5" id="prd004-v5-region">
+        <!-- PRD-004 v4 multi-hop UI removed in v5 Phase 5A.
+             v5 Phase 5A standalone /compare Scenario A/B sections moved
+             into the per-graph modal Why tab in fixup-20260430 commit 1
+             (this commit). v4 backend routes (/api/multihop/*,
+             /api/compare-qa/*) stay alive until Phase 5B per plan §2.3
+             / VP-Prod major #4. Scenarios A/B now live entirely inside
+             #modal-why-content (further down this file). -->
 
-          <!-- Scenario A — One-shot RAG vs GraphRAG. -->
-          <section class="scenario-a" data-region="scenario-a">
-            <header>
-              <h2>Scenario A — One-shot RAG vs GraphRAG</h2>
-              <p class="rubric">Same question, two retrieval strategies. Pure dense RAG on the left (no graph). GraphRAG on the right.</p>
-            </header>
-            <div class="scenario-a-controls">
-              <input type="text" id="scenario-a-question-input" data-action="scenario-a-question-input" placeholder="Ask a question about the document...">
-              <select id="scenario-a-ticker-picker" data-change-action="scenario-a-ticker-picker">
-                <option value="">— Select ticker —</option>
-              </select>
-              <fieldset class="mode-toggle">
-                <legend class="caption">GraphRAG mode (right pane). +1-hop is the recommended comparison.</legend>
-                <label title="Same as left pane; sanity check that GraphRAG matches the dense baseline when the graph isn't used."><input type="radio" name="scenario-a-mode" value="A1"> Standard (sanity)</label>
-                <label title="Recommended. Dense retrieval + 1-hop graph neighborhood added to context."><input type="radio" name="scenario-a-mode" value="A2" checked> +1-hop graph</label>
-                <label title="Search the graph itself (BM25+cosine over nodes/edges); evidence spans pulled into context."><input type="radio" name="scenario-a-mode" value="A3"> Graph-as-corpus</label>
-              </fieldset>
-              <button id="scenario-a-run-btn" data-action="scenario-a-run">Run</button>
-              <button id="scenario-a-analyze-btn" data-action="scenario-a-analyze" hidden>Analyze Results</button>
-              <span id="scenario-a-status" class="scenario-a-status"></span>
-            </div>
-            <div class="scenario-a-panes">
-              <article class="pane pane-left">
-                <header><span class="pane-label">Dense RAG</span> <span class="badge">no graph</span></header>
-                <div class="answer" id="scenario-a-dense-answer"></div>
-                <details><summary>Retrieved chunks</summary><pre class="retrieved-context" id="scenario-a-dense-context"></pre></details>
-              </article>
-              <article class="pane pane-right">
-                <header><span class="pane-label">GraphRAG</span> <span class="badge mode-badge" id="scenario-a-mode-badge">+1-hop</span></header>
-                <div class="answer" id="scenario-a-graphrag-answer"></div>
-                <details><summary>Retrieved context</summary><pre class="retrieved-context" id="scenario-a-graphrag-context"></pre></details>
-              </article>
-            </div>
-            <aside class="scenario-a-verdict" id="scenario-a-verdict" hidden>
-              <header><span class="verdict-label">Blinded LLM judge</span></header>
-              <div class="verdict-winner" id="scenario-a-verdict-winner"></div>
-              <div class="verdict-rationales">
-                <div><strong>A (Dense):</strong> <span id="scenario-a-verdict-rationale-a"></span></div>
-                <div><strong>B (GraphRAG):</strong> <span id="scenario-a-verdict-rationale-b"></span></div>
-              </div>
-              <div class="verdict-summary" id="scenario-a-verdict-summary"></div>
-            </aside>
-          </section>
-
-          <!-- Scenario B — Multi-hop with Decomposition. -->
-          <section class="scenario-b" data-region="scenario-b">
-            <header>
-              <h2>Scenario B — Multi-hop Decomposition</h2>
-              <p class="rubric">Templated multi-hop scenarios. Compare an agentic dense baseline (Search-o1-style) vs the paper-mirror dual-channel pipeline (arXiv:2509.22009).</p>
-            </header>
-            <div class="scenario-b-controls">
-              <select id="scenario-b-template-picker" data-change-action="scenario-b-template-picker">
-                <option value="">— Select scenario —</option>
-              </select>
-              <select id="scenario-b-ticker-picker" data-change-action="scenario-b-ticker-picker">
-                <option value="">— Select ticker —</option>
-              </select>
-              <button id="scenario-b-run-btn" data-action="scenario-b-run">Run Multi-Hop</button>
-              <button id="scenario-b-show-advanced-btn" data-action="scenario-b-show-advanced">Show advanced: tool-agent</button>
-              <button id="scenario-b-analyze-btn" data-action="scenario-b-analyze" hidden>Analyze Results</button>
-              <span id="scenario-b-status" class="scenario-b-status"></span>
-            </div>
-            <div class="resolved-question" id="scenario-b-resolved-question" hidden>
-              <span class="question-text" id="scenario-b-question-text"></span>
-              <span class="gold-badge" id="scenario-b-gold-badge" hidden>⭐ Gold available — F1 will be computed</span>
-              <span class="no-gold-badge" id="scenario-b-no-gold-badge" hidden>No gold for this ticker — qualitative LLM-judge only</span>
-            </div>
-            <div class="scenario-b-panes" id="scenario-b-panes" data-pane-mode="two">
-              <article class="pane pane-left" data-pane-name="agentic_dense">
-                <header><span>Agentic Dense RAG</span> <span class="badge">Search-o1</span></header>
-                <div class="answer" id="scenario-b-agentic-answer">—</div>
-                <div class="progress-strip" id="scenario-b-agentic-progress"></div>
-                <details><summary>Decomposition trace</summary><pre id="scenario-b-agentic-trace"></pre></details>
-              </article>
-              <article class="pane pane-center" data-pane-name="paper_mirror">
-                <header><span>Paper-mirror GraphSearch</span> <span class="badge badge-paper">arXiv:2509.22009</span></header>
-                <div class="answer" id="scenario-b-paper-answer">—</div>
-                <div class="progress-strip" id="scenario-b-paper-progress"></div>
-                <details><summary>Text channel</summary><pre id="scenario-b-paper-text-history"></pre></details>
-                <details><summary>KG channel</summary><pre id="scenario-b-paper-kg-history"></pre></details>
-              </article>
-              <article class="pane pane-right" data-pane-name="tool_agent" hidden>
-                <header><span>Tool-agent GraphRAG</span> <span class="badge badge-advanced">advanced</span></header>
-                <div class="phase-5b-preview">
-                  <p>Phase 5B preview. Architectural commentary: a ReAct-style agent with <code>retrieve_text</code> + <code>retrieve_graph</code> tools — the pattern most modern AI engineers would build. <strong>The paper does NOT use this pattern</strong>; the dual-channel pipeline (center) is the paper's architecture and the demo's primary value-prop.</p>
-                  <p class="coming-soon">Live wiring lands in Phase 5B.</p>
-                </div>
-              </article>
-            </div>
-            <aside class="scenario-b-verdict" id="scenario-b-verdict" hidden>
-              <div class="f1-block" id="scenario-b-f1-block"></div>
-              <div class="rationale-block" id="scenario-b-rationale-block"></div>
-              <div class="recovery-narrative" id="scenario-b-recovery" hidden></div>
-              <div class="methodology-note">Illustrative F1 (n=11, see methodology) — directional check, not a benchmark. The value-prop is paper fidelity and dual-channel transparency.</div>
-            </aside>
-          </section>
-
-        </div>
         <!-- Performance Delta — Pairwise Matrix -->
         <div id="diagnostic-scores" style="display:none;">
             <h3 style="color:#9B59B6; margin:0 0 12px 0; font-size:15px;">Pairwise Performance Delta</h3>
@@ -2263,17 +2203,11 @@ body {
             </div>
         </div>
 
-        <!-- Sprint 91: On-Demand Q&A Section -->
-        <div id="slot-qa-section" style="margin-top:24px; padding:20px; background:#0f0f23; border:1px solid #2a2a4e; border-radius:10px;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                <h3 style="margin:0; color:#ccc; font-size:15px;">Agentic Q&amp;A Comparison</h3>
-                <button id="qa-btn" data-action="run-slot-qa" disabled title="Load at least 2 graphs to run Q&A" style="background:#1a1a3e; border:1px solid #3a3a5e; color:#9B59B6; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">&#9654; Run Q&amp;A</button>
-                <span id="qa-status" style="color:#888; font-size:11px;"></span>
-            </div>
-            <div id="slot-qa-content">
-                <div style="color:#666; font-size:13px;">Run at least 2 pipelines, then click Run Q&amp;A for side-by-side answers to domain-specific questions.</div>
-            </div>
-        </div>
+        <!-- Sprint 91 #slot-qa-section "Agentic Q&A Comparison" deleted
+             in fixup-20260430 commit 6 (F8). The slot-level Q&A flow
+             is subsumed by the Single-shot sub-tab inside each slot's
+             modal Why tab (PRD-004 v5). Backend route /api/compare-qa/{doc_id}
+             stays alive until Phase 5B per VP-Prod #4 posture. -->
     </div>
 </div>
 
@@ -2291,29 +2225,10 @@ body {
     </div>
 </div>
 
-<!-- ======================== TAB: Agentic Q&A ======================== -->
-<div id="tab-agentic" class="tab-content">
-    <div style="padding:20px;">
-        <h2 style="color:#ccc; margin-bottom:16px;">Agentic Q&amp;A</h2>
-        <p style="color:#888; font-size:13px; margin-bottom:16px;">Ask questions grounded in the extracted knowledge graph. Select which pipeline's graph to use as context.</p>
-        <div style="display:flex; gap:12px; align-items:center; margin-bottom:16px;">
-            <label style="color:#888; font-size:12px;">Pipeline:</label>
-            <select id="agentic-pipeline-select" style="background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:6px 10px; border-radius:4px; font-size:12px;">
-                <option value="kgenskills">KGSpin</option>
-                <option value="modular">LLM Multi-Stage</option>
-                <option value="gemini">LLM Full Shot</option>
-                <option value="all">All Pipelines</option>
-            </select>
-        </div>
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-            <input type="text" id="agentic-question-input" placeholder="Ask a question about the extracted data..." style="flex:1; background:#0f0f23; border:1px solid #3a3a5e; color:#fff; padding:10px 14px; border-radius:6px; font-size:13px;" data-enter-action="ask-agentic-question">
-            <button data-action="ask-agentic-question" style="background:#1a2a3a; border:1px solid #3a5a7a; color:#5B9FE6; padding:10px 16px; border-radius:6px; font-size:13px; cursor:pointer;">Ask</button>
-        </div>
-        <div id="agentic-results" style="display:flex; flex-direction:column; gap:12px;">
-            <div style="color:#555; font-style:italic;">No questions asked yet. Enter a ticker in Compare, run an extraction, then ask questions here.</div>
-        </div>
-    </div>
-</div>
+<!-- #tab-agentic orphan top-level Agentic Q&A tab deleted in
+     fixup-20260430 commit 6 (F8). No nav button reached this tab.
+     Replaced by the Single-shot Q&A sub-tab in each slot's modal
+     Why tab (PRD-004 v5). -->
 
 <!-- Kept for backward compat but hidden — old Document Explorer tab -->
 <div id="tab-intelligence" class="tab-content" style="display:none !important;">
@@ -2387,13 +2302,13 @@ body {
     <div class="impact-subtab-bar" id="impact-subtab-bar" style="display:none;">
         <button class="impact-subtab active" data-subtab="reproducibility" data-action="switch-impact-subtab" data-subtab="reproducibility">Reproducibility</button>
         <button class="impact-subtab" data-subtab="lineage" data-action="switch-impact-subtab" data-subtab="lineage">Data Lineage</button>
-        <button class="impact-subtab" data-subtab="agentic" data-action="switch-impact-subtab" data-subtab="agentic">Agentic Q&amp;A</button>
+        <!-- Impact "Agentic Q&A" sub-tab deleted in fixup commit 6 (F8). -->
     </div>
 
     <!-- Welcome (shown when no data loaded) -->
     <div id="impact-welcome" class="tab-placeholder">
         <h3>Graph Impact</h3>
-        <p>Prove the value of deterministic knowledge graphs: <strong>reproducibility</strong>, <strong>data lineage</strong>, and <strong>agentic task quality</strong>.</p>
+        <p>Prove the value of deterministic knowledge graphs: <strong>reproducibility</strong> and <strong>data lineage</strong>. Agentic task quality moved to the modal Why tab — open any slot and click Why for retrieval-strategy comparison.</p>
         <p style="color:#555; font-size:13px; margin-top:8px;">Run KGSpin vs LLM first (Tab 1), then explore impact here</p>
     </div>
 
@@ -2450,31 +2365,10 @@ body {
         </div>
     </div>
 
-    <!-- Sub-tab 3: Agentic Q&A -->
-    <div id="impact-sub-agentic" class="impact-subtab-content">
-        <div id="agentic-welcome" style="padding:0 16px;">
-            <p style="color:#888; font-size:13px; margin:0 0 12px;">Compare LLM answers <strong>with</strong> KG context vs <strong>without</strong>.</p>
-            <button class="tab-run-btn" data-action="start-impact" id="impact-run-btn">Run Impact Analysis</button>
-        </div>
-        <div id="agentic-run-nav" style="display:none; padding:4px 16px; align-items:center; gap:12px;">
-            <button class="tab-run-btn" data-action="start-impact" id="impact-refresh-btn" style="padding:4px 12px; font-size:12px;">
-                Refresh (New Run)
-            </button>
-            <span id="agentic-run-label" style="color:#888; font-size:12px;"></span>
-            <div style="margin-left:auto; display:flex; gap:4px;">
-                <button class="run-nav-btn" id="agentic-prev-btn" data-action="navigate-qa-run" data-dir="-1" disabled>&laquo; Prev</button>
-                <button class="run-nav-btn" id="agentic-next-btn" data-action="navigate-qa-run" data-dir="1" disabled>Next &raquo;</button>
-            </div>
-        </div>
-        <div class="timeline-section" id="impact-timeline">
-            <h2>Impact Analysis</h2>
-            <div class="timeline-steps" id="impact-timeline-steps"></div>
-        </div>
-        <div class="content-section" id="impact-content" style="display:none;">
-            <div class="impact-header" id="impact-metrics"></div>
-            <div class="impact-qa-list" id="impact-qa-list"></div>
-        </div>
-    </div>
+    <!-- Impact #impact-sub-agentic ("Agentic Q&A" / "with KG vs
+         without KG" Q&A flow) deleted in fixup-20260430 commit 6
+         (F8). Replaced by the Single-shot Q&A sub-tab inside each
+         slot's modal Why tab (PRD-004 v5). Backend alive until 5B. -->
 </div>
 
 <!-- Sprint 39.2 Item 6: Flag Explorer Tab -->
@@ -2670,31 +2564,148 @@ body {
                 </div>
             </div>
         </div>
-        <!-- Sprint 05 HITL-round-2: Why This Matters tab, scoped to this slot's pipeline -->
+        <!-- Why This Matters — PRD-004 v5 fixup-20260430 commits 1-5.
+             RAG-vs-GraphRAG comparison scoped to this slot's ticker +
+             pipeline. Two sub-tabs:
+                Single-shot Q&A (default): templated scenarios + free-text
+                Multi-hop scenarios: same templates run through dual-channel
+             Slot context (ticker + pipeline + domain) is read at modal-
+             open time; no ticker picker. The existing Sprint 05 HITL-r2
+             Q&A flow ("with KG" vs "without KG") is replaced by the
+             Single-shot sub-tab's Dense-RAG-vs-GraphRAG framing — same
+             comparison axis, upgraded with chunk + graph context. -->
         <div class="modal-tab-content" id="modal-why-content">
-            <div style="padding:20px 24px;">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                    <span style="font-size:24px;">&#x1F4A1;</span>
-                    <h3 style="margin:0; color:#e6edf3; font-size:16px;">Why This Matters</h3>
-                    <span id="modal-wtm-pipeline-label" style="font-size:11px; color:#5B9FE6; padding:2px 10px; border:1px solid #3a3a5e; border-radius:10px;"></span>
-                    <span id="modal-wtm-status" style="font-size:12px; color:#8b949e; margin-left:auto;"></span>
+            <div class="modal-why-wrap">
+                <div class="modal-why-header">
+                    <span class="modal-why-icon">&#x1F4A1;</span>
+                    <h3>Why This Matters</h3>
+                    <!-- Graph identity (per VP-Prod S1 / fixup F12). -->
+                    <span class="modal-why-graph-id">
+                        <span id="modal-why-slot-label" class="modal-why-slot"></span>
+                        <span id="modal-wtm-pipeline-label" class="modal-why-pipeline"></span>
+                        <span id="modal-why-ticker-label" class="modal-why-ticker"></span>
+                    </span>
+                    <span id="modal-why-status" class="modal-why-status"></span>
                 </div>
-                <p style="margin:0 0 12px; color:#8b949e; font-size:12px;">Ask a question about the extracted knowledge graph. The graph source is locked to this slot's pipeline.</p>
-                <div style="display:flex; gap:8px; margin-bottom:16px;">
-                    <textarea id="modal-wtm-question-input" rows="2" style="flex:1; font-size:13px; color:#c9d1d9; background:#0d0d1a; border:1px solid #30363d; border-left:3px solid #58a6ff; border-radius:8px; padding:10px 12px; resize:vertical; font-family:inherit;" placeholder="Type a question about the extracted knowledge graph..."></textarea>
-                    <button id="modal-wtm-run-btn" data-action="trigger-modal-why-this-matters" style="padding:8px 16px; background:#238636; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; white-space:nowrap; align-self:flex-start;">Ask</button>
+                <p class="modal-why-rubric">Compare retrieval strategies on this graph. Locked to this slot's ticker.</p>
+
+                <div class="why-subtabs">
+                    <button class="why-subtab active" data-action="switch-why-subtab" data-why-subtab="single-shot">Single-shot Q&amp;A</button>
+                    <button class="why-subtab" data-action="switch-why-subtab" data-why-subtab="multi-hop">Multi-hop scenarios</button>
                 </div>
-                <div id="modal-wtm-answers" style="display:none; grid-template-columns:1fr 1fr; gap:16px;">
-                    <div style="background:#0d1117; border:1px solid #238636; border-radius:8px; padding:16px;">
-                        <div style="font-size:12px; font-weight:600; color:#3fb950; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">With Knowledge Graph</div>
-                        <div id="modal-wtm-with-graph" style="font-size:13px; color:#c9d1d9; line-height:1.6;"></div>
-                        <div id="modal-wtm-with-meta" style="font-size:11px; color:#8b949e; margin-top:8px;"></div>
+
+                <!-- Sub-tab 1: Single-shot Q&A.
+                     Scenario list (templated questions, picker prefills the
+                     textarea) + "type your own" free-text. Both feed
+                     /api/scenario-a/run (Dense RAG vs GraphRAG). -->
+                <div class="why-subtab-content active" id="modal-why-single-shot" data-why-subtab="single-shot">
+                    <div class="why-subtab-rubric">Pick a templated scenario or type your own question. We retrieve from this graph two ways and answer with each.</div>
+
+                    <div class="scenario-a-controls modal-scoped">
+                        <select id="modal-scenario-a-template-picker" data-change-action="modal-scenario-a-template-picker">
+                            <option value="">— Pick a templated scenario (optional) —</option>
+                        </select>
                     </div>
-                    <div style="background:#0d1117; border:1px solid #6e7681; border-radius:8px; padding:16px;">
-                        <div style="font-size:12px; font-weight:600; color:#8b949e; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Standard LLM (RAG)</div>
-                        <div id="modal-wtm-without-graph" style="font-size:13px; color:#8b949e; line-height:1.6;"></div>
-                        <div id="modal-wtm-without-meta" style="font-size:11px; color:#8b949e; margin-top:8px;"></div>
+                    <div class="scenario-a-or-divider"><span>— or —</span></div>
+                    <div class="scenario-a-controls modal-scoped">
+                        <textarea id="modal-scenario-a-question-input" rows="2" placeholder="Type your own question about this graph..."></textarea>
                     </div>
+                    <div class="scenario-a-controls modal-scoped">
+                        <fieldset class="mode-toggle">
+                            <legend class="caption">GraphRAG mode for the right pane.</legend>
+                            <label title="Same as left pane; sanity check that GraphRAG matches the dense baseline when the graph isn't used."><input type="radio" name="modal-scenario-a-mode" value="A1"> Standard</label>
+                            <label title="Recommended. Dense retrieval + 1-hop graph neighborhood added to context."><input type="radio" name="modal-scenario-a-mode" value="A2" checked> +1-hop graph</label>
+                            <label title="Search the graph itself (lexical + semantic over nodes/edges); evidence spans pulled into context."><input type="radio" name="modal-scenario-a-mode" value="A3"> Graph-as-corpus</label>
+                        </fieldset>
+                        <button id="modal-scenario-a-run-btn" data-action="modal-scenario-a-run">Run</button>
+                        <button id="modal-scenario-a-analyze-btn" data-action="modal-scenario-a-analyze" disabled>Analyze Results</button>
+                        <span id="modal-scenario-a-status" class="scenario-a-status"></span>
+                    </div>
+
+                    <div class="scenario-a-panes">
+                        <article class="pane pane-left">
+                            <header><span class="pane-label">Dense RAG</span> <span class="badge">no graph</span></header>
+                            <div class="answer" id="modal-scenario-a-dense-answer"></div>
+                            <details><summary>Retrieved chunks</summary><pre class="retrieved-context" id="modal-scenario-a-dense-context"></pre></details>
+                        </article>
+                        <article class="pane pane-right">
+                            <header><span class="pane-label">GraphRAG</span> <span class="badge mode-badge" id="modal-scenario-a-mode-badge">+1-hop</span></header>
+                            <div class="answer" id="modal-scenario-a-graphrag-answer"></div>
+                            <details><summary>Retrieved context</summary><pre class="retrieved-context" id="modal-scenario-a-graphrag-context"></pre></details>
+                        </article>
+                    </div>
+
+                    <div class="modal-scenario-placeholder-card" id="modal-scenario-a-placeholder">
+                        Run a scenario or type a question, then click <strong>Analyze Results</strong> for an LLM judge verdict.
+                    </div>
+
+                    <aside class="scenario-a-verdict" id="modal-scenario-a-verdict" hidden>
+                        <header><span class="verdict-label">Blinded LLM judge</span></header>
+                        <div class="verdict-winner" id="modal-scenario-a-verdict-winner"></div>
+                        <div class="verdict-rationales">
+                            <div><strong>A (Dense):</strong> <span id="modal-scenario-a-verdict-rationale-a"></span></div>
+                            <div><strong>B (GraphRAG):</strong> <span id="modal-scenario-a-verdict-rationale-b"></span></div>
+                        </div>
+                        <div class="verdict-summary" id="modal-scenario-a-verdict-summary"></div>
+                    </aside>
+                </div>
+
+                <!-- Sub-tab 2: Multi-hop scenarios.
+                     Same scenario picker (filtered to this slot's domain).
+                     Scenario question is decomposed and run through the
+                     agentic-dense + dual-channel pipelines side-by-side. -->
+                <div class="why-subtab-content" id="modal-why-multi-hop" data-why-subtab="multi-hop">
+                    <div class="why-subtab-rubric">Same scenarios, decomposed into sub-questions and run through two reasoning pipelines side-by-side.</div>
+
+                    <div class="scenario-b-controls modal-scoped">
+                        <select id="modal-scenario-b-template-picker" data-change-action="modal-scenario-b-template-picker">
+                            <option value="">— Pick a scenario —</option>
+                        </select>
+                        <button id="modal-scenario-b-run-btn" data-action="modal-scenario-b-run">Run Multi-Hop</button>
+                        <button id="modal-scenario-b-show-advanced-btn" data-action="modal-scenario-b-show-advanced">Show advanced: tool-agent</button>
+                        <button id="modal-scenario-b-analyze-btn" data-action="modal-scenario-b-analyze" disabled>Analyze Results</button>
+                        <span id="modal-scenario-b-status" class="scenario-b-status"></span>
+                    </div>
+
+                    <div class="resolved-question" id="modal-scenario-b-resolved-question" hidden>
+                        <span class="question-text" id="modal-scenario-b-question-text"></span>
+                        <span class="gold-badge" id="modal-scenario-b-gold-badge" hidden>&#x2B50; Gold available — F1 will be computed</span>
+                        <span class="no-gold-badge" id="modal-scenario-b-no-gold-badge" hidden>No gold for this ticker — qualitative LLM-judge only</span>
+                    </div>
+
+                    <div class="scenario-b-panes" id="modal-scenario-b-panes" data-pane-mode="two">
+                        <article class="pane pane-left" data-pane-name="agentic_dense">
+                            <header><span>Agentic Dense RAG</span> <span class="badge">decompose &amp; iterate</span></header>
+                            <div class="answer" id="modal-scenario-b-agentic-answer">&#8212;</div>
+                            <div class="progress-strip" id="modal-scenario-b-agentic-progress"></div>
+                            <details><summary>Decomposition trace</summary><pre id="modal-scenario-b-agentic-trace"></pre></details>
+                        </article>
+                        <article class="pane pane-center" data-pane-name="paper_mirror">
+                            <header><span>Dual-channel</span> <span class="badge badge-paper" title="Two retrieval channels — document text and the knowledge graph — combined with cross-check and refinement.">&#x2139;</span></header>
+                            <div class="answer" id="modal-scenario-b-paper-answer">&#8212;</div>
+                            <div class="progress-strip" id="modal-scenario-b-paper-progress"></div>
+                            <details><summary>Text channel</summary><pre id="modal-scenario-b-paper-text-history"></pre></details>
+                            <details><summary>KG channel</summary><pre id="modal-scenario-b-paper-kg-history"></pre></details>
+                        </article>
+                        <article class="pane pane-right" data-pane-name="tool_agent" hidden>
+                            <header><span>Tool-agent GraphRAG</span> <span class="badge badge-advanced">advanced</span></header>
+                            <div class="phase-5b-preview">
+                                <p>Phase 5B preview. Architectural commentary: a ReAct-style agent with <code>retrieve_text</code> + <code>retrieve_graph</code> tools — the pattern most modern AI engineers would build. <strong>The reference architecture does NOT use this pattern</strong>; the dual-channel pipeline (center) is the value-prop demo.</p>
+                                <p class="coming-soon">Live wiring lands in Phase 5B.</p>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="modal-scenario-placeholder-card" id="modal-scenario-b-placeholder">
+                        Run a scenario, then click <strong>Analyze Results</strong> for F1 vs gold and an LLM rationale per pane.
+                    </div>
+
+                    <aside class="scenario-b-verdict" id="modal-scenario-b-verdict" hidden>
+                        <div class="f1-block" id="modal-scenario-b-f1-block"></div>
+                        <div class="rationale-block" id="modal-scenario-b-rationale-block"></div>
+                        <div class="recovery-narrative" id="modal-scenario-b-recovery" hidden></div>
+                        <div class="methodology-note">Illustrative F1 (n=11, see methodology) — directional check, not a benchmark. The value-prop is dual-channel transparency.</div>
+                    </aside>
                 </div>
             </div>
         </div>

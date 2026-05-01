@@ -6,11 +6,23 @@
 // --- compare.html lines 4824-4825: currentDomain ---
 let currentDomain = 'financial';
 
+// PRD-004 v5 fixup-20260430 commit 2: cross-script handshake.
+// Top-level `let` doesn't bind to `window`, so the modal Why-tab
+// scenario runners (IIFE-wrapped) can't read `currentDomain`
+// directly. Mirror the value into `document.body.dataset.currentDomain`
+// on load + every flip so any other module can read it without
+// reaching into our scope. Gated on document.body existing because
+// this module loads before <body> is parsed in some test harnesses.
+if (typeof document !== 'undefined' && document.body) {
+    document.body.dataset.currentDomain = currentDomain;
+}
+
 
 // --- compare.html lines 4930-5005: switchDomain ---
 function switchDomain(domain) {
     if (domain === currentDomain) return;
     currentDomain = domain;
+    if (document.body) document.body.dataset.currentDomain = domain;
 
     // Update pill styles
     document.querySelectorAll('.domain-pill').forEach(pill => {

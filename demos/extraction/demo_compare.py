@@ -2920,7 +2920,14 @@ async def scenario_a_analyze(payload: dict):
 
 @app.get("/api/scenario-b/templates")
 async def scenario_b_templates():
-    """Return the 6 Phase-5A templates for the picker."""
+    """Return the v5 Phase-5A templates for the picker.
+
+    Per PRD-004 v5 Phase 5A fixup-20260430 F4a: each entry exposes
+    a ``status`` field (``"ready"`` for real scenarios, ``"scaffold"``
+    for placeholder entries the picker disables Run on). Default
+    ``"ready"`` keeps existing tests green; the 4 clinical scaffolds
+    added in commit 4 carry ``"scaffold"``.
+    """
     from kgspin_demo_app.services import scenario_resolver
     out = []
     for t in scenario_resolver.load_v5_templates():
@@ -2933,6 +2940,7 @@ async def scenario_b_templates():
             "key_fields": list(t.key_fields),
             "expected_difficulty": t.expected_difficulty,
             "talking_track": t.talking_track,
+            "status": t.status,
         })
     return JSONResponse(out)
 

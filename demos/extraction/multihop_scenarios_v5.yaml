@@ -110,9 +110,12 @@ scenarios:
       individual holdings are disclosed in both places. A genuinely
       hard cross-section question.
 
-  # Clinical hedge — Phase 5A ships 1 clinical template + 1 gold key
-  # so clinical pitches in the next 2 weeks have at least one
-  # resolvable scenario. Phase 5B adds 4 more clinical templates.
+  # Clinical scenarios. The first entry is the real Phase-5A hedge
+  # (Stelara adverse events). The 4 entries that follow are SCAFFOLDS
+  # added by fixup-20260430 commit 4 — placeholders carrying
+  # `status: scaffold` so the frontend picker shows them with `(TBD)`
+  # and disables Run on selection. CTO replaces each with a real
+  # scenario design once clinical v0 is correct.
   - scenario_id: stelara_adverse_events_cohort_v5
     domain: clinical
     expected_hops: 2
@@ -128,3 +131,51 @@ scenarios:
       The age-bracket filter requires demographic-stratified data, which
       isn't always disclosed in summary form — the answer often requires
       reasoning over multiple result tables.
+
+  - scenario_id: clinical_scaffold_phase_progression_endpoints
+    domain: clinical
+    status: scaffold
+    expected_hops: 0
+    expected_difficulty: medium
+    placeholders: []
+    key_fields: []
+    question_template: "Scenario design pending — clinical v0 in progress."
+    talking_track: |
+      Scaffold entry for "phase progression × endpoints". CTO
+      replaces with a real scenario once clinical v0 lands.
+
+  - scenario_id: clinical_scaffold_adverse_events_dose
+    domain: clinical
+    status: scaffold
+    expected_hops: 0
+    expected_difficulty: medium
+    placeholders: []
+    key_fields: []
+    question_template: "Scenario design pending — clinical v0 in progress."
+    talking_track: |
+      Scaffold entry for "adverse events × dose-response". CTO
+      replaces with a real scenario once clinical v0 lands.
+
+  - scenario_id: clinical_scaffold_cross_trial_inclusion
+    domain: clinical
+    status: scaffold
+    expected_hops: 0
+    expected_difficulty: medium
+    placeholders: []
+    key_fields: []
+    question_template: "Scenario design pending — clinical v0 in progress."
+    talking_track: |
+      Scaffold entry for "cross-trial inclusion-criteria overlap".
+      CTO replaces with a real scenario once clinical v0 lands.
+
+  - scenario_id: clinical_scaffold_regulatory_submission
+    domain: clinical
+    status: scaffold
+    expected_hops: 0
+    expected_difficulty: hard
+    placeholders: []
+    key_fields: []
+    question_template: "Scenario design pending — clinical v0 in progress."
+    talking_track: |
+      Scaffold entry for "regulatory-submission basis: pivotal trials".
+      CTO replaces with a real scenario once clinical v0 lands.

@@ -81,6 +81,12 @@ class ScenarioTemplate:
     talking_track: str
     expected_difficulty: str
     key_fields: tuple[str, ...]
+    # PRD-004 v5 Phase 5A fixup-20260430 F4a — `status` flag.
+    # `"ready"` (default) = real scenario; `"scaffold"` = placeholder
+    # entry that the picker shows with `(TBD)` and disables Run on.
+    # Defaults to `"ready"` so existing YAML rows + tests stay green
+    # without changes.
+    status: str = "ready"
 
 
 @dataclass(frozen=True)
@@ -128,6 +134,7 @@ def _load_yaml() -> list[ScenarioTemplate]:
             talking_track=str(it.get("talking_track", "")).strip(),
             expected_difficulty=str(it.get("expected_difficulty", "medium")),
             key_fields=tuple(it.get("key_fields") or ()),
+            status=str(it.get("status") or "ready"),
         ))
     return out
 
