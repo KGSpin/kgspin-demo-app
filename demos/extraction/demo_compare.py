@@ -3246,6 +3246,10 @@ async def scenario_b_analyze(payload: dict):
     scenario_id = (payload.get("scenario_id") or "").strip()
     ticker = (payload.get("ticker") or "").strip().upper()
     pane_outputs = payload.get("pane_outputs") or {}
+    # PRD-004 v5 Phase 5B+: respect the operator's Settings dropdown
+    # selection for the F1-extract LLM call (was hardcoded gemini_flash
+    # alias, which gave a mix of models with the run-time pane calls).
+    requested_model = (payload.get("model") or "").strip() or None
     if not scenario_id or not ticker or not pane_outputs:
         return JSONResponse(
             {"error": "scenario_id, ticker, pane_outputs required"},
@@ -3280,7 +3284,15 @@ async def scenario_b_analyze(payload: dict):
     if llm_extract is None:
         try:
             from kgspin_demo_app.llm_backend import resolve_llm_backend
-            backend = resolve_llm_backend(llm_alias="gemini_flash", flow="scenario_b_extract")
+            if requested_model and requested_model in VALID_GEMINI_MODELS:
+                backend = resolve_llm_backend(
+                    llm_provider="gemini", llm_model=requested_model,
+                    flow="scenario_b_extract",
+                )
+            else:
+                backend = resolve_llm_backend(
+                    llm_alias="gemini_flash", flow="scenario_b_extract",
+                )
             llm_extract = lambda p: backend.complete(p, temperature=0.0).text  # noqa: E731
         except Exception:
             llm_extract = None

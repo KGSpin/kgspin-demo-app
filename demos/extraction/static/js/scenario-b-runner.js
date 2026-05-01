@@ -55,6 +55,93 @@
         if (el) el.textContent = text || '';
     }
 
+    // Markdown / JSON-strip rendering — duplicated from scenario-a-runner.js
+    // (both runners are IIFEs; small helpers don't justify a shared module).
+    function _escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+    function _stripJsonWrapper(text) {
+        const trimmed = (text || '').trim();
+        if (!trimmed.startsWith('{')) return trimmed;
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === 'object') {
+                if (typeof parsed.answer === 'string') return parsed.answer;
+                if (typeof parsed.response === 'string') return parsed.response;
+                if (typeof parsed.text === 'string') return parsed.text;
+            }
+        } catch (_) {}
+        return trimmed;
+    }
+    function _renderMarkdown(md) {
+        let html = _escapeHtml(md);
+        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/(^|[^*])\*([^*]+)\*([^*]|$)/g, '$1<em>$2</em>$3');
+        html = html.replace(/(^|\n)([*-]) (.+)/g, '$1<li>$3</li>');
+        html = html.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+        html = html.replace(/\\n/g, '\n');
+        html = html.replace(/\n\n+/g, '</p><p>');
+        html = html.replace(/\n/g, '<br>');
+        return `<p>${html}</p>`;
+    }
+    function renderAnswer(id, text) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!text) { el.innerHTML = ''; return; }
+        el.innerHTML = _renderMarkdown(_stripJsonWrapper(text));
+    }
+
+    // Friendly stage labels for the progress status line. Catches the
+    // common SSE event names emitted by graphsearch_pipeline + agentic_dense.
+    const _STAGE_LABELS = {
+        pane_start:                'Starting…',
+        decomposition_start:       'Decomposing question…',
+        decomposition_done:        'Question decomposed',
+        sub_query_start:           'Retrieving sub-query…',
+        sub_query_retrieved:       'Sub-query retrieved',
+        sub_query_done:            'Sub-query answered',
+        seed_retrieval_done:       'Seed retrieval done',
+        dual_summary_done:         'Dual summary done',
+        text_subquery_start:       'Text-channel sub-query…',
+        text_subquery_done:        'Text-channel sub-query done',
+        kg_subquery_start:         'KG-channel sub-query…',
+        kg_subquery_done:          'KG-channel sub-query done',
+        text_draft_done:           'Text channel drafted',
+        kg_draft_done:             'KG channel drafted',
+        text_verification_done:    'Text channel verified',
+        kg_verification_done:      'KG channel verified',
+        text_expansion_done:       'Text expansion done',
+        kg_expansion_done:         'KG expansion done',
+        merge_done:                'Channels merged — finalizing…',
+        final_answer_start:        'Generating final answer…',
+        final_answer_done:         'Final answer ready',
+        pane_complete:             '✓ Done',
+    };
+    function setPaneProgress(paneName, eventName, payload) {
+        const map = {
+            agentic_dense: 'modal-scenario-b-agentic-progress-line',
+            paper_mirror:  'modal-scenario-b-paper-progress-line',
+        };
+        const id = map[paneName];
+        if (!id) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        const friendly = _STAGE_LABELS[eventName] || eventName.replace(/_/g, ' ');
+        let suffix = '';
+        if (payload && typeof payload.index === 'number') {
+            suffix = ` (${payload.index + 1})`;
+        }
+        if (payload && payload.sub_query) {
+            suffix += `: "${String(payload.sub_query).slice(0, 80)}"`;
+        }
+        const isDone = eventName === 'pane_complete';
+        el.innerHTML = (isDone ? '<span class="ok-glyph">✓</span> ' : '<span class="spinner-glyph"></span> ')
+            + _escapeHtml(friendly + suffix);
+        el.classList.toggle('pane-progress-done', isDone);
+    }
+
     // ----- Templates fetch + domain-filter ---------------------------------
 
     async function fetchTemplates() {
@@ -217,13 +304,15 @@
     function renderPaneOutputs(paneOutputs) {
         if (paneOutputs.agentic_dense) {
             const a = paneOutputs.agentic_dense;
-            setText('modal-scenario-b-agentic-answer', a.final_answer);
+            // Markdown render + JSON-strip (Gemini sometimes returns
+            // {"answer": "..."} despite the prompt).
+            renderAnswer('modal-scenario-b-agentic-answer', a.final_answer);
             const trace = (a.decomposition_trace || []).map((q, i) => `${i + 1}. ${q}`).join('\n');
             setText('modal-scenario-b-agentic-trace', trace);
         }
         if (paneOutputs.paper_mirror) {
             const p = paneOutputs.paper_mirror;
-            setText('modal-scenario-b-paper-answer', p.final_answer);
+            renderAnswer('modal-scenario-b-paper-answer', p.final_answer);
             const text_history = (p.retrieval_history && p.retrieval_history.text_channel || [])
                 .map((s, i) => `Sub-query ${i + 1}: ${s.sub_query}\nAnswer: ${s.answer}`)
                 .join('\n\n');
@@ -326,7 +415,12 @@
                 if (eventName === 'stage') {
                     const stage = payload.stage || '';
                     const pane = payload.pane;
-                    if (pane) appendStagePill(pane, stage, 'done');
+                    if (pane) {
+                        // Detail pill (debug-friendly) + the headline progress line.
+                        appendStagePill(pane, stage, 'done');
+                        setPaneProgress(pane, stage, payload);
+                    }
+                    setStatus(`Running… ${pane || ''}: ${stage}`);
                 } else if (eventName === 'stage_error') {
                     setStatus(`Stage error: ${payload.message || ''}`);
                 } else if (eventName === 'all_done') {
@@ -334,6 +428,9 @@
                     scenarioBState.lastPaneOutputs = payload.pane_outputs || {};
                     renderPaneOutputs(scenarioBState.lastPaneOutputs);
                     if (analyzeBtn) analyzeBtn.disabled = false;
+                    // Mark both panes as complete in the headline progress line.
+                    setPaneProgress('agentic_dense', 'pane_complete', {});
+                    setPaneProgress('paper_mirror', 'pane_complete', {});
                     setStatus('Done.');
                 } else if (eventName === 'error') {
                     setStatus(`Error: ${payload.message || ''}`);
@@ -355,11 +452,17 @@
             return;
         }
         setStatus('Computing F1 + judge…');
+        const modelSelect = document.getElementById('model-select');
+        const selectedModel = modelSelect ? (modelSelect.value || '').trim() : '';
         try {
             const res = await fetch('/api/scenario-b/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ scenario_id: sid, ticker, pane_outputs: paneOutputs }),
+                body: JSON.stringify({
+                    scenario_id: sid, ticker,
+                    pane_outputs: paneOutputs,
+                    model: selectedModel || undefined,
+                }),
             });
             const data = await res.json();
             if (!res.ok || data.error) {

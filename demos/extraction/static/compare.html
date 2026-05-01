@@ -1803,6 +1803,45 @@ body {
 .scenario-b-panes .progress-strip .stage-pill.done {
     background: #1a3a25; color: #5ED68A; border-color: #2a5a3a;
 }
+.scenario-b-panes .pane-progress-line {
+    display: block;
+    margin: 6px 0 8px 0;
+    padding: 6px 10px;
+    background: #1a1a3e;
+    border-left: 2px solid #5B9FE6;
+    border-radius: 3px;
+    color: #c9d1d9;
+    font-size: 11px;
+    min-height: 18px;
+}
+.scenario-b-panes .pane-progress-line:empty {
+    display: none;
+}
+.scenario-b-panes .pane-progress-line.pane-progress-done {
+    border-left-color: #5ED68A;
+    color: #5ED68A;
+}
+.scenario-b-panes .pane-progress-line .ok-glyph {
+    color: #5ED68A;
+    font-weight: 700;
+    margin-right: 4px;
+}
+.scenario-b-panes .pane-progress-line .spinner-glyph {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border: 2px solid #2a3a5a;
+    border-top-color: #5B9FE6;
+    border-radius: 50%;
+    animation: scenario-b-spinner 0.8s linear infinite;
+    margin-right: 6px;
+    vertical-align: -1px;
+}
+@keyframes scenario-b-spinner {
+    to { transform: rotate(360deg); }
+}
+.scenario-b-panes .answer p { margin: 0 0 0.6em 0; }
+.scenario-b-panes .answer ul { margin: 0.4em 0; padding-left: 1.2em; }
+.scenario-b-panes .answer strong { color: #f0f6fc; }
 .phase-5b-preview { color: #c9d1d9; font-size: 12px; line-height: 1.5; padding: 8px 12px; }
 .phase-5b-preview .coming-soon { color: #b48fd6; font-style: italic; margin-top: 8px; }
 .scenario-b-verdict .f1-block { font-size: 13px; color: #c9d1d9; margin-bottom: 8px; }
@@ -2816,14 +2855,16 @@ body {
                     <div class="scenario-b-panes" id="modal-scenario-b-panes" data-pane-mode="two">
                         <article class="pane pane-left" data-pane-name="agentic_dense">
                             <header><span>Agentic Dense RAG</span> <span class="badge">decompose &amp; iterate</span></header>
+                            <div class="pane-progress-line" id="modal-scenario-b-agentic-progress-line"></div>
                             <div class="answer" id="modal-scenario-b-agentic-answer">&#8212;</div>
-                            <div class="progress-strip" id="modal-scenario-b-agentic-progress"></div>
+                            <details><summary>Stage history</summary><div class="progress-strip" id="modal-scenario-b-agentic-progress"></div></details>
                             <details><summary>Decomposition trace</summary><pre id="modal-scenario-b-agentic-trace"></pre></details>
                         </article>
                         <article class="pane pane-center" data-pane-name="paper_mirror">
                             <header><span>Dual-channel</span> <span class="badge badge-paper" title="Two retrieval channels — document text and the knowledge graph — combined with cross-check and refinement.">&#x2139;</span></header>
+                            <div class="pane-progress-line" id="modal-scenario-b-paper-progress-line"></div>
                             <div class="answer" id="modal-scenario-b-paper-answer">&#8212;</div>
-                            <div class="progress-strip" id="modal-scenario-b-paper-progress"></div>
+                            <details><summary>Stage history</summary><div class="progress-strip" id="modal-scenario-b-paper-progress"></div></details>
                             <details><summary>Text channel</summary><pre id="modal-scenario-b-paper-text-history"></pre></details>
                             <details><summary>KG channel</summary><pre id="modal-scenario-b-paper-kg-history"></pre></details>
                         </article>
