@@ -314,6 +314,13 @@ You are a helpful assistant specializing in question answering.
 
 Given a query and retrieved context data, your task is to answer the query.
 
+---Output Format---
+
+Return your answer as plain Markdown text — paragraphs, bullet lists,
+**bold** for emphasis, etc. Do NOT wrap your answer in JSON. Do NOT
+return a JSON object with an "answer" field. Just write the answer
+itself, in Markdown.
+
 ---Input---
 
 Query:

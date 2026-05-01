@@ -2948,6 +2948,42 @@ async def scenario_a_run(payload: dict):
     dense_answer = await _answer(question, left_ctx_str)
     graphrag_answer = await _answer(question, right_ctx_str)
 
+    # Structured payload for the GraphRAG side so the modal UI can
+    # render Text Chunks / Graph Nodes / Graph Edges as separate
+    # sub-sections (single concatenated text dump was hiding the
+    # graph-only retrieval signal).
+    right_chunks_struct = [
+        {
+            "id": getattr(c, "chunk_id", ""),
+            "text": getattr(c, "text", ""),
+            "score": float(getattr(c, "score", 0.0)),
+            "source_offset": list(getattr(c, "source_offset", (0, 0))),
+        }
+        for c in (getattr(right_bundle, "text_chunks", None) or [])
+    ]
+    right_graph_nodes = [
+        {
+            "id": n.get("id", ""),
+            "text": n.get("text", ""),
+            "type": n.get("type", "UNKNOWN"),
+            "semantic_definition": n.get("semantic_definition") or "",
+            "parent_doc_offsets": n.get("parent_doc_offsets") or None,
+        }
+        for n in (getattr(right_bundle, "graph_nodes", None) or [])
+    ]
+    right_graph_edges = [
+        {
+            "id": e.get("id", ""),
+            "src": e.get("src", ""),
+            "tgt": e.get("tgt", ""),
+            "predicate": e.get("predicate", ""),
+            "evidence_text": e.get("evidence_text", "") or "",
+            "evidence_char_span": e.get("evidence_char_span") or None,
+            "kind": e.get("kind", "intra"),
+        }
+        for e in (getattr(right_bundle, "graph_edges", None) or [])
+    ]
+
     return JSONResponse({
         "question": question,
         "ticker": ticker,
@@ -2956,6 +2992,14 @@ async def scenario_a_run(payload: dict):
         "graphrag_answer": graphrag_answer,
         "retrieved_context_left": left_ctx_str,
         "retrieved_context_right": right_ctx_str,
+        # Structured GraphRAG retrieved-context for the modal UI to
+        # render in dedicated sub-sections (Text Chunks / Graph Nodes
+        # / Graph Edges), separate from the prompt-formatted blob above.
+        "retrieved_right_struct": {
+            "chunks": right_chunks_struct,
+            "graph_nodes": right_graph_nodes,
+            "graph_edges": right_graph_edges,
+        },
         # PRD-004 v5 Phase 5B (D5+followup #1): debug field for the
         # invariant test that GraphRAG actually loaded the slot's KG.
         "debug": {

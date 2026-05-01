@@ -69,6 +69,111 @@
         if (el) el.textContent = text || '';
     }
 
+    // Strip Gemini's occasional JSON-wrapping ({"answer": "..."} habit)
+    // and render the inner answer as Markdown → HTML. Falls back to
+    // escaped plain text if the input isn't recognizable as JSON or
+    // Markdown-eligible.
+    function _escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function _stripJsonWrapper(text) {
+        const trimmed = (text || '').trim();
+        if (!trimmed.startsWith('{')) return trimmed;
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === 'object') {
+                if (typeof parsed.answer === 'string') return parsed.answer;
+                if (typeof parsed.response === 'string') return parsed.response;
+                if (typeof parsed.text === 'string') return parsed.text;
+            }
+        } catch (_) {
+            // Not JSON; fall through and return raw text.
+        }
+        return trimmed;
+    }
+
+    function _renderMarkdown(md) {
+        // Tiny inline Markdown renderer — handles the subset Gemini
+        // typically emits (paragraphs, **bold**, *italic*, bullet lists,
+        // \\n line breaks). Avoids pulling in marked.js for one usage.
+        let html = _escapeHtml(md);
+        // Bold + italic.
+        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/(^|[^*])\*([^*]+)\*([^*]|$)/g, '$1<em>$2</em>$3');
+        // Bullet lists — lines starting with `* ` or `- `.
+        html = html.replace(/(^|\n)([*-]) (.+)/g, '$1<li>$3</li>');
+        html = html.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+        // Literal escape sequences from JSON-stringified answers.
+        html = html.replace(/\\n/g, '\n');
+        // Paragraph + line breaks.
+        html = html.replace(/\n\n+/g, '</p><p>');
+        html = html.replace(/\n/g, '<br>');
+        return `<p>${html}</p>`;
+    }
+
+    function renderAnswer(id, text) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!text) { el.innerHTML = ''; return; }
+        el.innerHTML = _renderMarkdown(_stripJsonWrapper(text));
+    }
+
+    function renderRetrievedContextStruct(id, struct, fallbackText) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!struct || (
+            (struct.chunks || []).length === 0
+            && (struct.graph_nodes || []).length === 0
+            && (struct.graph_edges || []).length === 0
+        )) {
+            // Fall back to the prompt-formatted blob (A1 mode, or
+            // when graph_rag returned empty bundle).
+            el.innerHTML = `<pre style="white-space:pre-wrap;">${_escapeHtml(fallbackText || '')}</pre>`;
+            return;
+        }
+        const parts = [];
+        if ((struct.chunks || []).length > 0) {
+            parts.push('<div class="rc-section"><div class="rc-section-label">Text Chunks ('
+                + struct.chunks.length + ')</div>');
+            for (const c of struct.chunks) {
+                parts.push('<div class="rc-row"><span class="rc-id">'
+                    + _escapeHtml(c.id) + '</span> '
+                    + '<span class="rc-meta">score ' + (c.score || 0).toFixed(3) + '</span>'
+                    + '<div class="rc-text">' + _escapeHtml(c.text || '') + '</div></div>');
+            }
+            parts.push('</div>');
+        }
+        if ((struct.graph_nodes || []).length > 0) {
+            parts.push('<div class="rc-section"><div class="rc-section-label">Graph Nodes ('
+                + struct.graph_nodes.length + ')</div>');
+            for (const n of struct.graph_nodes) {
+                const sd = n.semantic_definition ? ' — ' + _escapeHtml(n.semantic_definition) : '';
+                parts.push('<div class="rc-row"><span class="rc-id">' + _escapeHtml(n.id || '') + '</span> '
+                    + '<span class="rc-text"><strong>' + _escapeHtml(n.text || '') + '</strong> '
+                    + '<span class="rc-meta">[' + _escapeHtml(n.type || 'UNKNOWN') + ']</span>'
+                    + sd + '</span></div>');
+            }
+            parts.push('</div>');
+        }
+        if ((struct.graph_edges || []).length > 0) {
+            parts.push('<div class="rc-section"><div class="rc-section-label">Graph Edges ('
+                + struct.graph_edges.length + ')</div>');
+            for (const e of struct.graph_edges) {
+                const ev = e.evidence_text
+                    ? '<div class="rc-meta"><em>"' + _escapeHtml(e.evidence_text) + '"</em></div>'
+                    : '';
+                parts.push('<div class="rc-row">('
+                    + _escapeHtml(e.src || '') + ') —<strong>' + _escapeHtml(e.predicate || '?')
+                    + '</strong>→ (' + _escapeHtml(e.tgt || '') + ')' + ev + '</div>');
+            }
+            parts.push('</div>');
+        }
+        el.innerHTML = parts.join('');
+    }
+
     function getModeFromRadios() {
         const radios = document.querySelectorAll('input[name="modal-scenario-a-mode"]');
         for (const r of radios) {
@@ -142,10 +247,20 @@
                 return;
             }
             scenarioAState.lastResponse = { question, ticker, mode, ...data };
-            setText('modal-scenario-a-dense-answer', data.dense_answer);
-            setText('modal-scenario-a-graphrag-answer', data.graphrag_answer);
-            setText('modal-scenario-a-dense-context', data.retrieved_context_left);
-            setText('modal-scenario-a-graphrag-context', data.retrieved_context_right);
+            renderAnswer('modal-scenario-a-dense-answer', data.dense_answer);
+            renderAnswer('modal-scenario-a-graphrag-answer', data.graphrag_answer);
+            // Dense side: prompt-formatted text (no structured payload).
+            const dctx = document.getElementById('modal-scenario-a-dense-context');
+            if (dctx) {
+                dctx.innerHTML = '<pre style="white-space:pre-wrap;">'
+                    + _escapeHtml(data.retrieved_context_left || '') + '</pre>';
+            }
+            // GraphRAG side: structured chunks/nodes/edges with per-section labels.
+            renderRetrievedContextStruct(
+                'modal-scenario-a-graphrag-context',
+                data.retrieved_right_struct,
+                data.retrieved_context_right,
+            );
             if (analyzeBtn) analyzeBtn.disabled = false;
             setStatus('Done.');
         } catch (e) {

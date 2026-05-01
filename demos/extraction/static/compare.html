@@ -1601,15 +1601,64 @@ body {
 .scenario-b-panes .badge.badge-advanced { background: #3a1a4a; color: #b48fd6; }
 .scenario-a-panes .answer, .scenario-b-panes .answer {
     color: #c9d1d9; font-size: 13px; line-height: 1.5;
-    min-height: 60px; white-space: pre-wrap;
+    min-height: 60px;
+}
+.scenario-a-panes .answer p, .scenario-b-panes .answer p {
+    margin: 0 0 0.6em 0;
+}
+.scenario-a-panes .answer ul, .scenario-b-panes .answer ul {
+    margin: 0.4em 0; padding-left: 1.2em;
+}
+.scenario-a-panes .answer strong, .scenario-b-panes .answer strong {
+    color: #f0f6fc;
 }
 .scenario-a-panes .retrieved-context, .scenario-b-panes pre {
     background: #050511;
     color: #888; font-size: 10px; line-height: 1.4;
     padding: 8px;
     border-radius: 4px;
-    max-height: 200px; overflow-y: auto;
+    max-height: 280px; overflow-y: auto;
+}
+.scenario-a-panes .retrieved-context pre {
+    margin: 0; padding: 0; background: transparent;
+    color: inherit; font-size: inherit; line-height: inherit;
     white-space: pre-wrap;
+}
+.scenario-a-panes .rc-section {
+    margin-bottom: 10px;
+}
+.scenario-a-panes .rc-section:last-child {
+    margin-bottom: 0;
+}
+.scenario-a-panes .rc-section-label {
+    color: #5B9FE6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    padding: 4px 0 6px 0;
+    border-bottom: 1px solid #1a1a3e;
+    margin-bottom: 6px;
+}
+.scenario-a-panes .rc-row {
+    padding: 4px 6px;
+    border-left: 2px solid #1a1a3e;
+    margin-bottom: 4px;
+    color: #aaa;
+    font-size: 11px;
+}
+.scenario-a-panes .rc-id {
+    color: #6e7681;
+    font-family: monospace;
+    font-size: 10px;
+}
+.scenario-a-panes .rc-meta {
+    color: #6e7681;
+    font-size: 10px;
+}
+.scenario-a-panes .rc-text {
+    color: #c9d1d9;
+    margin-top: 2px;
 }
 .scenario-a-panes details, .scenario-b-panes details {
     margin-top: 8px; font-size: 11px; color: #aaa;
@@ -2626,12 +2675,12 @@ body {
                         <article class="pane pane-left">
                             <header><span class="pane-label">Dense RAG</span> <span class="badge">no graph</span></header>
                             <div class="answer" id="modal-scenario-a-dense-answer"></div>
-                            <details><summary>Retrieved chunks</summary><pre class="retrieved-context" id="modal-scenario-a-dense-context"></pre></details>
+                            <details><summary>Retrieved chunks</summary><div class="retrieved-context" id="modal-scenario-a-dense-context"></div></details>
                         </article>
                         <article class="pane pane-right">
                             <header><span class="pane-label">GraphRAG</span> <span class="badge mode-badge" id="modal-scenario-a-mode-badge">+1-hop</span></header>
                             <div class="answer" id="modal-scenario-a-graphrag-answer"></div>
-                            <details><summary>Retrieved context</summary><pre class="retrieved-context" id="modal-scenario-a-graphrag-context"></pre></details>
+                            <details open><summary>Retrieved context</summary><div class="retrieved-context" id="modal-scenario-a-graphrag-context"></div></details>
                         </article>
                     </div>
 
