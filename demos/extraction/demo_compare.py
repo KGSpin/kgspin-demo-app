@@ -2790,11 +2790,18 @@ async def _scenario_b_run_async(
     llm_client,
     enable_self_reflection: bool = True,
     progress_cb=None,
+    pipeline: str = "fan_out",
+    bundle: str = "financial-default",
+    n_hops: Optional[int] = None,
 ) -> dict:
     """Run the requested Scenario B panes, return dict[pane_name -> PaneOutput].
 
     pane_outputs is a DICT (not list) per VP-Eng major #5 — forward-
     compatible with 5B's tool_agent pane addition.
+
+    PRD-004 v5 Phase 5B+: ``pipeline`` + ``bundle`` route the paper_mirror
+    pane's graph-side retrieval to the slot's KG (was hardcoded fan_out
+    pre-5B+). agentic_dense pane is purely dense; pipeline doesn't affect it.
     """
     from kgspin_demo_app.services import (
         agentic_dense_rag, graphsearch_pipeline, scenario_resolver,
@@ -2828,6 +2835,7 @@ async def _scenario_b_run_async(
             ticker, question, llm=llm_client,
             enable_self_reflection=enable_self_reflection,
             progress_cb=lambda s, p: progress_cb(s, {**p, "pane": "paper_mirror"}) if progress_cb else None,
+            pipeline=pipeline, bundle=bundle, n_hops=n_hops,
         )
         pane_outputs["paper_mirror"] = {
             "name": "paper_mirror",
@@ -3121,17 +3129,14 @@ async def scenario_b_run(payload: dict):
         ensure_caches_on_disk,
     )
     kg_cache_entry = _kg_cache.get(ticker, {}) if ticker in _kg_cache else {}
-    # Multi-hop's internal services currently hardcode pipeline="fan_out"
-    # in their graph_rag calls; require fan_out specifically to be either
-    # built or buildable. The slot's own pipeline is also warmed so a
-    # follow-up scope-cut to thread slot_pipeline through doesn't need
-    # another lazy-build pass.
-    required_pipeline = "fan_out"  # multi-hop's internal contract today
-    optional_pipelines = [slot_pipeline] if slot_pipeline != "fan_out" else []
+    # PRD-004 v5 Phase 5B+: multi-hop's paper_mirror pane now uses the
+    # slot's pipeline (was hardcoded fan_out). Warm the slot's pipeline
+    # specifically; if the operator opened the modal from an
+    # agentic_analyst slot, multi-hop runs against agentic_analyst's KG.
     try:
         ensure_caches_on_disk(
             ticker=ticker,
-            pipeline=required_pipeline,
+            pipeline=slot_pipeline,
             bundle=slot_bundle,
             bundle_version="0.0.1",
             kg_cache_entry=kg_cache_entry,
@@ -3142,37 +3147,18 @@ async def scenario_b_run(payload: dict):
             status_code=503,
         )
     except KGNotInCache:
-        # Multi-hop hardcodes fan_out internally; if the user only ran
-        # agentic_flash/agentic_analyst on Compare, fan_out's KG isn't
-        # cached. Operator-friendly message with the specific remedy.
         return JSONResponse(
             {
                 "error": "kg_not_in_cache",
                 "detail": (
-                    f"Multi-hop requires the fan_out KG for {ticker!r} but "
-                    f"it's not in the cache. Run the slot with the "
-                    f"'KGSpin Default' (kgenskills/fan_out) pipeline on the "
-                    f"Compare tab first to populate fan_out's KG. "
-                    f"Single-shot Q&A works with any pipeline; multi-hop's "
-                    f"internal services hardcode fan_out today (deferred "
-                    f"refactor to thread slot_pipeline through)."
+                    f"No {slot_pipeline!r} KG for {ticker!r} in the cache. "
+                    f"Run this slot on the Compare tab first to extract its "
+                    f"KG, then re-open the modal."
                 ),
-                "missing_pipeline": required_pipeline,
+                "missing_pipeline": slot_pipeline,
             },
             status_code=503,
         )
-    # Best-effort: warm the slot's own pipeline too (no error if missing).
-    for pl in optional_pipelines:
-        try:
-            ensure_caches_on_disk(
-                ticker=ticker,
-                pipeline=pl,
-                bundle=slot_bundle,
-                bundle_version="0.0.1",
-                kg_cache_entry=kg_cache_entry,
-            )
-        except (LanderNotFound, KGNotInCache):
-            pass  # Optional warm; multi-hop runs against fan_out.
 
     async def _stream():
         # Test-injected progress queue (same pattern as the rest of
@@ -3199,6 +3185,7 @@ async def scenario_b_run(payload: dict):
             scenario_id=scenario_id, ticker=ticker, panes=runnable_panes,
             llm_client=llm, enable_self_reflection=enable_self_reflection,
             progress_cb=progress_cb,
+            pipeline=slot_pipeline, bundle=slot_bundle,
         ))
 
         # Drain the progress queue as the run progresses; emit final

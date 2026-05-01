@@ -110,9 +110,21 @@ def _emit(progress_cb: Optional[ProgressCb], stage: str, payload: dict) -> None:
 async def _retrieve_and_serialize(
     ticker: str, query: str, *, mode: str = "A2",
     filter_type: Optional[str] = None,
+    pipeline: str = "fan_out",
+    bundle_name: str = "financial-default",
+    n_hops: Optional[int] = None,
 ) -> str:
-    """Retrieve + optional filter + serialize → string for prompt."""
-    bundle = await graph_rag.aquery_context(ticker, query, mode=mode)
+    """Retrieve + optional filter + serialize → string for prompt.
+
+    PRD-004 v5 Phase 5B+: ``pipeline`` + ``bundle_name`` route the
+    graph-side load to the right ``_graph/{graph_key}/`` index. Pre-5B
+    silently used fan_out for every multi-hop run regardless of the
+    slot the operator opened the modal from.
+    """
+    bundle = await graph_rag.aquery_context(
+        ticker, query, mode=mode,
+        pipeline=pipeline, bundle=bundle_name, n_hops=n_hops,
+    )
     if filter_type is not None:
         bundle = graph_rag.context_filter(bundle, filter_type, query=query)
     return graph_rag.serialize_bundle_for_prompt(bundle)
@@ -125,15 +137,27 @@ async def run(
     llm: LLMClient,
     enable_self_reflection: bool = True,
     progress_cb: Optional[ProgressCb] = None,
+    pipeline: str = "fan_out",
+    bundle: str = "financial-default",
+    n_hops: Optional[int] = None,
 ) -> GraphSearchResult:
-    """Run the full dual-channel paper-mirror pipeline."""
+    """Run the full dual-channel paper-mirror pipeline.
+
+    ``pipeline`` + ``bundle`` route the graph-side retrieval to the
+    slot's pipeline-specific ``_graph/{graph_key}/`` index. Default
+    fan_out preserves pre-5B behavior for callers that don't pass
+    slot context.
+    """
     timings: dict[str, int] = {}
     retrieval_count = 0
     expansion_used = False
 
     # Stage 1 — Seed retrieval.
     t0 = time.time()
-    grag_seed_str = await _retrieve_and_serialize(ticker, question, mode="A2")
+    grag_seed_str = await _retrieve_and_serialize(
+        ticker, question, mode="A2",
+        pipeline=pipeline, bundle_name=bundle, n_hops=n_hops,
+    )
     retrieval_count += 1
     timings["seed_retrieval_ms"] = int((time.time() - t0) * 1000)
     _emit(progress_cb, "seed_retrieval_done", {})
@@ -172,6 +196,7 @@ async def run(
         t0_sub = time.time()
         sub_ctx = await _retrieve_and_serialize(
             ticker, sub_query, mode="A2", filter_type="semantic",
+            pipeline=pipeline, bundle_name=bundle, n_hops=n_hops,
         )
         retrieval_count += 1
         sub_ctx_summary = await text_summary(llm, sub_query, sub_ctx)
@@ -209,6 +234,7 @@ async def run(
             for expanded in expanded_queries:
                 expanded_ctx = await _retrieve_and_serialize(
                     ticker, expanded, mode="A2", filter_type="semantic",
+                    pipeline=pipeline, bundle_name=bundle, n_hops=n_hops,
                 )
                 retrieval_count += 1
                 expanded_summary = await text_summary(llm, expanded, expanded_ctx)
@@ -236,6 +262,7 @@ async def run(
         sub_kg_clean = extract_words_str(sub_kg_query)
         sub_kg_ctx = await _retrieve_and_serialize(
             ticker, sub_kg_clean, mode="A2", filter_type="relational",
+            pipeline=pipeline, bundle_name=bundle, n_hops=n_hops,
         )
         retrieval_count += 1
         sub_kg_summary = await kg_summary(llm, sub_kg_query, sub_kg_ctx)
@@ -272,6 +299,7 @@ async def run(
             for expanded in expanded_queries:
                 expanded_ctx = await _retrieve_and_serialize(
                     ticker, expanded, mode="A2", filter_type="relational",
+                    pipeline=pipeline, bundle_name=bundle, n_hops=n_hops,
                 )
                 retrieval_count += 1
                 expanded_summary = await kg_summary(llm, expanded, expanded_ctx)
