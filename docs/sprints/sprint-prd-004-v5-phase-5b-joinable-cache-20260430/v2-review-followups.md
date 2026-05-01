@@ -229,21 +229,176 @@ logger.info(
 
 ---
 
+---
+
+## 9. Fan_out resolver-swap regression test (CTO post-spike requirement)
+
+**Owner**: dev. **Lands in**: commit 1 (D1 — `kgspin_interface.text.normalize`
+utility + chunk-id resolver deprecation).
+**Status**: EXECUTE-blocker for commit 1.
+
+CTO sign-off on spike picked **(a)** — deprecate the chunk-id-bound
+`_resolve_evidence_span` and replace it with the global-search resolver
+sprint-wide. Safety net: pin today's behavior **before** swapping so the
+new path is provably a superset of the old one (or any diff is documented).
+
+**Action**: in commit 1, before deleting `build_rag_corpus._resolve_evidence_span`:
+
+1. Capture today's resolver output on the JNJ 10-K fan_out fixture:
+   ```python
+   # tests/regression/test_resolver_fan_out_baseline.py
+   def test_fan_out_resolution_baseline_pinned():
+       """Captures the chunk-id-bound resolver's output on JNJ 10-K
+       (fan_out KG) so commit 1's resolver swap can prove subsumption."""
+       baseline = json.loads(BASELINE_PATH.read_text())  # pinned in repo
+       chunks = load_chunks("tests/fixtures/baseline-jnj-10k/")
+       kg = load_fan_out_kg("tests/fixtures/baseline-jnj-10k/")
+       resolved_today = {
+           e.id: _resolve_evidence_span_LEGACY(plaintext, chunks, e.evidence)
+           for e in kg.entities + kg.relationships
+       }
+       assert resolved_today == baseline
+   ```
+2. Run the new global resolver on the same input:
+   ```python
+   def test_fan_out_resolution_new_global_subsumes_baseline():
+       """Asserts the new global resolver returns offsets that match the
+       legacy chunk-id-bound resolver byte-for-byte on fan_out (or
+       documents the per-evidence diff if any)."""
+       baseline = json.loads(BASELINE_PATH.read_text())
+       resolved_new = {
+           e.id: resolve_evidence_offsets(plaintext, chunks, e.evidence)
+           for e in kg.entities + kg.relationships
+       }
+       diff = {k: (baseline[k], resolved_new[k]) for k in baseline if baseline[k] != resolved_new[k][0]}
+       if diff:
+           # Allow diff but require it to be documented in the test docstring
+           # AND the global resolver's char_span must STILL fall inside the
+           # legacy span (i.e. the new resolver is at least as accurate).
+           for ev_id, (legacy_span, (new_span, _conf)) in diff.items():
+               assert new_span is None or _span_contained_in(new_span, legacy_span), (
+                   f"{ev_id}: new resolver span {new_span} falls outside "
+                   f"legacy span {legacy_span} — that's a regression, not a refinement."
+               )
+       assert len(diff) <= 0.05 * len(baseline), f"Diff rate {len(diff)/len(baseline):.1%} > 5%"
+   ```
+3. Pin the baseline JSON at `tests/fixtures/baseline-jnj-10k/resolver_baseline.json`
+   and commit it. Future resolver changes must update this fixture
+   intentionally.
+
+If the diff is non-trivial (>5% of evidence rows differ between
+resolvers), pause commit 1 — surface the diff to CTO before proceeding.
+
+---
+
+## 10. D6 explicit empirical threshold + mitigation path (CTO post-spike requirement)
+
+**Owner**: dev. **Lands in**: plan v3 (immediately) + commit 6 (D6).
+**Status**: EXECUTE-blocker for commit 6.
+
+CTO callout: spike says "LLM pipelines likely pass; empirical measurement
+deferred to D6" — that's fine for the spike gate, but D6 needs an
+**explicit empirical threshold** AND a pre-defined mitigation path so
+commit 6 doesn't discover failure with no plan.
+
+**Threshold (locked)**: ≥95% **sentence-level** resolution on
+`agentic_flash` + `agentic_analyst` over the JNJ 10-K test fixture.
+(Note: spike's gate criterion was ≥90% across `{sentence, chunk}` —
+this is a stricter sub-criterion specifically for sentence-level
+resolution on LLM pipelines, since chunk-level fallback degrades
+retrieval precision.)
+
+**Mitigation paths** (pre-defined; D6 picks based on which pipelines fail):
+
+- **(i) Per-pipeline resolver registry**: `RESOLVER_REGISTRY[pipeline]`
+  maps each pipeline to a custom resolver. LLM pipelines that fail the
+  ≥95% gate get a richer resolver:
+  - Tighter prompt fidelity (re-prompt the LLM with "use exact wording
+    from the source"), OR
+  - Pre-search source.txt for sentences containing each emitted entity's
+    text and use the longest substring overlap as the sentence anchor.
+  Cost: +1-2 days dev work in D6; no operator-visible impact.
+
+- **(ii) Lower threshold + document known-imperfect rate**: ship D6 with
+  the empirical rate (e.g. "agentic_flash resolves to sentence-level at
+  87%; chunk-level at 13%") in `architecture.md`. Defer perfect resolution
+  to 5E (provenance-aware reranking) where chunk-level evidence gets
+  downweighted. Acceptable iff failed pipeline still ≥85% combined
+  `{sentence, chunk}` rate.
+
+- **(iii) Downgrade pipeline out of Q1=(b) day-1 scope**: index built but
+  flagged `retrieval_ready=False`. The slot's modal Why-tab Run shows a
+  "GraphRAG retrieval reduced to chunk-level only for {pipeline}" status.
+  Per CTO scope-cut (no new UX in modal Why tab), this becomes a console
+  log + admin warning instead of a UI label. Pipeline still works, just
+  documented as imperfect.
+
+**D6's commit message** must explicitly state which mitigation was
+chosen (if needed) and the empirical numbers. CTO sign-off required
+before commit 6 lands if mitigation (i) or (iii) is invoked.
+
+---
+
+## 11. Cross-repo backlog: kgspin-core `Evidence.character_span` universality (CTO post-spike requirement)
+
+**Owner**: kgspin-core team (CTO-dispatched directly).
+**Status**: ✅ HANDLED — CTO dispatched a dedicated kgspin-core sprint
+(`sprint-evidence-character-span-audit-20260501` off `main`) on
+2026-05-01 in parallel with this filing. Sprint scope: audit all 5
+extractors + investigate intent + pick (A) populate / (B) remove /
+(C) document explicitly + ADR + cross-repo note back to demo team.
+Caps: 4h wall-clock, 4-6 commits, push not merge. CTO dispatch memo
+at `/tmp/cto/core-evidence-charspan-20260501/goal.md` (transient; ADR
+will be the durable record).
+
+**Demo-team action**: none. The CTO sprint supersedes the demo-team
+filing this followup originally specified. Demo team waits for the
+cross-repo note back; the global sentence-search resolver in commit
+1 works regardless of A/B/C outcome, so this can't block 5B's EXECUTE.
+
+**When the cross-repo note arrives**:
+- If (A) populate: future 5C/5E may consume `character_span` directly
+  for higher-fidelity offsets (skipping the global sentence-search step
+  on populated rows).
+- If (B) remove: cleanup PR in demo-app to drop any defensive code that
+  reads `Evidence.character_span` (currently the demo doesn't read it,
+  so likely a no-op).
+- If (C) document: no demo-app code change.
+
+---
+
 ## Summary: per-commit gate
 
 | Commit | Followups landing | Status |
 |--------|-------------------|--------|
 | 0 (spike) | none | — |
-| 1 (D1) | none | — |
+| 1 (D1) | **#9 (CTO post-spike: regression-test safety net)** | EXECUTE-blocker |
 | 2 (D2) | none | — |
 | 3 (D3) | none | — |
 | 4 (D4) | #2 | EXECUTE-blocker |
 | 5 (D5) | #1, #7 | EXECUTE-blocker |
-| 6 (D6) | #8 | in-flight |
+| 6 (D6) | #8, **#10 (CTO post-spike: empirical threshold + mitigation)** | in-flight (#8); EXECUTE-blocker (#10) |
 | 7 (D7) | none | — |
 | 8 (D8) | #4, #5 | EXECUTE-blocker (#4); in-flight (#5) |
 | 9 (D9 + docs) | #3, #6 | EXECUTE-blocker (#3); in-flight (#6) |
 | 10 (D9 cont.) | none | — |
+| (post-sprint) | **#11 (CTO post-spike: kgspin-core backlog ticket)** | post-sprint, not blocking |
 
-EXECUTE-blockers (5 of 8 followups) are non-negotiable per their named
-commit. In-flight items can land any time during the sprint.
+EXECUTE-blockers (8 of 11 followups) are non-negotiable per their named
+commit. In-flight items can land any time during the sprint. Post-sprint
+items are filed but don't gate 5B.
+
+---
+
+## CTO post-spike additions (2026-05-01)
+
+Three items added after CTO sign-off on commit 0's spike:
+
+- **#9** — fan_out resolver-swap regression test (commit 1 EXECUTE-blocker).
+- **#10** — D6 explicit ≥95% sentence-level threshold + 3 pre-defined
+  mitigation paths (commit 6 EXECUTE-blocker).
+- **#11** — kgspin-core backlog ticket for `Evidence.character_span`
+  universality (post-sprint, one-liner).
+
+CTO confirmed: push convention stays "push only on sprint-close." No
+flip needed.
