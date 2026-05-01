@@ -342,28 +342,96 @@ before commit 6 lands if mitigation (i) or (iii) is invoked.
 ## 11. Cross-repo backlog: kgspin-core `Evidence.character_span` universality (CTO post-spike requirement)
 
 **Owner**: kgspin-core team (CTO-dispatched directly).
-**Status**: ✅ HANDLED — CTO dispatched a dedicated kgspin-core sprint
-(`sprint-evidence-character-span-audit-20260501` off `main`) on
-2026-05-01 in parallel with this filing. Sprint scope: audit all 5
-extractors + investigate intent + pick (A) populate / (B) remove /
-(C) document explicitly + ADR + cross-repo note back to demo team.
-Caps: 4h wall-clock, 4-6 commits, push not merge. CTO dispatch memo
-at `/tmp/cto/core-evidence-charspan-20260501/goal.md` (transient; ADR
-will be the durable record).
+**Status**: ✅ **RESOLVED — ADR-037 (option B chosen: remove the field).**
 
-**Demo-team action**: none. The CTO sprint supersedes the demo-team
-filing this followup originally specified. Demo team waits for the
-cross-repo note back; the global sentence-search resolver in commit
-1 works regardless of A/B/C outcome, so this can't block 5B's EXECUTE.
+CTO dispatched `sprint-evidence-character-span-audit-20260501` (off
+kgspin-core's `main`) in parallel with this filing. Sprint landed
+**ADR-037 (Accepted)** with option B: `Evidence.character_span` is
+removed from the schema. Reasoning per ADR-037: chunker offsets have
+paragraph-strip drift so populating the field accurately was
+unattainable cheaply, and the demo team's global-search resolver
+(`kgspin_interface.text.normalize.resolve_evidence_offsets`, landed
+in commit 1) already subsumes the use case. Demo team's spike diagnosis
+was right; the global resolver is now the canonical span-resolution
+path across the kgspin cluster.
 
-**When the cross-repo note arrives**:
-- If (A) populate: future 5C/5E may consume `character_span` directly
-  for higher-fidelity offsets (skipping the global sentence-search step
-  on populated rows).
-- If (B) remove: cleanup PR in demo-app to drop any defensive code that
-  reads `Evidence.character_span` (currently the demo doesn't read it,
-  so likely a no-op).
-- If (C) document: no demo-app code change.
+**Demo-team action — verified during commit 2 (D2)**: zero reads of
+`Evidence.character_span` in `kgspin_demo_app/`, `scripts/`, or
+`services/`. Test fixtures inject the value as dict data for testing
+downstream consumers; no test asserts real extraction produces
+character_span. Net: no demo-app code change required for ADR-037.
+
+**Post-ADR-037 cleanup** (not 5B-blocking): when kgspin-core's removal
+PR merges, demo-app test fixtures
+(`tests/unit/test_graph_rag.py`, `tests/unit/test_build_rag_corpus.py`)
+can drop the `"character_span"` keys from their hand-authored Evidence
+dicts. Trivial cleanup; tracked but not gating.
+
+**Cite at sprint close**: dev-report.md will reference ADR-037 as the
+canonical record of the removal decision and the cross-repo trail
+(spike diagnosis → CTO dispatch → ADR → demo's resolver becomes the
+cluster's span-resolution path).
+
+---
+
+## 12. Lineage display wires through `resolve_evidence_offsets` (CTO post-D1 requirement)
+
+**Owner**: dev. **Lands in**: commit 5 (D5 — `_graph/{graph_key}/`
+builder) **as a sub-commit / co-commit** (CTO dealer's-choice between
+D5 and D6; we picked D5 for artifact-dependency cohesion).
+**Status**: EXECUTE-blocker for commit 5.
+
+The CEO wants the lineage display to render character-precise
+highlighting (highlight the exact phrase within the sentence, not the
+whole sentence). Today the demo surfaces evidence at 3 call sites as
+`r.evidence.sentence_text`:
+
+- `src/kgspin_demo_app/api/server.py:382`
+- `src/kgspin_demo_app/api/server.py:514`
+- `src/kgspin_demo_app/mcp_server.py:323`
+
+All three follow the identical pattern:
+`"evidence": r.evidence.sentence_text if r.evidence else None`.
+
+**Action**: in commit 5's D5 work (where the `_graph/{graph_key}/`
+artifact lands and `source.txt` is on disk via D2), update each
+call site to:
+
+1. Resolve `(start_char, end_char)` against `source.txt` via
+   `kgspin_interface.text.normalize.resolve_evidence_offsets`.
+2. Emit alongside `sentence_text`:
+   ```json
+   {
+     "subject": "...",
+     "predicate": "...",
+     "object": "...",
+     "evidence": "Tim Cook serves as ...",
+     "evidence_span": [12345, 12401],
+     "evidence_join_confidence": "sentence"
+   }
+   ```
+3. UI template change: render character-precise highlighting using the
+   `(start, end)` offsets (highlight the exact span inside `sentence_text`,
+   not the whole sentence).
+
+**Sequencing**: depends on D2's `source.txt` artifact being available
+at request-time. D5 is when the `_graph/{graph_key}/` lookup wires up
+end-to-end, so the lineage call sites can read the persisted
+`source.txt` from the slot's `(domain, source, ticker, date)` resolved
+path.
+
+**Scope cap**: ~1-2 hours including UI template + tests. CTO
+escalation trigger if it grows past 3h. Open known check: whether
+the lineage UI already has an offset-based highlighter (some templates
+do; some highlight the whole sentence as a span). If it doesn't, the
+template work is closer to ~1.5h than 0.5h. Surface during D5; ship a
+sentence-span fallback for D5 + defer character-precise highlighting
+to a follow-up sprint if total exceeds 3h.
+
+**Why now (per CTO)**: the resolver is fresh in our heads, the surface
+is tiny (3 call sites + one template), and the alternative is
+re-context-switching later. Demo lineage and RAG converge on the same
+primitive — that's the cleanup.
 
 ---
 
@@ -376,7 +444,7 @@ cross-repo note back; the global sentence-search resolver in commit
 | 2 (D2) | none | — |
 | 3 (D3) | none | — |
 | 4 (D4) | #2 | EXECUTE-blocker |
-| 5 (D5) | #1, #7 | EXECUTE-blocker |
+| 5 (D5) | #1, #7, **#12 (CTO post-D1: lineage uses resolver)** | EXECUTE-blocker |
 | 6 (D6) | #8, **#10 (CTO post-spike: empirical threshold + mitigation)** | in-flight (#8); EXECUTE-blocker (#10) |
 | 7 (D7) | none | — |
 | 8 (D8) | #4, #5 | EXECUTE-blocker (#4); in-flight (#5) |
@@ -384,7 +452,7 @@ cross-repo note back; the global sentence-search resolver in commit
 | 10 (D9 cont.) | none | — |
 | (post-sprint) | **#11 (CTO post-spike: kgspin-core backlog ticket)** | post-sprint, not blocking |
 
-EXECUTE-blockers (8 of 11 followups) are non-negotiable per their named
+EXECUTE-blockers (9 of 12 followups) are non-negotiable per their named
 commit. In-flight items can land any time during the sprint. Post-sprint
 items are filed but don't gate 5B.
 
@@ -394,11 +462,25 @@ items are filed but don't gate 5B.
 
 Three items added after CTO sign-off on commit 0's spike:
 
-- **#9** — fan_out resolver-swap regression test (commit 1 EXECUTE-blocker).
+- **#9** — fan_out resolver-swap regression test (commit 1 EXECUTE-blocker). ✅ landed.
 - **#10** — D6 explicit ≥95% sentence-level threshold + 3 pre-defined
   mitigation paths (commit 6 EXECUTE-blocker).
-- **#11** — kgspin-core backlog ticket for `Evidence.character_span`
-  universality (post-sprint, one-liner).
+- **#11** — kgspin-core decision on `Evidence.character_span` —
+  ✅ **RESOLVED** by ADR-037 (option B: remove the field). Verified
+  during commit 2 that demo-app code doesn't read the field; cleanup
+  of test-fixture dict keys post-ADR-037 merge.
 
 CTO confirmed: push convention stays "push only on sprint-close." No
 flip needed.
+
+---
+
+## CTO post-D1 additions (2026-05-01)
+
+One item added after CTO sign-off on commit 1 (D1):
+
+- **#12** — Lineage display wires through `resolve_evidence_offsets`
+  at 3 call sites. EXECUTE-blocker for commit 5 (D5 sub-commit per
+  CTO dealer's-choice between D5 and D6; we picked D5 for
+  artifact-dependency cohesion). Scope cap: 1-2h with 3h escalation
+  trigger.
