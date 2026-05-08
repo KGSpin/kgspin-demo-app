@@ -92,3 +92,7 @@ testpaths = ["tests"]
 # importable when pytest resolves the rootdir. Matches the src-layout
 # hatchling build.
 pythonpath = ["src"]
+markers = [
+    "slow: tests that exercise real extraction pipelines end-to-end (skipped by default; run via `pytest -m slow` or `make smoke`)",
+    "requires_local_model: tests that need a domain model registered locally (skipped on CI)",
+]
