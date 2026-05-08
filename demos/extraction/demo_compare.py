@@ -7773,18 +7773,25 @@ def _parse_and_chunk(html_content: str, ticker: str, corpus_kb: int = DEFAULT_CO
         (bundle, full_text, truncated_text, actual_kb, all_chunks)
     """
     from kgspin_core.execution.extractor import DocumentChunker
-
-    from kgspin_core.execution.preprocessors import resolve_preprocessors
+    from kgspin_core.preprocessing import (
+        build_pipeline_from_bundle,
+        build_preprocessor_context,
+    )
 
     bundle = _get_bundle(bundle_name)
-    # Sprint 39: Run bundle's pre-phase preprocessors (ixbrl_strip + xbrl_taxonomy_strip)
-    # instead of hardcoded strip_ixbrl() — domain-scoped cleaning per ADR-010
-    pre_procs = resolve_preprocessors(
-        getattr(bundle, "preprocessors", []), phase="pre",
+    # ADR-038 (Sprint 14): bundle preprocessors flow through the single
+    # PreprocessorPipeline constructor — same chain as inference-time
+    # kg_orchestrator and training-time Prophet labeling, by construction.
+    pipeline = build_pipeline_from_bundle(bundle)
+    plugin_ctx = build_preprocessor_context(
+        bundle=bundle,
+        main_entity=ticker,
+        source_document=f"{ticker}_10K.html",
+        document_metadata={},
     )
-    cleaned_html = html_content
-    for proc in pre_procs:
-        cleaned_html = proc.process(cleaned_html, Path(f"{ticker}_10K.html"), {})
+    cleaned_html = pipeline.run_on_bytes(
+        html_content.encode("utf-8"), plugin_ctx,
+    )
     full_text = html_to_text(cleaned_html)
     # corpus_kb=0 means "full document" — no truncation
     if corpus_kb == 0:
