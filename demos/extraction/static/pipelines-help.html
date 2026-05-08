@@ -51,6 +51,7 @@ Source of truth: <code>docs/architecture/product_naming_proposal.md</code> and
   <a href="#discovery-rapid">Rapid Discovery</a>
   <a href="#discovery-deep">Deep Discovery</a>
   <a href="#fan-out">Signal Fan-out</a>
+  <a href="#fan-out-trained">Signal Fan-out (trained)</a>
   <a href="#agentic-flash">Agentic Flash</a>
   <a href="#agentic-analyst">Agentic Analyst</a>
 </div>
@@ -85,6 +86,27 @@ this document", Fan-out asks "what are the events/relationships in this
 document, and who participates". Default for slot 1.</p>
 <p><strong>Strategy:</strong> <code>fan_out</code> &nbsp;
 <strong>Pipeline YAML:</strong> <code>fan-out.yaml</code></p>
+
+<h2 id="fan-out-trained">Signal Fan-out (trained) <span class="tag zero">0 tokens</span></h2>
+<p class="capability">Capability: Fan-out · Domain-trained</p>
+<p>Sibling to Signal Fan-out, but the entity-recognition step inside
+the fan-out pass is delegated to the bundle's
+<code>entity_recognition_model</code> — a domain-trained Phi-3 + LoRA
+adapter — instead of the heuristic anchor scan over
+<code>positive_examples</code>. Everything else (relationship binding,
+sieves, postprocess) is identical, so this is the right slot to put
+next to <code>fan_out</code> when you want to see what a learned model
+catches that the heuristic baseline misses (e.g., named products /
+people the bundle's <code>positive_examples</code> doesn't anticipate).</p>
+<p><strong>Failure mode (by design):</strong> if the bundle has no
+<code>entity_recognition_model</code> field, or kgspin-admin can't
+resolve the registered model, the slot fails fast with a typed
+<code>MissingDomainModelError</code> and renders a red "No trained model
+registered" overlay. There is intentionally no silent fallback to the
+heuristic path — that would mask the misconfiguration the demo is
+trying to surface.</p>
+<p><strong>Strategy:</strong> <code>fan_out_trained</code> &nbsp;
+<strong>Pipeline YAML:</strong> <code>fan-out-trained.yaml</code></p>
 
 <h2 id="agentic-flash">Agentic Flash <span class="tag llm">LLM</span></h2>
 <p class="capability">Capability: Agentic</p>

@@ -852,6 +852,10 @@ const LLM_FAILURE_COPY = {
         title: 'Failed to generate',
         help: '',
     },
+    'missing_domain_model': {
+        title: 'No trained model registered',
+        help: 'This bundle has no <code>entity_recognition_model</code> field, or the registered model could not be resolved by kgspin-admin. The trained pipeline fails fast on purpose — silent fallback to the heuristic path would mask misconfiguration. Pick a different bundle or pipeline, or register the model in admin.',
+    },
 };
 
 function renderSlotFailure(slotIdx, reason, message, errorType) {

@@ -18,11 +18,13 @@ async function loadBundles(domain) {
         sSel.innerHTML = '';
         const strategyLabels = {
             'fan_out': 'Signal Fan-out',
+            'fan_out_trained': 'Signal Fan-out (trained)',
             'discovery_rapid': 'Rapid Discovery',
             'discovery_deep': 'Deep Discovery',
         };
         const strategyTooltips = {
             'fan_out': 'Relation-first, zero-token',
+            'fan_out_trained': 'Domain-trained model, zero-token',
             'discovery_rapid': 'Linguistic baseline, zero-token',
             'discovery_deep': 'Neural-hybrid, zero-token',
         };
