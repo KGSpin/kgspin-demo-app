@@ -7231,8 +7231,28 @@ async def _run_kgen_refresh(
             kgs_task.cancel()
             return
 
+    from kgspin_core.exceptions import MissingDomainModelError
+
     try:
         kgs_kg = kgs_task.result()
+    except MissingDomainModelError as e:
+        # fan_out_trained: bundle is missing entity_recognition_model or
+        # the admin registry can't resolve it. Surface as a typed UI
+        # failure (reason="missing_domain_model") — never silent-fallback
+        # to the heuristic path; the demo's whole point is the diff.
+        logger.exception(
+            "kgspin missing_domain_model (bundle=%s pipeline=%s)",
+            bundle_name, pipeline_id,
+        )
+        yield sse_event("error", {
+            "step": "kgenskills", "pipeline": "kgenskills",
+            "reason": "missing_domain_model",
+            "message": str(e),
+            "error_type": type(e).__name__,
+            "recoverable": False,
+        })
+        yield sse_event("done", {"total_duration_ms": 0})
+        return
     except Exception as e:
         # INIT-001 Sprint 02: preserve the traceback in the server log so
         # upstream bugs (e.g., kgspin-core TypeError in emergent scoring,
