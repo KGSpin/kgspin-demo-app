@@ -23,11 +23,19 @@ import demo_compare as dc  # type: ignore
 
 CANONICAL = [
     "fan_out",
+    "fan_out_trained",
     "discovery_rapid",
     "discovery_deep",
     "agentic_flash",
     "agentic_analyst",
 ]
+
+
+def test_fan_out_trained_canonicalizes() -> None:
+    """fan_out_trained → fan-out-trained admin pipeline name."""
+    ref = dc._pipeline_ref_from_strategy("fan_out_trained")
+    assert ref.name == "fan-out-trained"
+    assert ref.version == "v1"
 
 
 @pytest.mark.parametrize("strategy", CANONICAL)

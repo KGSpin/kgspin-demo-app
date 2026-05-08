@@ -1850,6 +1850,7 @@ async def compare_clinical(
 # Demo maps them to pipeline config names 1:1 by replacing ``_`` with ``-``.
 CANONICAL_PIPELINE_STRATEGIES = (
     "fan_out",
+    "fan_out_trained",
     "discovery_rapid",
     "discovery_deep",
     "agentic_flash",

@@ -90,6 +90,7 @@ const PIPELINE_META = {
     'discovery_rapid':   { label: 'Rapid Discovery',  subtitle: 'Linguistic baseline · 0 tokens',        backend: 'kgenskills', strategy: 'discovery_rapid', isKgspin: true,  color: '#5ED68A', capability: 'Discovery', helpAnchor: 'discovery-rapid' },
     'discovery_deep':    { label: 'Deep Discovery',   subtitle: 'Neural-hybrid · 0 tokens',              backend: 'kgenskills', strategy: 'discovery_deep',  isKgspin: true,  color: '#5ED68A', capability: 'Discovery', helpAnchor: 'discovery-deep' },
     'fan_out':           { label: 'Signal Fan-out',   subtitle: 'Relation-first · 0 tokens',             backend: 'kgenskills', strategy: 'fan_out',         isKgspin: true,  color: '#5ED68A', capability: 'Fan-out',   helpAnchor: 'fan-out' },
+    'fan_out_trained':   { label: 'Signal Fan-out (trained)', subtitle: 'Domain-trained · 0 tokens',     backend: 'kgenskills', strategy: 'fan_out_trained', isKgspin: true,  color: '#5ED68A', capability: 'Fan-out',   helpAnchor: 'fan-out-trained' },
     'agentic_flash':     { label: 'Agentic Flash',    subtitle: 'LLM single-prompt',                     backend: 'gemini',     strategy: '',                isKgspin: false, color: '#E74C3C', capability: 'Agentic',   helpAnchor: 'agentic-flash' },
     'agentic_analyst':   { label: 'Agentic Analyst',  subtitle: 'LLM multi-stage schema-aware',          backend: 'modular',    strategy: '',                isKgspin: false, color: '#F39C12', capability: 'Agentic',   helpAnchor: 'agentic-analyst' },
 };
