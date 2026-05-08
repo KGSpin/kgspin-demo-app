@@ -2279,6 +2279,13 @@ body {
             <h3 style="color:#9B59B6; margin:0 0 12px 0; font-size:15px;">Pairwise Performance Delta</h3>
             <div id="pairwise-matrix"></div>
         </div>
+        <!-- Trained vs. Heuristic Diff (auto-shows when a fan_out + fan_out_trained slot pair has both completed) -->
+        <div id="trained-diff-panel" style="display:none; margin-top:16px; padding:12px; background:#0d0d1a; border:1px solid #1a1a2e; border-radius:6px;">
+            <h3 style="color:#5ED68A; margin:0 0 12px 0; font-size:15px;">Trained vs. Heuristic Diff</h3>
+            <div id="trained-diff-context" style="color:#888; font-size:11px; margin-bottom:10px;"></div>
+            <div id="trained-diff-counts"></div>
+            <div id="trained-diff-sets" style="margin-top:12px;"></div>
+        </div>
         <div id="efficiency-audit" style="display:none;"></div>
         <div id="analysis-panel" style="display:none;">
             <h2>Comparison Matrix</h2>
@@ -3085,6 +3092,7 @@ body {
 <script src="/static/js/settings.js"></script>
 <script src="/static/js/domain-switch.js"></script>
 <script src="/static/js/graph.js"></script>
+<script src="/static/js/diff.js"></script>
 <script src="/static/js/slots.js"></script>
 <script src="/static/js/intelligence.js"></script>
 <script src="/static/js/impact.js"></script>

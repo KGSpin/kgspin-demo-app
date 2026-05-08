@@ -134,6 +134,7 @@ async function onSlotPipelineChange(slotIdx) {
         delete networks[`slot-${slotIdx}`];
     }
     slotState[slotIdx] = { pipeline: pipelineKey, bundle: '', strategy: '', visData: null, stats: null, kg: null };
+    if (typeof maybeRenderTrainedDiff === 'function') maybeRenderTrainedDiff();
 
     if (!pipelineKey) {
         bundleSel.style.display = 'none';
@@ -268,6 +269,7 @@ async function tryLoadCachedSlot(slotIdx) {
             updateAnalyzeButton();
             updateSlotHistory(slotIdx);
             if (typeof loadSlotHealth === 'function') loadSlotHealth(slotIdx);
+            if (typeof maybeRenderTrainedDiff === 'function') maybeRenderTrainedDiff();
             return;
         }
     } catch (e) {
@@ -412,6 +414,7 @@ function runSlot(slotIdx) {
             updateAnalyzeButton();
             updateSlotHistory(slotIdx);
             if (typeof loadSlotHealth === 'function') loadSlotHealth(slotIdx);
+            if (typeof maybeRenderTrainedDiff === 'function') maybeRenderTrainedDiff();
 
             // Sprint 05 HITL-round-2: WTM moved into the expand modal as a
             // slot-scoped "Why" tab. Nothing to show inline here any more.
@@ -473,6 +476,9 @@ function runSlot(slotIdx) {
                         helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">The LLM provider timed out or was unreachable. Check network + try again.</div>';
                     } else if (d.reason === 'extraction_failed') {
                         title = 'Failed to generate';
+                    } else if (d.reason === 'missing_domain_model') {
+                        title = 'No trained model registered';
+                        helpLink = '<div style="margin-top:12px; color:#c9d1d9; font-size:12px;">This bundle has no <code>entity_recognition_model</code> field, or the registered model could not be resolved by kgspin-admin. The trained pipeline fails fast on purpose — silent fallback to the heuristic path would mask misconfiguration. Pick a different bundle or pipeline, or register the model in admin.</div>';
                     }
                     const attempted = (d.attempted || []).join(', ');
                     const attemptedStr = attempted ? `<div style="margin-top:6px; color:#6e7681; font-size:10px;">Providers attempted: ${attempted}</div>` : '';
